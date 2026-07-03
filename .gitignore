@@ -1,0 +1,6 @@
+/data/
+/clickbench parquet files/
+/.gocache/
+/parquet_compress
+*.test
+*.parquet

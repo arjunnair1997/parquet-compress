@@ -1,0 +1,1 @@
+TODO: Add support to parquet go so that it reports a distribution of the encoded page sizes back(pre snappy/zstd compression).
