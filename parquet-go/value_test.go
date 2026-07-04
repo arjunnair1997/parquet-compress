@@ -1,0 +1,180 @@
+package parquet_test
+
+import (
+	"bytes"
+	"math"
+	"testing"
+	"time"
+	"unsafe"
+
+	"parquet_compress/parquet-go"
+	"parquet_compress/parquet-go/deprecated"
+)
+
+func TestSizeOfValue(t *testing.T) {
+	t.Logf("sizeof(parquet.Value) = %d", unsafe.Sizeof(parquet.Value{}))
+}
+
+func BenchmarkValueAppend(b *testing.B) {
+	const N = 1024
+	row := make(parquet.Row, 0, N)
+	val := parquet.ValueOf(42)
+
+	for b.Loop() {
+		row = row[:0]
+		for range N {
+			row = append(row, val)
+		}
+	}
+
+	b.SetBytes(N * int64(unsafe.Sizeof(parquet.Value{})))
+}
+
+func TestValueClone(t *testing.T) {
+	tests := []struct {
+		scenario string
+		values   []any
+	}{
+		{
+			scenario: "BOOLEAN",
+			values:   []any{false, true},
+		},
+
+		{
+			scenario: "INT32",
+			values:   []any{int32(0), int32(1), int32(math.MinInt32), int32(math.MaxInt32)},
+		},
+
+		{
+			scenario: "INT64",
+			values:   []any{int64(0), int64(1), int64(math.MinInt64), int64(math.MaxInt64)},
+		},
+
+		{
+			scenario: "FLOAT",
+			values:   []any{float32(0), float32(1), float32(-1)},
+		},
+
+		{
+			scenario: "DOUBLE",
+			values:   []any{float64(0), float64(1), float64(-1)},
+		},
+
+		{
+			scenario: "BYTE_ARRAY",
+			values:   []any{"", "A", "ABC", "Hello World!"},
+		},
+
+		{
+			scenario: "FIXED_LEN_BYTE_ARRAY",
+			values:   []any{[1]byte{42}, [16]byte{0: 1}},
+		},
+
+		{
+			scenario: "TIME",
+			values: []any{
+				time.Date(2020, 1, 2, 3, 4, 5, 7, time.UTC),
+				time.Date(2021, 2, 3, 4, 5, 6, 8, time.UTC),
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.scenario, func(t *testing.T) {
+			for _, value := range test.values {
+				v := parquet.ValueOf(value)
+				c := v.Clone()
+
+				if !parquet.DeepEqual(v, c) {
+					t.Errorf("cloned values are not equal: want=%#v got=%#v", v, c)
+				}
+				if v.RepetitionLevel() != c.RepetitionLevel() {
+					t.Error("cloned values do not have the same repetition level")
+				}
+				if v.DefinitionLevel() != c.DefinitionLevel() {
+					t.Error("cloned values do not have the same definition level")
+				}
+				if v.Column() != c.Column() {
+					t.Error("cloned values do not have the same column index")
+				}
+			}
+		})
+	}
+}
+
+func TestZeroValue(t *testing.T) {
+	var v parquet.Value
+	if !v.IsNull() {
+		t.Error("expected zero value parquet.Value to be null")
+	}
+
+	if v.Byte() != byte(0) {
+		t.Errorf("byte not zero value: got=%#v", v.Byte())
+	}
+
+	if v.Boolean() != false {
+		t.Errorf("boolean not zero value: got=%#v", v.Boolean())
+	}
+
+	if v.Int32() != 0 {
+		t.Errorf("int32 not zero value: got=%#v", v.Int32())
+	}
+
+	if v.Int64() != 0 {
+		t.Errorf("int64 not zero value: got=%#v", v.Int64())
+	}
+
+	var zeroInt96 deprecated.Int96
+	if v.Int96() != zeroInt96 {
+		t.Errorf("int96 not zero value: got=%#v", zeroInt96)
+	}
+
+	if v.Float() != 0 {
+		t.Errorf("float not zero value: got=%#v", v.Float())
+	}
+
+	if v.Double() != 0 {
+		t.Errorf("double not zero value: got=%#v", v.Double())
+	}
+
+	if v.Uint32() != 0 {
+		t.Errorf("uint32 not zero value: got=%#v", v.Uint32())
+	}
+
+	if v.Uint64() != 0 {
+		t.Errorf("uint64 not zero value: got=%#v", v.Uint64())
+	}
+
+	var zeroByte []byte
+	if !bytes.Equal(v.ByteArray(), zeroByte) {
+		t.Errorf("byte array not zero value: got=%#v", v.ByteArray())
+	}
+}
+
+func TestValueColumnIndexUint16Range(t *testing.T) {
+	tests := []struct {
+		name        string
+		columnIndex int
+	}{
+		{"zero", 0},
+		{"below old int16 max", 32766},
+		{"at old int16 max", 32767},
+		{"above old int16 max", 32768},
+		{"near uint16 max", parquet.MaxColumnIndex},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := parquet.Int32Value(42).Level(0, 0, tt.columnIndex)
+			if got := v.Column(); got != tt.columnIndex {
+				t.Errorf("Column() = %d, want %d", got, tt.columnIndex)
+			}
+		})
+	}
+
+	// Verify zero-value has Column() == -1 (no column assigned)
+	var zero parquet.Value
+	if got := zero.Column(); got != -1 {
+		t.Errorf("zero Value.Column() = %d, want -1", got)
+	}
+}

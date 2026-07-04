@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -16,12 +17,14 @@ import (
 	"strings"
 	"time"
 
+	"parquet_compress/internal/reportpdf"
+
 	kzstd "github.com/klauspost/compress/zstd"
-	"github.com/parquet-go/parquet-go"
-	"github.com/parquet-go/parquet-go/compress"
-	"github.com/parquet-go/parquet-go/compress/snappy"
-	parquetzstd "github.com/parquet-go/parquet-go/compress/zstd"
-	"github.com/parquet-go/parquet-go/encoding"
+	"parquet_compress/parquet-go"
+	"parquet_compress/parquet-go/compress"
+	"parquet_compress/parquet-go/compress/snappy"
+	parquetzstd "parquet_compress/parquet-go/compress/zstd"
+	"parquet_compress/parquet-go/encoding"
 )
 
 const (
@@ -90,6 +93,9 @@ type config struct {
 	VerifyOnly        bool
 	ComparePlainBase  bool
 	BaselineOutputDir string
+	WriterStatsPath   string
+	DeleteOutput      bool
+	GeneratePDF       bool
 }
 
 type runStats struct {
@@ -100,7 +106,9 @@ type runStats struct {
 	StartedAt       time.Time
 	FinishedAt      time.Time
 	ResultPath      string
+	ResultPDFPath   string
 	ColumnStatsPath string
+	WriterStatsPath string
 	OutputDir       string
 	SchemaColumns   int
 	CompressionName string
@@ -168,6 +176,7 @@ func parseFlags(args []string) (config, error) {
 	fs.SetOutput(os.Stderr)
 	cfg.MaxPageSize = defaultPageSize
 	cfg.MaxDictPageSize = defaultDictionaryPageSize
+	cfg.GeneratePDF = true
 	fs.Usage = func() {
 		fmt.Fprintf(fs.Output(), "Usage of %s:\n", fs.Name())
 		fs.PrintDefaults()
@@ -203,6 +212,9 @@ func parseFlags(args []string) (config, error) {
 	fs.BoolVar(&cfg.VerifyOnly, "verify-only", false, "verify existing parquet files in --output-dir without writing new files")
 	fs.BoolVar(&cfg.ComparePlainBase, "compare-plain-baseline", false, "also run a plain-encoding, uncompressed baseline with the same rows/page/row-group/file settings and write a comparison result")
 	fs.StringVar(&cfg.BaselineOutputDir, "baseline-output-dir", "", "output directory for --compare-plain-baseline; defaults to --output-dir plus -plain-uncompressed-baseline")
+	fs.StringVar(&cfg.WriterStatsPath, "writer-stats-json", "", "optional path for in-memory writer page/row-group stats JSON")
+	fs.BoolVar(&cfg.DeleteOutput, "delete-output", false, "delete --output-dir after a successful run; output dir must be inside the current workspace")
+	fs.BoolVar(&cfg.GeneratePDF, "generate-pdf", cfg.GeneratePDF, "write a sibling PDF for each generated markdown result; requires Chrome/Chromium or CHROME_PATH")
 
 	if err := fs.Parse(args); err != nil {
 		return cfg, err
@@ -246,7 +258,38 @@ func parseFlags(args []string) (config, error) {
 	if cfg.TSVDir == "" {
 		cfg.TSVDir = defaultTSVDir(cfg.ResultsDir)
 	}
+	if cfg.DeleteOutput {
+		if err := validateDeleteOutputDir(cfg.OutputDir); err != nil {
+			return cfg, err
+		}
+	}
 	return cfg, validateEncodingGroups(cfg)
+}
+
+func validateDeleteOutputDir(path string) error {
+	if path == "" || path == "." || path == string(filepath.Separator) {
+		return fmt.Errorf("refusing to delete unsafe output directory %q", path)
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	absCwd, err := filepath.Abs(cwd)
+	if err != nil {
+		return err
+	}
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return err
+	}
+	rel, err := filepath.Rel(absCwd, absPath)
+	if err != nil {
+		return err
+	}
+	if rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("--delete-output requires --output-dir to be inside the current workspace: %s", path)
+	}
+	return nil
 }
 
 func defaultTSVDir(resultsDir string) string {
@@ -281,6 +324,11 @@ func run(cfg config) (runStats, error) {
 	writerOptions, compressionName, encodingByGroup, err := writerOptions(cfg, schema)
 	if err != nil {
 		return runStats{}, err
+	}
+	var writerStats *parquet.WriterStats
+	if cfg.WriterStatsPath != "" {
+		writerStats = parquet.NewWriterStats()
+		writerOptions = append(writerOptions, parquet.CaptureWriterStats(writerStats))
 	}
 
 	if err := os.MkdirAll(cfg.OutputDir, 0o755); err != nil {
@@ -445,11 +493,22 @@ func run(cfg config) (runStats, error) {
 		}
 		stats.Verification = verifyStats
 	}
+	if writerStats != nil {
+		if err := writeWriterStatsFile(cfg.WriterStatsPath, writerStats.Snapshot()); err != nil {
+			return runStats{}, err
+		}
+		stats.WriterStatsPath = cfg.WriterStatsPath
+	}
 
 	if err := writeResultFile(cfg, &stats); err != nil {
 		return runStats{}, err
 	}
 	printSummary(cfg, stats)
+	if cfg.DeleteOutput {
+		if err := os.RemoveAll(cfg.OutputDir); err != nil {
+			return runStats{}, err
+		}
+	}
 	return stats, nil
 }
 
@@ -469,7 +528,7 @@ func runWithPlainBaseline(cfg config) error {
 	if err != nil {
 		return err
 	}
-	printComparisonSummary(candidateStats, baselineStats, comparisonPath)
+	printComparisonSummary(candidateStats, baselineStats, comparisonPath, cfg.GeneratePDF)
 	return nil
 }
 
@@ -1304,6 +1363,7 @@ func writeResultFile(cfg config, stats *runStats) error {
 	columnStatsPath := filepath.Join(cfg.TSVDir, baseName+"_columns.tsv")
 
 	stats.ResultPath = resultPath
+	stats.ResultPDFPath = reportpdf.PathForMarkdown(resultPath)
 	stats.ColumnStatsPath = columnStatsPath
 
 	if err := writeColumnStatsTSV(columnStatsPath, stats.Columns); err != nil {
@@ -1312,7 +1372,22 @@ func writeResultFile(cfg config, stats *runStats) error {
 
 	var b strings.Builder
 	writeMarkdownSummary(&b, cfg, *stats)
+	if cfg.GeneratePDF {
+		return reportpdf.WriteMarkdownAndPDF(resultPath, []byte(b.String()))
+	}
 	return os.WriteFile(resultPath, []byte(b.String()), 0o644)
+}
+
+func writeWriterStatsFile(path string, snapshot parquet.WriterStatsSnapshot) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(snapshot, "", "  ")
+	if err != nil {
+		return err
+	}
+	data = append(data, '\n')
+	return os.WriteFile(path, data, 0o644)
 }
 
 func writeComparisonResultFile(candidateCfg config, candidate runStats, baselineCfg config, baseline runStats) (string, error) {
@@ -1324,6 +1399,9 @@ func writeComparisonResultFile(candidateCfg config, candidate runStats, baseline
 	}
 	var b strings.Builder
 	writeComparisonMarkdown(&b, candidateCfg, candidate, baselineCfg, baseline, path, columnComparisonPath)
+	if candidateCfg.GeneratePDF {
+		return path, reportpdf.WriteMarkdownAndPDF(path, []byte(b.String()))
+	}
 	return path, os.WriteFile(path, []byte(b.String()), 0o644)
 }
 
@@ -1375,6 +1453,9 @@ func writeMarkdownSummary(b *strings.Builder, cfg config, stats runStats) {
 	fmt.Fprintf(b, "- Input: `%s`\n", cfg.Input)
 	fmt.Fprintf(b, "- Output directory: `%s`\n", stats.OutputDir)
 	fmt.Fprintf(b, "- Rows: `%d`\n", stats.Rows)
+	if stats.WriterStatsPath != "" {
+		fmt.Fprintf(b, "- Writer stats JSON: `%s`\n", stats.WriterStatsPath)
+	}
 	fmt.Fprintf(b, "- Source TSV bytes for rows, reference only: `%d` (%s)\n", stats.InputBytes, formatBytes(stats.InputBytes))
 	fmt.Fprintf(b, "- Parquet physical bytes before page encoding: `%d` (%s)\n", physicalBytes, formatBytes(physicalBytes))
 	fmt.Fprintf(b, "- Encoded column bytes before codec compression: `%d` (%s)\n", encodedBytes, formatBytes(encodedBytes))
@@ -1438,6 +1519,12 @@ func printSummary(cfg config, stats runStats) {
 	fmt.Printf("max dictionary page size: %s\n", formatBytes(cfg.MaxDictPageSize))
 	fmt.Printf("output dir: %s\n", cfg.OutputDir)
 	fmt.Printf("result file: %s\n", stats.ResultPath)
+	if cfg.GeneratePDF {
+		fmt.Printf("result PDF: %s\n", stats.ResultPDFPath)
+	}
+	if stats.WriterStatsPath != "" {
+		fmt.Printf("writer stats JSON: %s\n", stats.WriterStatsPath)
+	}
 	if stats.Verification != nil {
 		fmt.Printf("verification: passed, %d rows from %d file(s), %s\n", stats.Verification.Rows, stats.Verification.Files, stats.Verification.Elapsed.Round(time.Millisecond))
 	}
@@ -1463,7 +1550,7 @@ func printSummary(cfg config, stats runStats) {
 	}
 }
 
-func printComparisonSummary(candidate, baseline runStats, path string) {
+func printComparisonSummary(candidate, baseline runStats, path string, generatedPDF bool) {
 	baselineEncoded := totalEncodedBytes(baseline.Files)
 	candidateEncoded := totalEncodedBytes(candidate.Files)
 	baselineCompressed := totalCompressedDataBytes(baseline.Files)
@@ -1472,6 +1559,9 @@ func printComparisonSummary(candidate, baseline runStats, path string) {
 	candidateParquet := totalParquetBytes(candidate.Files)
 
 	fmt.Printf("plain baseline comparison result file: %s\n", path)
+	if generatedPDF {
+		fmt.Printf("plain baseline comparison PDF: %s\n", reportpdf.PathForMarkdown(path))
+	}
 	fmt.Printf("encoded bytes baseline/candidate: %s (%s -> %s)\n",
 		formatMultiplier(baselineEncoded, candidateEncoded),
 		formatBytes(baselineEncoded),

@@ -1,3 +1,0 @@
-[submodule "parquet-go"]
-	path = parquet-go
-	url = https://github.com/parquet-go/parquet-go.git

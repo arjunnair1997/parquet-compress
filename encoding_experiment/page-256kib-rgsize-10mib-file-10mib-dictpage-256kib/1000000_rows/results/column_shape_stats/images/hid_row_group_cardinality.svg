@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="300" viewBox="0 0 920 300">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="72" y="24" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">HID row-group cardinality</text>
+<text x="72" y="288" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">page/row-group index</text>
+<text x="18" y="144" transform="rotate(-90 18 144)" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">distinct values</text>
+<line x1="72" y1="246.00" x2="892" y2="246.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="64" y="249.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">5818</text>
+<line x1="72" y1="195.00" x2="892" y2="195.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="64" y="198.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">7683.75</text>
+<line x1="72" y1="144.00" x2="892" y2="144.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="64" y="147.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">9549.50</text>
+<line x1="72" y1="93.00" x2="892" y2="93.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="64" y="96.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">11415.25</text>
+<line x1="72" y1="42.00" x2="892" y2="42.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="64" y="45.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">13281</text>
+<line x1="72" y1="246" x2="892" y2="246" stroke="#9ca3af" stroke-width="1"/>
+<line x1="72" y1="42" x2="72" y2="246" stroke="#9ca3af" stroke-width="1"/>
+<circle cx="72" cy="266" r="4" fill="#2563eb"/>
+<text x="80" y="270" font-family="Arial, sans-serif" font-size="11" fill="#374151">row group cardinality</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="1.8" points="72.00,245.37 82.51,245.18 93.03,243.84 103.54,242.67 114.05,242.20 124.56,242.23 135.08,246.00 145.59,243.59 156.10,244.82 166.62,245.18 177.13,242.45 187.64,242.83 198.15,245.73 208.67,243.92 219.18,243.59 229.69,241.98 240.21,242.94 250.72,242.26 261.23,241.79 271.74,243.70 282.26,242.67 292.77,243.95 303.28,244.11 313.79,242.20 324.31,244.44 334.82,244.63 345.33,243.10 355.85,242.17 366.36,242.20 376.87,242.53 387.38,245.54 397.90,241.98 408.41,241.22 418.92,243.29 429.44,243.40 439.95,242.80 450.46,243.05 460.97,242.09 471.49,243.24 482.00,242.04 492.51,242.12 503.03,245.26 513.54,238.70 524.05,196.93 534.56,198.63 545.08,198.16 555.59,190.37 566.10,194.34 576.62,187.04 587.13,44.49 597.64,44.79 608.15,54.44 618.67,55.01 629.18,51.81 639.69,62.39 650.21,62.94 660.72,45.01 671.23,46.92 681.74,48.70 692.26,54.77 702.77,49.79 713.28,49.57 723.79,52.77 734.31,55.80 744.82,47.66 755.33,63.98 765.85,49.79 776.36,60.40 786.87,52.85 797.38,49.74 807.90,43.53 818.41,51.59 828.92,47.28 839.44,52.93 849.95,45.20 860.46,42.00 870.97,53.40 881.49,51.76 892.00,165.09"/>
+</svg>

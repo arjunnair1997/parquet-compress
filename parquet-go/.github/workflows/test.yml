@@ -1,0 +1,92 @@
+name: Test
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        tags:
+          - ""
+          - purego
+        label:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.label }}
+
+    env:
+      PARQUETGODEBUG: tracebuf=1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@v1.18.0
+        with:
+          java-version: 17
+          maven-version: 3.9.2
+
+
+      - name: Setup Parquet CLI
+        run: |
+          set -ex
+          wget https://github.com/apache/parquet-java/archive/refs/tags/apache-parquet-1.13.1.tar.gz
+          tar -xf apache-parquet-1.13.1.tar.gz
+          mvn --file parquet-java-apache-parquet-1.13.1/parquet-cli/pom.xml install -DskipTests
+          mvn --file parquet-java-apache-parquet-1.13.1/parquet-cli/pom.xml dependency:copy-dependencies
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Download Dependencies
+        run: go mod download
+
+      - name: Run Tests
+        env:
+          TARGET: parquet-java-apache-parquet-1.13.1/parquet-cli/target
+        run: >
+          PARQUET_GO_TEST_CLI="java -cp $TARGET/parquet-cli-1.13.1.jar:$TARGET/dependency/* org.apache.parquet.cli.Main"
+          go test -trimpath -race -tags=${{ matrix.tags }} ./...
+
+      - name: Run Benchmarks
+        run: go test -trimpath -short -tags=${{ matrix.tags }} -run '^$' -bench . -benchtime 1x ./...
+
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+           # TODO: update to using the version in go.mod when that version supports the go tool directive (1.25.x)
+           # go-version-file: "go.mod"
+          go-version: 1.25.x
+      - name: Validate formatting
+        run: |
+          make format
+          git diff --exit-code
+
+  # https://github.com/golangci/golangci-lint/issues/2649
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - uses: actions/setup-go@v3
+  #       with:
+  #          go-version-file: "go.mod"
+
+  #     - name: golangci-lint
+  #       uses: golangci/golangci-lint-action@v3
+  #       with:
+  #         version: latest

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="300" viewBox="0 0 920 300">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="72" y="24" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">OpenstatSourceID row-group cardinality</text>
+<text x="72" y="288" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">page/row-group index</text>
+<text x="18" y="144" transform="rotate(-90 18 144)" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">distinct values</text>
+<line x1="72" y1="246.00" x2="892" y2="246.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="64" y="249.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">1</text>
+<line x1="72" y1="195.00" x2="892" y2="195.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="64" y="198.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">2.50</text>
+<line x1="72" y1="144.00" x2="892" y2="144.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="64" y="147.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">4</text>
+<line x1="72" y1="93.00" x2="892" y2="93.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="64" y="96.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">5.50</text>
+<line x1="72" y1="42.00" x2="892" y2="42.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="64" y="45.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">7</text>
+<line x1="72" y1="246" x2="892" y2="246" stroke="#9ca3af" stroke-width="1"/>
+<line x1="72" y1="42" x2="72" y2="246" stroke="#9ca3af" stroke-width="1"/>
+<circle cx="72" cy="266" r="4" fill="#2563eb"/>
+<text x="80" y="270" font-family="Arial, sans-serif" font-size="11" fill="#374151">row group cardinality</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="1.8" points="72.00,178.00 82.51,110.00 93.03,212.00 103.54,110.00 114.05,178.00 124.56,144.00 135.08,144.00 145.59,144.00 156.10,110.00 166.62,178.00 177.13,110.00 187.64,144.00 198.15,178.00 208.67,42.00 219.18,178.00 229.69,110.00 240.21,144.00 250.72,110.00 261.23,76.00 271.74,144.00 282.26,178.00 292.77,144.00 303.28,110.00 313.79,110.00 324.31,144.00 334.82,42.00 345.33,110.00 355.85,144.00 366.36,144.00 376.87,144.00 387.38,144.00 397.90,144.00 408.41,110.00 418.92,76.00 429.44,110.00 439.95,110.00 450.46,178.00 460.97,178.00 471.49,144.00 482.00,76.00 492.51,144.00 503.03,178.00 513.54,178.00 524.05,246.00 534.56,246.00 545.08,246.00 555.59,246.00 566.10,246.00 576.62,246.00 587.13,246.00 597.64,246.00 608.15,246.00 618.67,246.00 629.18,246.00 639.69,246.00 650.21,246.00 660.72,246.00 671.23,246.00 681.74,246.00 692.26,212.00 702.77,246.00 713.28,246.00 723.79,246.00 734.31,246.00 744.82,246.00 755.33,246.00 765.85,246.00 776.36,246.00 786.87,246.00 797.38,246.00 807.90,246.00 818.41,246.00 828.92,246.00 839.44,246.00 849.95,246.00 860.46,246.00 870.97,246.00 881.49,246.00 892.00,246.00"/>
+</svg>

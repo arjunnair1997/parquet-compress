@@ -1,8 +1,8 @@
 # Encoding Matrix Summary
 
-- Started: `2026-07-03T20:09:10-04:00`
-- Finished: `2026-07-03T20:09:11-04:00`
-- Elapsed: `835ms`
+- Started: `2026-07-03T22:29:49-04:00`
+- Finished: `2026-07-03T22:29:49-04:00`
+- Elapsed: `852ms`
 - Rows per experiment: `1000000`
 - Experiments: `96`
 - Parallelism: `4`
@@ -19,6 +19,7 @@
 - All per-column observations: [2026-07-03_rows-1000000_encoding-matrix_column-results.tsv](../tsvs/2026-07-03_rows-1000000_encoding-matrix_column-results.tsv)
 - Per-column winners by scope: [2026-07-03_rows-1000000_encoding-matrix_column-winners.tsv](../tsvs/2026-07-03_rows-1000000_encoding-matrix_column-winners.tsv)
 - Best encoding per column: [2026-07-03_rows-1000000_encoding-matrix_best-column-encodings.tsv](../tsvs/2026-07-03_rows-1000000_encoding-matrix_best-column-encodings.tsv)
+- Column top 5 rankings with shape stats: [col_top_5.md](col_top_5.md)
 
 ## Ranking Definitions
 

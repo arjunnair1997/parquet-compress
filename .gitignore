@@ -2,5 +2,7 @@
 /clickbench parquet files/
 /.gocache/
 /parquet_compress
+.DS_Store
 *.test
 *.parquet
+!/parquet-go/**/*.parquet

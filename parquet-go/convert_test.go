@@ -1,0 +1,2675 @@
+package parquet_test
+
+import (
+	"fmt"
+	"io"
+	"reflect"
+	"testing"
+	"time"
+
+	"parquet_compress/parquet-go"
+	"parquet_compress/parquet-go/deprecated"
+)
+
+type AddressBook1 struct {
+	Owner             string   `parquet:"owner,zstd"`
+	OwnerPhoneNumbers []string `parquet:"ownerPhoneNumbers,gzip"`
+}
+
+type AddressBook2 struct {
+	Owner             string    `parquet:"owner,zstd"`
+	OwnerPhoneNumbers []string  `parquet:"ownerPhoneNumbers,gzip"`
+	Contacts          []Contact `parquet:"contacts"`
+	Extra             string    `parquet:"extra"`
+}
+
+type AddressBook3 struct {
+	Owner    string     `parquet:"owner,zstd"`
+	Contacts []Contact2 `parquet:"contacts"`
+}
+
+type Contact2 struct {
+	Name         string   `parquet:"name"`
+	PhoneNumbers []string `parquet:"phoneNumbers,zstd"`
+	Addresses    []string `parquet:"addresses,zstd"`
+}
+
+type AddressBook4 struct {
+	Owner    string     `parquet:"owner,zstd"`
+	Contacts []Contact2 `parquet:"contacts"`
+	Extra    string     `parquet:"extra"`
+}
+
+type SimpleNumber struct {
+	Number *int64 `parquet:"number,optional"`
+}
+
+type SimpleContact struct {
+	Numbers []SimpleNumber `parquet:"numbers"`
+}
+
+type SimpleAddressBook struct {
+	Name    string
+	Contact SimpleContact
+}
+
+type SimpleAddressBook2 struct {
+	Name    string
+	Contact SimpleContact
+	Extra   string
+}
+
+type ListOfIDs struct {
+	IDs []uint64
+}
+
+var conversionTests = [...]struct {
+	scenario string
+	from     any
+	to       any
+}{
+	{
+		scenario: "convert between rows which have the same schema",
+		from: AddressBook{
+			Owner: "Julien Le Dem",
+			OwnerPhoneNumbers: []string{
+				"555 123 4567",
+				"555 666 1337",
+			},
+			Contacts: []Contact{
+				{
+					Name:        "Dmitriy Ryaboy",
+					PhoneNumber: "555 987 6543",
+				},
+				{
+					Name: "Chris Aniszczyk",
+				},
+			},
+		},
+		to: AddressBook{
+			Owner: "Julien Le Dem",
+			OwnerPhoneNumbers: []string{
+				"555 123 4567",
+				"555 666 1337",
+			},
+			Contacts: []Contact{
+				{
+					Name:        "Dmitriy Ryaboy",
+					PhoneNumber: "555 987 6543",
+				},
+				{
+					Name: "Chris Aniszczyk",
+				},
+			},
+		},
+	},
+
+	{
+		scenario: "missing column",
+		from:     struct{ FirstName, LastName string }{FirstName: "Luke", LastName: "Skywalker"},
+		to:       struct{ LastName string }{LastName: "Skywalker"},
+	},
+
+	{
+		scenario: "missing optional column",
+		from: struct {
+			FirstName *string
+			LastName  string
+		}{FirstName: newString("Luke"), LastName: "Skywalker"},
+		to: struct{ LastName string }{LastName: "Skywalker"},
+	},
+
+	{
+		scenario: "missing repeated column",
+		from: struct {
+			ID    uint64
+			Names []string
+		}{ID: 42, Names: []string{"me", "myself", "I"}},
+		to: struct{ ID uint64 }{ID: 42},
+	},
+
+	{
+		scenario: "extra column",
+		from:     struct{ LastName string }{LastName: "Skywalker"},
+		to:       struct{ FirstName, LastName string }{LastName: "Skywalker"},
+	},
+
+	{
+		scenario: "extra optional column",
+		from:     struct{ ID uint64 }{ID: 2},
+		to: struct {
+			ID      uint64
+			Details *struct{ FirstName, LastName string }
+		}{ID: 2, Details: nil},
+	},
+
+	{
+		scenario: "extra repeated column",
+		from:     struct{ ID uint64 }{ID: 1},
+		to: struct {
+			ID    uint64
+			Names []string
+		}{ID: 1, Names: []string{}},
+	},
+
+	{
+		scenario: "extra required column from repeated",
+		from: struct{ ListOfIDs ListOfIDs }{
+			ListOfIDs: ListOfIDs{IDs: []uint64{0, 1, 2}},
+		},
+		to: struct {
+			MainID    uint64
+			ListOfIDs ListOfIDs
+		}{
+			ListOfIDs: ListOfIDs{IDs: []uint64{0, 1, 2}},
+		},
+	},
+
+	{
+		scenario: "extra fields in repeated group",
+		from: struct{ Books []AddressBook1 }{
+			Books: []AddressBook1{
+				{
+					Owner:             "me",
+					OwnerPhoneNumbers: []string{"123-456-7890", "321-654-0987"},
+				},
+				{
+					Owner:             "you",
+					OwnerPhoneNumbers: []string{"000-000-0000"},
+				},
+			},
+		},
+		to: struct{ Books []AddressBook2 }{
+			Books: []AddressBook2{
+				{
+					Owner:             "me",
+					OwnerPhoneNumbers: []string{"123-456-7890", "321-654-0987"},
+					Contacts:          []Contact{},
+				},
+				{
+					Owner:             "you",
+					OwnerPhoneNumbers: []string{"000-000-0000"},
+					Contacts:          []Contact{},
+				},
+			},
+		},
+	},
+
+	{
+		scenario: "extra column on complex struct",
+		from: AddressBook{
+			Owner:             "Julien Le Dem",
+			OwnerPhoneNumbers: []string{},
+			Contacts: []Contact{
+				{
+					Name:        "Dmitriy Ryaboy",
+					PhoneNumber: "555 987 6543",
+				},
+				{
+					Name: "Chris Aniszczyk",
+				},
+			},
+		},
+		to: AddressBook2{
+			Owner:             "Julien Le Dem",
+			OwnerPhoneNumbers: []string{},
+			Contacts: []Contact{
+				{
+					Name:        "Dmitriy Ryaboy",
+					PhoneNumber: "555 987 6543",
+				},
+				{
+					Name: "Chris Aniszczyk",
+				},
+			},
+		},
+	},
+
+	{
+		scenario: "required to optional leaf",
+		from:     struct{ Name string }{Name: "Luke"},
+		to:       struct{ Name *string }{Name: newString("Luke")},
+	},
+
+	{
+		scenario: "required to repeated leaf",
+		from:     struct{ Name string }{Name: "Luke"},
+		to:       struct{ Name []string }{Name: []string{"Luke"}},
+	},
+
+	{
+		scenario: "optional to required leaf",
+		from:     struct{ Name *string }{Name: newString("Luke")},
+		to:       struct{ Name string }{Name: "Luke"},
+	},
+
+	{
+		scenario: "optional to repeated leaf",
+		from:     struct{ Name *string }{Name: newString("Luke")},
+		to:       struct{ Name []string }{Name: []string{"Luke"}},
+	},
+
+	{
+		scenario: "optional to repeated leaf (null)",
+		from:     struct{ Name *string }{Name: nil},
+		to:       struct{ Name []string }{Name: []string{}},
+	},
+
+	{
+		scenario: "repeated to required leaf",
+		from:     struct{ Name []string }{Name: []string{"Luke", "Han", "Leia"}},
+		to:       struct{ Name string }{Name: "Luke"},
+	},
+
+	{
+		scenario: "repeated to optional leaf",
+		from:     struct{ Name []string }{Name: []string{"Luke", "Han", "Leia"}},
+		to:       struct{ Name *string }{Name: newString("Luke")},
+	},
+
+	{
+		scenario: "required to optional group",
+		from: struct{ Book AddressBook }{
+			Book: AddressBook{
+				Owner: "Julien Le Dem",
+				OwnerPhoneNumbers: []string{
+					"555 123 4567",
+					"555 666 1337",
+				},
+				Contacts: []Contact{
+					{
+						Name:        "Dmitriy Ryaboy",
+						PhoneNumber: "555 987 6543",
+					},
+					{
+						Name: "Chris Aniszczyk",
+					},
+				},
+			},
+		},
+		to: struct{ Book *AddressBook }{
+			Book: &AddressBook{
+				Owner: "Julien Le Dem",
+				OwnerPhoneNumbers: []string{
+					"555 123 4567",
+					"555 666 1337",
+				},
+				Contacts: []Contact{
+					{
+						Name:        "Dmitriy Ryaboy",
+						PhoneNumber: "555 987 6543",
+					},
+					{
+						Name: "Chris Aniszczyk",
+					},
+				},
+			},
+		},
+	},
+
+	{
+		scenario: "required to optional group (empty)",
+		from: struct{ Book AddressBook }{
+			Book: AddressBook{},
+		},
+		to: struct{ Book *AddressBook }{
+			Book: &AddressBook{
+				OwnerPhoneNumbers: []string{},
+				Contacts:          []Contact{},
+			},
+		},
+	},
+
+	{
+		scenario: "optional to required group (null)",
+		from: struct{ Book *AddressBook }{
+			Book: nil,
+		},
+		to: struct{ Book AddressBook }{
+			Book: AddressBook{
+				OwnerPhoneNumbers: []string{},
+				Contacts:          []Contact{},
+			},
+		},
+	},
+
+	{
+		scenario: "optional to repeated group (null)",
+		from:     struct{ Book *AddressBook }{Book: nil},
+		to:       struct{ Book []AddressBook }{Book: []AddressBook{}},
+	},
+
+	{
+		scenario: "optional to repeated optional group (null)",
+		from:     struct{ Book *AddressBook }{Book: nil},
+		to:       struct{ Book []*AddressBook }{Book: []*AddressBook{}},
+	},
+
+	{
+		scenario: "handle nested repeated elements during conversion",
+		from: AddressBook3{
+			Owner: "Julien Le Dem",
+			Contacts: []Contact2{
+				{
+					Name: "Dmitriy Ryaboy",
+					PhoneNumbers: []string{
+						"555 987 6543",
+						"555 123 4567",
+					},
+					Addresses: []string{},
+				},
+				{
+					Name: "Chris Aniszczyk",
+					PhoneNumbers: []string{
+						"555 345 8129",
+					},
+					Addresses: []string{
+						"42 Wallaby Way Sydney",
+						"1 White House Way",
+					},
+				},
+				{
+					Name: "Bob Ross",
+					PhoneNumbers: []string{
+						"555 198 3628",
+					},
+					Addresses: []string{
+						"::1",
+					},
+				},
+			},
+		},
+		to: AddressBook4{
+			Owner: "Julien Le Dem",
+			Contacts: []Contact2{
+				{
+					Name: "Dmitriy Ryaboy",
+					PhoneNumbers: []string{
+						"555 987 6543",
+						"555 123 4567",
+					},
+					Addresses: []string{},
+				},
+				{
+					Name: "Chris Aniszczyk",
+					PhoneNumbers: []string{
+						"555 345 8129",
+					},
+					Addresses: []string{
+						"42 Wallaby Way Sydney",
+						"1 White House Way",
+					},
+				},
+				{
+					Name: "Bob Ross",
+					PhoneNumbers: []string{
+						"555 198 3628",
+					},
+					Addresses: []string{
+						"::1",
+					},
+				},
+			},
+			Extra: "",
+		},
+	},
+
+	{
+		scenario: "handle nested repeated elements during conversion",
+		from: SimpleAddressBook{
+			Name: "New Contact",
+			Contact: SimpleContact{
+				Numbers: []SimpleNumber{
+					{
+						Number: nil,
+					},
+					{
+						Number: newInt64(1329),
+					},
+				},
+			},
+		},
+		to: SimpleAddressBook2{
+			Name: "New Contact",
+			Contact: SimpleContact{
+				Numbers: []SimpleNumber{
+					{
+						Number: nil,
+					},
+					{
+						Number: newInt64(1329),
+					},
+				},
+			},
+			Extra: "",
+		},
+	},
+}
+
+func TestConvert(t *testing.T) {
+	for _, test := range conversionTests {
+		t.Run(test.scenario, func(t *testing.T) {
+			to := parquet.SchemaOf(test.to)
+			from := parquet.SchemaOf(test.from)
+
+			conv, err := parquet.Convert(to, from)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			row := from.Deconstruct(nil, test.from)
+			rowbuf := []parquet.Row{row}
+			n, err := conv.Convert(rowbuf)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if n != 1 {
+				t.Errorf("wrong number of rows got converted: want=1 got=%d", n)
+			}
+			row = rowbuf[0]
+
+			value := reflect.New(reflect.TypeOf(test.to))
+			if err := to.Reconstruct(value.Interface(), row); err != nil {
+				t.Fatal(err)
+			}
+
+			value = value.Elem()
+			if !reflect.DeepEqual(value.Interface(), test.to) {
+				t.Errorf("converted value mismatch:\nwant = %#v\ngot  = %#v", test.to, value.Interface())
+			}
+		})
+	}
+}
+
+func newInt64(i int64) *int64    { return &i }
+func newString(s string) *string { return &s }
+
+func TestConvertValue(t *testing.T) {
+	now := time.Unix(42, 0)
+	ms := now.UnixMilli()
+	us := now.UnixMicro()
+	ns := now.UnixNano()
+
+	msType := parquet.Timestamp(parquet.Millisecond).Type()
+	msVal := parquet.ValueOf(ms)
+	if msVal.Int64() != ms {
+		t.Errorf("converted value mismatch:\nwant = %+v\ngot  = %+v", ms, msVal.Int64())
+	}
+
+	usType := parquet.Timestamp(parquet.Microsecond).Type()
+	usVal := parquet.ValueOf(us)
+	if usVal.Int64() != us {
+		t.Errorf("converted value mismatch:\nwant = %+v\ngot  = %+v", us, usVal.Int64())
+	}
+
+	nsType := parquet.Timestamp(parquet.Nanosecond).Type()
+	nsVal := parquet.ValueOf(ns)
+	if nsVal.Int64() != ns {
+		t.Errorf("converted value mismatch:\nwant = %+v\ngot  = %+v", ns, nsVal.Int64())
+	}
+
+	var timestampConversionTests = [...]struct {
+		scenario  string
+		fromType  parquet.Type
+		fromValue parquet.Value
+		toType    parquet.Type
+		toValue   parquet.Value
+	}{
+		{
+			scenario:  "true to boolean",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(true),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(true),
+		},
+
+		{
+			scenario:  "true to int32",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(true),
+			toType:    parquet.Int32Type,
+			toValue:   parquet.Int32Value(1),
+		},
+
+		{
+			scenario:  "true to int64",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(true),
+			toType:    parquet.Int64Type,
+			toValue:   parquet.Int64Value(1),
+		},
+
+		{
+			scenario:  "true to int96",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(true),
+			toType:    parquet.Int96Type,
+			toValue:   parquet.Int96Value(deprecated.Int96{0: 1}),
+		},
+
+		{
+			scenario:  "true to float",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(true),
+			toType:    parquet.FloatType,
+			toValue:   parquet.FloatValue(1),
+		},
+
+		{
+			scenario:  "true to double",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(true),
+			toType:    parquet.FloatType,
+			toValue:   parquet.FloatValue(1),
+		},
+
+		{
+			scenario:  "true to byte array",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(true),
+			toType:    parquet.ByteArrayType,
+			toValue:   parquet.ByteArrayValue([]byte{1}),
+		},
+
+		{
+			scenario:  "true to fixed length byte array",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(true),
+			toType:    parquet.FixedLenByteArrayType(4),
+			toValue:   parquet.FixedLenByteArrayValue([]byte{1, 0, 0, 0}),
+		},
+
+		{
+			scenario:  "true to string",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(true),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`true`)),
+		},
+
+		{
+			scenario:  "false to boolean",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(false),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(false),
+		},
+
+		{
+			scenario:  "false to int32",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(false),
+			toType:    parquet.Int32Type,
+			toValue:   parquet.Int32Value(0),
+		},
+
+		{
+			scenario:  "false to int64",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(false),
+			toType:    parquet.Int64Type,
+			toValue:   parquet.Int64Value(0),
+		},
+
+		{
+			scenario:  "false to int96",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(false),
+			toType:    parquet.Int96Type,
+			toValue:   parquet.Int96Value(deprecated.Int96{}),
+		},
+
+		{
+			scenario:  "false to float",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(false),
+			toType:    parquet.FloatType,
+			toValue:   parquet.FloatValue(0),
+		},
+
+		{
+			scenario:  "false to double",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(false),
+			toType:    parquet.FloatType,
+			toValue:   parquet.FloatValue(0),
+		},
+
+		{
+			scenario:  "false to byte array",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(false),
+			toType:    parquet.ByteArrayType,
+			toValue:   parquet.ByteArrayValue([]byte{0}),
+		},
+
+		{
+			scenario:  "false to fixed length byte array",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(false),
+			toType:    parquet.FixedLenByteArrayType(4),
+			toValue:   parquet.FixedLenByteArrayValue([]byte{0, 0, 0, 0}),
+		},
+
+		{
+			scenario:  "false to string",
+			fromType:  parquet.BooleanType,
+			fromValue: parquet.BooleanValue(false),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`false`)),
+		},
+
+		{
+			scenario:  "int32 to true",
+			fromType:  parquet.Int32Type,
+			fromValue: parquet.Int32Value(10),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(true),
+		},
+
+		{
+			scenario:  "int32 to false",
+			fromType:  parquet.Int32Type,
+			fromValue: parquet.Int32Value(0),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(false),
+		},
+
+		{
+			scenario:  "int32 to int32",
+			fromType:  parquet.Int32Type,
+			fromValue: parquet.Int32Value(42),
+			toType:    parquet.Int32Type,
+			toValue:   parquet.Int32Value(42),
+		},
+
+		{
+			scenario:  "int32 to int64",
+			fromType:  parquet.Int32Type,
+			fromValue: parquet.Int32Value(-21),
+			toType:    parquet.Int64Type,
+			toValue:   parquet.Int64Value(-21),
+		},
+
+		{
+			scenario:  "int32 to int96",
+			fromType:  parquet.Int32Type,
+			fromValue: parquet.Int32Value(123),
+			toType:    parquet.Int96Type,
+			toValue:   parquet.Int96Value(deprecated.Int96{0: 123}),
+		},
+
+		{
+			scenario:  "int32 to float",
+			fromType:  parquet.Int32Type,
+			fromValue: parquet.Int32Value(9),
+			toType:    parquet.FloatType,
+			toValue:   parquet.FloatValue(9),
+		},
+
+		{
+			scenario:  "int32 to double",
+			fromType:  parquet.Int32Type,
+			fromValue: parquet.Int32Value(100),
+			toType:    parquet.DoubleType,
+			toValue:   parquet.DoubleValue(100),
+		},
+
+		{
+			scenario:  "int32 to byte array",
+			fromType:  parquet.Int32Type,
+			fromValue: parquet.Int32Value(1 << 8),
+			toType:    parquet.ByteArrayType,
+			toValue:   parquet.ByteArrayValue([]byte{0, 1, 0, 0}),
+		},
+
+		{
+			scenario:  "int32 to fixed length byte array",
+			fromType:  parquet.Int32Type,
+			fromValue: parquet.Int32Value(1 << 8),
+			toType:    parquet.FixedLenByteArrayType(3),
+			toValue:   parquet.FixedLenByteArrayValue([]byte{0, 1, 0}),
+		},
+
+		{
+			scenario:  "int32 to string",
+			fromType:  parquet.Int32Type,
+			fromValue: parquet.Int32Value(12345),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`12345`)),
+		},
+
+		{
+			scenario:  "int64 to true",
+			fromType:  parquet.Int64Type,
+			fromValue: parquet.Int64Value(10),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(true),
+		},
+
+		{
+			scenario:  "int64 to false",
+			fromType:  parquet.Int64Type,
+			fromValue: parquet.Int64Value(0),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(false),
+		},
+
+		{
+			scenario:  "int64 to int32",
+			fromType:  parquet.Int64Type,
+			fromValue: parquet.Int64Value(-21),
+			toType:    parquet.Int32Type,
+			toValue:   parquet.Int32Value(-21),
+		},
+
+		{
+			scenario:  "int64 to int64",
+			fromType:  parquet.Int64Type,
+			fromValue: parquet.Int64Value(42),
+			toType:    parquet.Int64Type,
+			toValue:   parquet.Int64Value(42),
+		},
+
+		{
+			scenario:  "int64 to int96",
+			fromType:  parquet.Int64Type,
+			fromValue: parquet.Int64Value(123),
+			toType:    parquet.Int96Type,
+			toValue:   parquet.Int96Value(deprecated.Int96{0: 123}),
+		},
+
+		{
+			scenario:  "int64 to float",
+			fromType:  parquet.Int64Type,
+			fromValue: parquet.Int64Value(9),
+			toType:    parquet.FloatType,
+			toValue:   parquet.FloatValue(9),
+		},
+
+		{
+			scenario:  "int64 to double",
+			fromType:  parquet.Int64Type,
+			fromValue: parquet.Int64Value(100),
+			toType:    parquet.DoubleType,
+			toValue:   parquet.DoubleValue(100),
+		},
+
+		{
+			scenario:  "int64 to byte array",
+			fromType:  parquet.Int64Type,
+			fromValue: parquet.Int64Value(1 << 8),
+			toType:    parquet.ByteArrayType,
+			toValue:   parquet.ByteArrayValue([]byte{0, 1, 0, 0, 0, 0, 0, 0}),
+		},
+
+		{
+			scenario:  "int64 to fixed length byte array",
+			fromType:  parquet.Int64Type,
+			fromValue: parquet.Int64Value(1 << 8),
+			toType:    parquet.FixedLenByteArrayType(3),
+			toValue:   parquet.FixedLenByteArrayValue([]byte{0, 1, 0}),
+		},
+
+		{
+			scenario:  "int64 to string",
+			fromType:  parquet.Int64Type,
+			fromValue: parquet.Int64Value(1234567890),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`1234567890`)),
+		},
+
+		{
+			scenario:  "float to true",
+			fromType:  parquet.FloatType,
+			fromValue: parquet.FloatValue(0.1),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(true),
+		},
+
+		{
+			scenario:  "float to false",
+			fromType:  parquet.FloatType,
+			fromValue: parquet.FloatValue(0),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(false),
+		},
+
+		{
+			scenario:  "float to int32",
+			fromType:  parquet.FloatType,
+			fromValue: parquet.FloatValue(9.9),
+			toType:    parquet.Int32Type,
+			toValue:   parquet.Int32Value(9),
+		},
+
+		{
+			scenario:  "float to int64",
+			fromType:  parquet.FloatType,
+			fromValue: parquet.FloatValue(-1.5),
+			toType:    parquet.Int64Type,
+			toValue:   parquet.Int64Value(-1),
+		},
+
+		{
+			scenario:  "float to float",
+			fromType:  parquet.FloatType,
+			fromValue: parquet.FloatValue(1.234),
+			toType:    parquet.FloatType,
+			toValue:   parquet.FloatValue(1.234),
+		},
+
+		{
+			scenario:  "float to double",
+			fromType:  parquet.FloatType,
+			fromValue: parquet.FloatValue(-0.5),
+			toType:    parquet.DoubleType,
+			toValue:   parquet.DoubleValue(-0.5),
+		},
+
+		{
+			scenario:  "float to string",
+			fromType:  parquet.FloatType,
+			fromValue: parquet.FloatValue(0.125),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`0.125`)),
+		},
+
+		{
+			scenario:  "double to true",
+			fromType:  parquet.DoubleType,
+			fromValue: parquet.DoubleValue(0.1),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(true),
+		},
+
+		{
+			scenario:  "double to false",
+			fromType:  parquet.DoubleType,
+			fromValue: parquet.DoubleValue(0),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(false),
+		},
+
+		{
+			scenario:  "double to int32",
+			fromType:  parquet.DoubleType,
+			fromValue: parquet.DoubleValue(9.9),
+			toType:    parquet.Int32Type,
+			toValue:   parquet.Int32Value(9),
+		},
+
+		{
+			scenario:  "double to int64",
+			fromType:  parquet.DoubleType,
+			fromValue: parquet.DoubleValue(-1.5),
+			toType:    parquet.Int64Type,
+			toValue:   parquet.Int64Value(-1),
+		},
+
+		{
+			scenario:  "double to float",
+			fromType:  parquet.DoubleType,
+			fromValue: parquet.DoubleValue(1.234),
+			toType:    parquet.FloatType,
+			toValue:   parquet.FloatValue(1.234),
+		},
+
+		{
+			scenario:  "double to double",
+			fromType:  parquet.DoubleType,
+			fromValue: parquet.DoubleValue(-0.5),
+			toType:    parquet.DoubleType,
+			toValue:   parquet.DoubleValue(-0.5),
+		},
+
+		{
+			scenario:  "double to string",
+			fromType:  parquet.DoubleType,
+			fromValue: parquet.DoubleValue(0.125),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`0.125`)),
+		},
+
+		{
+			scenario:  "string to true",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`true`)),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(true),
+		},
+
+		{
+			scenario:  "string to false",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`false`)),
+			toType:    parquet.BooleanType,
+			toValue:   parquet.BooleanValue(false),
+		},
+
+		{
+			scenario:  "string to int32",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`-21`)),
+			toType:    parquet.Int32Type,
+			toValue:   parquet.Int32Value(-21),
+		},
+
+		{
+			scenario:  "string to int64",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`42`)),
+			toType:    parquet.Int64Type,
+			toValue:   parquet.Int64Value(42),
+		},
+
+		{
+			scenario:  "string to int96",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`123`)),
+			toType:    parquet.Int96Type,
+			toValue:   parquet.Int96Value(deprecated.Int96{0: 123}),
+		},
+
+		{
+			scenario:  "string to float",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`-0.5`)),
+			toType:    parquet.FloatType,
+			toValue:   parquet.FloatValue(-0.5),
+		},
+
+		{
+			scenario:  "string to double",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`0.5`)),
+			toType:    parquet.DoubleType,
+			toValue:   parquet.DoubleValue(0.5),
+		},
+
+		{
+			scenario:  "string to byte array",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`ABC`)),
+			toType:    parquet.ByteArrayType,
+			toValue:   parquet.ByteArrayValue([]byte(`ABC`)),
+		},
+
+		{
+			scenario:  "string to fixed length byte array",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`99B816772522447EBF76821A7C5ADF65`)),
+			toType:    parquet.FixedLenByteArrayType(16),
+			toValue: parquet.FixedLenByteArrayValue([]byte{
+				0x99, 0xb8, 0x16, 0x77, 0x25, 0x22, 0x44, 0x7e,
+				0xbf, 0x76, 0x82, 0x1a, 0x7c, 0x5a, 0xdf, 0x65,
+			}),
+		},
+
+		{
+			scenario:  "string to string",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`Hello World!`)),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`Hello World!`)),
+		},
+
+		{
+			scenario:  "string to date",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`1970-01-03`)),
+			toType:    parquet.Date().Type(),
+			toValue:   parquet.Int32Value(2),
+		},
+
+		{
+			scenario:  "string to millisecond time",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`12:34:56.789`)),
+			toType:    parquet.Time(parquet.Millisecond).Type(),
+			toValue:   parquet.Int32Value(45296789),
+		},
+
+		{
+			scenario:  "string to microsecond time",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`12:34:56.789012`)),
+			toType:    parquet.Time(parquet.Microsecond).Type(),
+			toValue:   parquet.Int64Value(45296789012),
+		},
+
+		{
+			scenario:  "date to millisecond timestamp",
+			fromType:  parquet.Date().Type(),
+			fromValue: parquet.Int32Value(19338),
+			toType:    parquet.Timestamp(parquet.Millisecond).Type(),
+			toValue:   parquet.Int64Value(1670803200000),
+		},
+
+		{
+			scenario:  "date to microsecond timestamp",
+			fromType:  parquet.Date().Type(),
+			fromValue: parquet.Int32Value(19338),
+			toType:    parquet.Timestamp(parquet.Microsecond).Type(),
+			toValue:   parquet.Int64Value(1670803200000000),
+		},
+
+		{
+			scenario:  "date to string",
+			fromType:  parquet.Date().Type(),
+			fromValue: parquet.Int32Value(18995),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`2022-01-03`)),
+		},
+
+		{
+			scenario:  "millisecond time to string",
+			fromType:  parquet.Time(parquet.Millisecond).Type(),
+			fromValue: parquet.Int32Value(45296789),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`12:34:56.789`)),
+		},
+
+		{
+			scenario:  "microsecond time to string",
+			fromType:  parquet.Time(parquet.Microsecond).Type(),
+			fromValue: parquet.Int64Value(45296789012),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`12:34:56.789012`)),
+		},
+
+		{
+			scenario:  "millisecond timestamp to date",
+			fromType:  parquet.Timestamp(parquet.Millisecond).Type(),
+			fromValue: parquet.Int64Value(1670888613000),
+			toType:    parquet.Date().Type(),
+			toValue:   parquet.Int32Value(19338),
+		},
+
+		{
+			scenario:  "microsecond timestamp to date",
+			fromType:  parquet.Timestamp(parquet.Microsecond).Type(),
+			fromValue: parquet.Int64Value(1670888613000123),
+			toType:    parquet.Date().Type(),
+			toValue:   parquet.Int32Value(19338),
+		},
+
+		{
+			scenario:  "millisecond timestamp to millisecond time",
+			fromType:  parquet.Timestamp(parquet.Millisecond).Type(),
+			fromValue: parquet.Int64Value(1670888613123),
+			toType:    parquet.Time(parquet.Millisecond).Type(),
+			toValue:   parquet.Int32Value(85413123),
+		},
+
+		{
+			scenario:  "millisecond timestamp to micronsecond time",
+			fromType:  parquet.Timestamp(parquet.Millisecond).Type(),
+			fromValue: parquet.Int64Value(1670888613123),
+			toType:    parquet.Time(parquet.Microsecond).Type(),
+			toValue:   parquet.Int64Value(85413123000),
+		},
+
+		{
+			scenario:  "microsecond timestamp to millisecond time",
+			fromType:  parquet.Timestamp(parquet.Microsecond).Type(),
+			fromValue: parquet.Int64Value(1670888613123456),
+			toType:    parquet.Time(parquet.Millisecond).Type(),
+			toValue:   parquet.Int32Value(85413123),
+		},
+
+		{
+			scenario:  "microsecond timestamp to micronsecond time",
+			fromType:  parquet.Timestamp(parquet.Microsecond).Type(),
+			fromValue: parquet.Int64Value(1670888613123456),
+			toType:    parquet.Time(parquet.Microsecond).Type(),
+			toValue:   parquet.Int64Value(85413123456),
+		},
+
+		{
+			scenario:  "micros to nanos",
+			fromType:  usType,
+			fromValue: usVal,
+			toType:    nsType,
+			toValue:   parquet.Int64Value(ns),
+		},
+
+		{
+			scenario:  "millis to nanos",
+			fromType:  msType,
+			fromValue: msVal,
+			toType:    nsType,
+			toValue:   parquet.Int64Value(ns),
+		},
+
+		{
+			scenario:  "nanos to micros",
+			fromType:  nsType,
+			fromValue: nsVal,
+			toType:    usType,
+			toValue:   parquet.Int64Value(us),
+		},
+
+		{
+			scenario:  "nanos to nanos",
+			fromType:  nsType,
+			fromValue: nsVal,
+			toType:    nsType,
+			toValue:   parquet.Int64Value(ns),
+		},
+
+		{
+			scenario:  "int64 to nanos",
+			fromType:  parquet.Int64Type,
+			fromValue: nsVal,
+			toType:    nsType,
+			toValue:   parquet.Int64Value(ns),
+		},
+
+		{
+			scenario:  "int64 to int64",
+			fromType:  parquet.Int64Type,
+			fromValue: nsVal,
+			toType:    parquet.Int64Type,
+			toValue:   parquet.Int64Value(ns),
+		},
+
+		// JSON and BYTE_ARRAY conversions - regression test for type assertion bug
+		// where jsonType.ConvertValue used *byteArrayType (pointer) but byteArrayType
+		// is a value type, causing BYTE_ARRAY to JSON conversion to fail.
+		{
+			scenario:  "byte array to json",
+			fromType:  parquet.ByteArrayType,
+			fromValue: parquet.ByteArrayValue([]byte(`{"key":"value"}`)),
+			toType:    parquet.JSON().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`{"key":"value"}`)),
+		},
+		{
+			scenario:  "json to byte array",
+			fromType:  parquet.JSON().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`{"key":"value"}`)),
+			toType:    parquet.ByteArrayType,
+			toValue:   parquet.ByteArrayValue([]byte(`{"key":"value"}`)),
+		},
+		{
+			scenario:  "string to json",
+			fromType:  parquet.String().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`{"key":"value"}`)),
+			toType:    parquet.JSON().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`{"key":"value"}`)),
+		},
+		{
+			scenario:  "json to string",
+			fromType:  parquet.JSON().Type(),
+			fromValue: parquet.ByteArrayValue([]byte(`{"key":"value"}`)),
+			toType:    parquet.String().Type(),
+			toValue:   parquet.ByteArrayValue([]byte(`{"key":"value"}`)),
+		},
+
+		// BSON conversions - same fix as JSON
+		{
+			scenario:  "byte array to bson",
+			fromType:  parquet.ByteArrayType,
+			fromValue: parquet.ByteArrayValue([]byte{0x05, 0x00, 0x00, 0x00, 0x00}),
+			toType:    parquet.BSON().Type(),
+			toValue:   parquet.ByteArrayValue([]byte{0x05, 0x00, 0x00, 0x00, 0x00}),
+		},
+		{
+			scenario:  "bson to byte array",
+			fromType:  parquet.BSON().Type(),
+			fromValue: parquet.ByteArrayValue([]byte{0x05, 0x00, 0x00, 0x00, 0x00}),
+			toType:    parquet.ByteArrayType,
+			toValue:   parquet.ByteArrayValue([]byte{0x05, 0x00, 0x00, 0x00, 0x00}),
+		},
+
+		// ENUM conversions - same fix as JSON
+		{
+			scenario:  "byte array to enum",
+			fromType:  parquet.ByteArrayType,
+			fromValue: parquet.ByteArrayValue([]byte("VALUE")),
+			toType:    parquet.Enum().Type(),
+			toValue:   parquet.ByteArrayValue([]byte("VALUE")),
+		},
+		{
+			scenario:  "enum to byte array",
+			fromType:  parquet.Enum().Type(),
+			fromValue: parquet.ByteArrayValue([]byte("VALUE")),
+			toType:    parquet.ByteArrayType,
+			toValue:   parquet.ByteArrayValue([]byte("VALUE")),
+		},
+	}
+
+	for _, test := range timestampConversionTests {
+		t.Run(test.scenario, func(t *testing.T) {
+			// Set levels to ensure that they are retained by the conversion.
+			from := test.fromValue.Level(1, 2, 3)
+			want := test.toValue.Level(1, 2, 3)
+
+			got, err := test.toType.ConvertValue(from, test.fromType)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if !parquet.DeepEqual(want, got) {
+				t.Errorf("converted value mismatch:\nwant = %+v\ngot  = %+v", want, got)
+			}
+		})
+	}
+}
+
+func TestMissingColumnChunk(t *testing.T) {
+	type stringRow struct{ StringVal string }
+	schema := parquet.SchemaOf(&stringRow{})
+	buffer := parquet.NewGenericBuffer[stringRow](schema)
+	if _, err := buffer.Write([]stringRow{{"hello"}, {"world"}}); err != nil {
+		t.Fatal(err)
+	}
+
+	type boolRow struct{ BoolValue bool }
+	conv := convertMissingColumn{
+		schema: parquet.SchemaOf(&boolRow{}),
+	}
+	boolRowGroup := parquet.ConvertRowGroup(buffer, conv)
+	chunk := boolRowGroup.ColumnChunks()[0]
+
+	t.Run("chunk values", func(t *testing.T) {
+		if chunk.NumValues() != buffer.NumRows() {
+			t.Fatal("chunk values mismatch, got", chunk.NumValues(), "want", buffer.NumRows())
+		}
+	})
+
+	t.Run("slice page", func(t *testing.T) {
+		page, err := chunk.Pages().ReadPage()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if page.NumValues() != buffer.NumRows() {
+			t.Fatalf("page size mismatch: want = %d, got = %d", buffer.NumRows(), page.NumValues())
+		}
+		if size := page.Slice(0, 1).NumValues(); size != 1 {
+			t.Fatalf("page slice size mismatch: want = %d, got = %d", 1, size)
+		}
+	})
+}
+
+type convertMissingColumn struct {
+	schema *parquet.Schema
+}
+
+func (m convertMissingColumn) Column(_ int) int                        { return -1 }
+func (m convertMissingColumn) Schema() *parquet.Schema                 { return m.schema }
+func (m convertMissingColumn) Convert(rows []parquet.Row) (int, error) { return len(rows), nil }
+
+func TestConvertRowGroupColumnIndexes(t *testing.T) {
+	type OriginalSchema struct {
+		A int64  `parquet:"a"`
+		B string `parquet:"b"`
+		C bool   `parquet:"c"`
+	}
+
+	type TargetSchema struct {
+		A int64  `parquet:"a"`
+		C bool   `parquet:"c"`
+		B string `parquet:"b"`
+	}
+
+	originalSchema := parquet.SchemaOf(&OriginalSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	buffer := parquet.NewGenericBuffer[OriginalSchema](originalSchema)
+	if _, err := buffer.Write([]OriginalSchema{
+		{A: 1, B: "hello", C: true},
+		{A: 2, B: "world", C: false},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, originalSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	chunks := convertedRowGroup.ColumnChunks()
+
+	if len(chunks) != 3 {
+		t.Fatalf("expected 3 column chunks, got %d", len(chunks))
+	}
+
+	expectedColumns := []struct {
+		name          string
+		columnIndex   int
+		originalIndex int
+	}{
+		{"a", 0, 0},
+		{"b", 1, 1},
+		{"c", 2, 2},
+	}
+
+	for _, expected := range expectedColumns {
+		chunk := chunks[expected.columnIndex]
+		gotColumnIndex := chunk.Column()
+
+		if gotColumnIndex != expected.columnIndex {
+			t.Errorf("column %q at position %d: Column() returned %d, want %d",
+				expected.name, expected.columnIndex, gotColumnIndex, expected.columnIndex)
+		}
+	}
+}
+
+func TestConvertRowGroupValueColumnIndexes(t *testing.T) {
+	type OriginalSchema struct {
+		ID       int64   `parquet:"id"`
+		Required string  `parquet:"required"`
+		Optional *string `parquet:"optional,optional"`
+	}
+
+	type TargetSchema struct {
+		ID       int64   `parquet:"id"`
+		Optional *string `parquet:"optional,optional"`
+		Required string  `parquet:"required"`
+	}
+
+	originalSchema := parquet.SchemaOf(&OriginalSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	optionalValue := "test"
+	buffer := parquet.NewGenericBuffer[OriginalSchema](originalSchema)
+	if _, err := buffer.Write([]OriginalSchema{
+		{ID: 1, Required: "value1", Optional: &optionalValue},
+		{ID: 2, Required: "value2", Optional: nil},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, originalSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	chunks := convertedRowGroup.ColumnChunks()
+
+	if len(chunks) != 3 {
+		t.Fatalf("expected 3 column chunks, got %d", len(chunks))
+	}
+
+	for chunkIndex, chunk := range chunks {
+		pages := chunk.Pages()
+		defer pages.Close()
+
+		for {
+			page, err := pages.ReadPage()
+			if err != nil {
+				break
+			}
+
+			reader := page.Values()
+			values := make([]parquet.Value, 1024)
+
+			for {
+				n, err := reader.ReadValues(values)
+				for i := range n {
+					gotColumnIndex := values[i].Column()
+					if gotColumnIndex != chunkIndex {
+						t.Errorf("chunk %d: value has columnIndex %d, want %d",
+							chunkIndex, gotColumnIndex, chunkIndex)
+					}
+				}
+
+				if err != nil {
+					break
+				}
+			}
+		}
+	}
+}
+
+func TestConvertRowGroupWithMissingColumns(t *testing.T) {
+	type OriginalSchema struct {
+		ID   int64  `parquet:"id"`
+		Name string `parquet:"name"`
+	}
+
+	type TargetSchema struct {
+		ID    int64   `parquet:"id"`
+		Extra *string `parquet:"extra,optional"`
+		Name  string  `parquet:"name"`
+	}
+
+	originalSchema := parquet.SchemaOf(&OriginalSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	buffer := parquet.NewGenericBuffer[OriginalSchema](originalSchema)
+	if _, err := buffer.Write([]OriginalSchema{
+		{ID: 1, Name: "first"},
+		{ID: 2, Name: "second"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, originalSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	chunks := convertedRowGroup.ColumnChunks()
+
+	if len(chunks) != 3 {
+		t.Fatalf("expected 3 column chunks, got %d", len(chunks))
+	}
+
+	for chunkIndex, chunk := range chunks {
+		gotColumnIndex := chunk.Column()
+		if gotColumnIndex != chunkIndex {
+			t.Errorf("chunk %d: Column() returned %d, want %d",
+				chunkIndex, gotColumnIndex, chunkIndex)
+		}
+
+		pages := chunk.Pages()
+		defer pages.Close()
+
+		for {
+			page, err := pages.ReadPage()
+			if err != nil {
+				break
+			}
+
+			reader := page.Values()
+			values := make([]parquet.Value, 1024)
+
+			for {
+				n, err := reader.ReadValues(values)
+				for i := range n {
+					gotValueColumnIndex := values[i].Column()
+					if gotValueColumnIndex != chunkIndex {
+						t.Errorf("chunk %d: value has columnIndex %d, want %d",
+							chunkIndex, gotValueColumnIndex, chunkIndex)
+					}
+				}
+
+				if err != nil {
+					break
+				}
+			}
+		}
+	}
+}
+
+// TestConvertMissingRequiredColumnDirect tests direct page reading
+func TestConvertMissingRequiredColumnDirect(t *testing.T) {
+	type SourceSchema struct {
+		ID int64 `parquet:"id"`
+	}
+
+	type TargetSchema struct {
+		ID   int64  `parquet:"id"`
+		Name string `parquet:"name"`
+	}
+
+	sourceSchema := parquet.SchemaOf(&SourceSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	buffer := parquet.NewGenericBuffer[SourceSchema](sourceSchema)
+	if _, err := buffer.Write([]SourceSchema{{ID: 1}, {ID: 2}}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, sourceSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	chunks := convertedRowGroup.ColumnChunks()
+
+	if len(chunks) != 2 {
+		t.Fatalf("expected 2 chunks, got %d", len(chunks))
+	}
+
+	// Log all chunks
+	for i, chunk := range chunks {
+		t.Logf("Chunk %d: column=%d, type=%v", i, chunk.Column(), chunk.Type())
+	}
+
+	// Read from the Name column directly (index 1)
+	nameChunk := chunks[1]
+	t.Logf("Name chunk type: %v, kind: %v", nameChunk.Type(), nameChunk.Type().Kind())
+
+	pages := nameChunk.Pages()
+	defer pages.Close()
+
+	page, err := pages.ReadPage()
+	if err != nil {
+		t.Fatal("error reading page:", err)
+	}
+
+	reader := page.Values()
+	values := make([]parquet.Value, 10)
+	n, err := reader.ReadValues(values)
+	t.Logf("Read %d values from missing column, err=%v", n, err)
+	for i := range n {
+		t.Logf("  value[%d]: col=%d, isNull=%v, kind=%v, bytes=%q", i, values[i].Column(), values[i].IsNull(), values[i].Kind(), values[i].ByteArray())
+	}
+}
+
+// TestConvertMissingRequiredColumn tests that missing required columns produce zero/default values
+func TestConvertMissingRequiredColumn(t *testing.T) {
+	type SourceSchema struct {
+		ID int64 `parquet:"id"`
+	}
+
+	type TargetSchema struct {
+		ID   int64  `parquet:"id"`
+		Name string `parquet:"name"` // Missing required column should get empty string
+	}
+
+	sourceSchema := parquet.SchemaOf(&SourceSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	buffer := parquet.NewGenericBuffer[SourceSchema](sourceSchema)
+	if _, err := buffer.Write([]SourceSchema{
+		{ID: 1},
+		{ID: 2},
+		{ID: 3},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, sourceSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	rows := convertedRowGroup.Rows()
+	defer rows.Close()
+
+	rowBuf := make([]parquet.Row, 1)
+	expectedNames := []string{"", "", ""} // Empty strings for missing required column
+	expectedIDs := []int64{1, 2, 3}
+
+	for i := range 3 {
+		n, err := rows.ReadRows(rowBuf)
+		if err != nil && err != io.EOF {
+			t.Fatal(err)
+		}
+		if n != 1 {
+			t.Fatalf("expected 1 row, got %d", n)
+		}
+
+		row := rowBuf[0]
+		var result TargetSchema
+		if err := targetSchema.Reconstruct(&result, row); err != nil {
+			t.Fatal(err)
+		}
+
+		expected := TargetSchema{ID: expectedIDs[i], Name: expectedNames[i]}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("row %d: expected %+v, got %+v", i, expected, result)
+		}
+
+		// Check values directly for levels
+		nameColumnIndex := 1 // "name" is second column
+		var foundNameValue bool
+		for _, val := range row {
+			if val.Column() == nameColumnIndex {
+				foundNameValue = true
+				// Required field should have definitionLevel == maxDefinitionLevel
+				// For a required field at root, maxDefinitionLevel should be 0
+				// But if it's part of the schema, check it produces a zero value
+				if val.IsNull() {
+					t.Errorf("row %d: missing required field should not be null", i)
+				}
+				// Value should be empty string (zero value for string)
+				if val.String() != "" {
+					t.Errorf("row %d: expected empty string, got %q", i, val.String())
+				}
+			}
+		}
+		if !foundNameValue {
+			t.Errorf("row %d: did not find value for name column", i)
+		}
+	}
+}
+
+// TestConvertMissingOptionalColumn tests that missing optional columns produce nulls
+func TestConvertMissingOptionalColumn(t *testing.T) {
+	type SourceSchema struct {
+		ID int64 `parquet:"id"`
+	}
+
+	type TargetSchema struct {
+		ID      int64   `parquet:"id"`
+		Comment *string `parquet:"comment,optional"` // Missing optional column should be null
+	}
+
+	sourceSchema := parquet.SchemaOf(&SourceSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	buffer := parquet.NewGenericBuffer[SourceSchema](sourceSchema)
+	if _, err := buffer.Write([]SourceSchema{
+		{ID: 1},
+		{ID: 2},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, sourceSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	rows := convertedRowGroup.Rows()
+	defer rows.Close()
+
+	rowBuf := make([]parquet.Row, 1)
+
+	for i := range 2 {
+		n, err := rows.ReadRows(rowBuf)
+		if err != nil && err != io.EOF {
+			t.Fatal(err)
+		}
+		if n != 1 {
+			t.Fatalf("expected 1 row, got %d", n)
+		}
+
+		row := rowBuf[0]
+		var result TargetSchema
+		if err := targetSchema.Reconstruct(&result, row); err != nil {
+			t.Fatal(err)
+		}
+
+		expected := TargetSchema{ID: int64(i + 1), Comment: nil}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("row %d: expected %+v, got %+v", i, expected, result)
+		}
+
+		// Check values directly for levels
+		commentColumnIndex := 1 // "comment" is second column
+		for _, val := range row {
+			if val.Column() == commentColumnIndex {
+				// Optional field should have null value
+				// definitionLevel < maxDefinitionLevel indicates null
+				if !val.IsNull() {
+					t.Errorf("row %d: missing optional field should be null", i)
+				}
+			}
+		}
+	}
+}
+
+// TestConvertMissingRequiredInRepeatedGroup tests missing required column in a repeated group
+func TestConvertMissingRequiredInRepeatedGroup(t *testing.T) {
+	type Item struct {
+		X int32 `parquet:"x"`
+	}
+
+	type ItemWithY struct {
+		X int32 `parquet:"x"`
+		Y int32 `parquet:"y"` // Missing required field should get zero value
+	}
+
+	type SourceSchema struct {
+		Items []Item `parquet:"items"`
+	}
+
+	type TargetSchema struct {
+		Items []ItemWithY `parquet:"items"`
+	}
+
+	sourceSchema := parquet.SchemaOf(&SourceSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	buffer := parquet.NewGenericBuffer[SourceSchema](sourceSchema)
+	if _, err := buffer.Write([]SourceSchema{
+		{Items: []Item{{X: 1}, {X: 2}, {X: 3}}}, // 3 items in first row
+		{Items: []Item{{X: 4}}},                 // 1 item in second row
+		{Items: []Item{}},                       // 0 items in third row
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, sourceSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	rows := convertedRowGroup.Rows()
+	defer rows.Close()
+
+	rowBuf := make([]parquet.Row, 1)
+
+	// Row 0: 3 items
+	n, err := rows.ReadRows(rowBuf)
+	if err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Fatalf("expected 1 row, got %d", n)
+	}
+	var result TargetSchema
+	if err := targetSchema.Reconstruct(&result, rowBuf[0]); err != nil {
+		t.Fatal(err)
+	}
+	expectedRow0 := TargetSchema{
+		Items: []ItemWithY{{X: 1, Y: 0}, {X: 2, Y: 0}, {X: 3, Y: 0}},
+	}
+	if !reflect.DeepEqual(result, expectedRow0) {
+		t.Errorf("row 0: expected %+v, got %+v", expectedRow0, result)
+	}
+
+	// Verify repetition and definition levels match between X and Y columns
+	row := rowBuf[0]
+	xValues := []parquet.Value{}
+	yValues := []parquet.Value{}
+	for _, val := range row {
+		if val.Column() == 0 { // X column
+			xValues = append(xValues, val)
+		} else if val.Column() == 1 { // Y column
+			yValues = append(yValues, val)
+		}
+	}
+	if len(xValues) != len(yValues) {
+		t.Errorf("row 0: X column has %d values, Y column has %d values", len(xValues), len(yValues))
+	}
+	for i := range xValues {
+		if xValues[i].RepetitionLevel() != yValues[i].RepetitionLevel() {
+			t.Errorf("row 0, value %d: X repLevel=%d, Y repLevel=%d (should match)",
+				i, xValues[i].RepetitionLevel(), yValues[i].RepetitionLevel())
+		}
+		if xValues[i].DefinitionLevel() != yValues[i].DefinitionLevel() {
+			t.Errorf("row 0, value %d: X defLevel=%d, Y defLevel=%d (should match for required fields)",
+				i, xValues[i].DefinitionLevel(), yValues[i].DefinitionLevel())
+		}
+	}
+
+	// Row 1: 1 item
+	n, err = rows.ReadRows(rowBuf)
+	if err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+	if err := targetSchema.Reconstruct(&result, rowBuf[0]); err != nil {
+		t.Fatal(err)
+	}
+	expectedRow1 := TargetSchema{
+		Items: []ItemWithY{{X: 4, Y: 0}},
+	}
+	if !reflect.DeepEqual(result, expectedRow1) {
+		t.Errorf("row 1: expected %+v, got %+v", expectedRow1, result)
+	}
+
+	// Row 2: 0 items
+	n, err = rows.ReadRows(rowBuf)
+	if err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+	if err := targetSchema.Reconstruct(&result, rowBuf[0]); err != nil {
+		t.Fatal(err)
+	}
+	expectedRow2 := TargetSchema{
+		Items: []ItemWithY{},
+	}
+	if !reflect.DeepEqual(result, expectedRow2) {
+		t.Errorf("row 2: expected %+v, got %+v", expectedRow2, result)
+	}
+}
+
+// TestConvertMissingOptionalInRepeatedGroup tests missing optional column in a repeated group
+func TestConvertMissingOptionalInRepeatedGroup(t *testing.T) {
+	type Item struct {
+		X int32 `parquet:"x"`
+	}
+
+	type ItemWithY struct {
+		X int32  `parquet:"x"`
+		Y *int32 `parquet:"y,optional"` // Missing optional field should be null
+	}
+
+	type SourceSchema struct {
+		Items []Item `parquet:"items"`
+	}
+
+	type TargetSchema struct {
+		Items []ItemWithY `parquet:"items"`
+	}
+
+	sourceSchema := parquet.SchemaOf(&SourceSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	buffer := parquet.NewGenericBuffer[SourceSchema](sourceSchema)
+	if _, err := buffer.Write([]SourceSchema{
+		{Items: []Item{{X: 1}, {X: 2}}},
+		{Items: []Item{{X: 3}}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, sourceSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	rows := convertedRowGroup.Rows()
+	defer rows.Close()
+
+	rowBuf := make([]parquet.Row, 1)
+
+	// Row 0: 2 items
+	n, err := rows.ReadRows(rowBuf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Fatalf("expected 1 row, got %d", n)
+	}
+	var result TargetSchema
+	if err := targetSchema.Reconstruct(&result, rowBuf[0]); err != nil {
+		t.Fatal(err)
+	}
+	expectedRow0 := TargetSchema{
+		Items: []ItemWithY{{X: 1, Y: nil}, {X: 2, Y: nil}},
+	}
+	if !reflect.DeepEqual(result, expectedRow0) {
+		t.Errorf("row 0: expected %+v, got %+v", expectedRow0, result)
+	}
+
+	// Verify repetition levels match, but definition levels indicate NULL
+	row := rowBuf[0]
+	xValues := []parquet.Value{}
+	yValues := []parquet.Value{}
+	for _, val := range row {
+		if val.Column() == 0 { // X column
+			xValues = append(xValues, val)
+		} else if val.Column() == 1 { // Y column
+			yValues = append(yValues, val)
+		}
+	}
+	if len(xValues) != len(yValues) {
+		t.Errorf("row 0: X column has %d values, Y column has %d values", len(xValues), len(yValues))
+	}
+	for i := range xValues {
+		if xValues[i].RepetitionLevel() != yValues[i].RepetitionLevel() {
+			t.Errorf("row 0, value %d: X repLevel=%d, Y repLevel=%d (should match)",
+				i, xValues[i].RepetitionLevel(), yValues[i].RepetitionLevel())
+		}
+		// For optional fields, Y should be NULL (isNull=true)
+		if !yValues[i].IsNull() {
+			t.Errorf("row 0, value %d: Y value should be NULL", i)
+		}
+	}
+}
+
+// TestConvertMissingOptionalInRepeatedGroupWithOptionalAdjacent tests missing optional column
+// where the adjacent column is also optional
+func TestConvertMissingOptionalInRepeatedGroupWithOptionalAdjacent(t *testing.T) {
+	type Item struct {
+		X *int32 `parquet:"x,optional"`
+	}
+
+	type ItemWithY struct {
+		X *int32 `parquet:"x,optional"`
+		Y *int32 `parquet:"y,optional"` // Missing optional field should be null
+	}
+
+	type SourceSchema struct {
+		Items []Item `parquet:"items"`
+	}
+
+	type TargetSchema struct {
+		Items []ItemWithY `parquet:"items"`
+	}
+
+	sourceSchema := parquet.SchemaOf(&SourceSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	// Create test data with a mix of present and null values for X
+	x1 := int32(1)
+	x3 := int32(3)
+	buffer := parquet.NewGenericBuffer[SourceSchema](sourceSchema)
+	if _, err := buffer.Write([]SourceSchema{
+		{Items: []Item{{X: &x1}, {X: nil}, {X: &x3}}}, // Row 0: 3 items (some with null X)
+		{Items: []Item{{X: nil}}},                     // Row 1: 1 item with null X
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, sourceSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	rows := convertedRowGroup.Rows()
+	defer rows.Close()
+
+	rowBuf := make([]parquet.Row, 1)
+
+	// Row 0: 3 items
+	n, err := rows.ReadRows(rowBuf)
+	if err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Fatalf("expected 1 row, got %d", n)
+	}
+	var result TargetSchema
+	if err := targetSchema.Reconstruct(&result, rowBuf[0]); err != nil {
+		t.Fatal(err)
+	}
+
+	expectedRow0 := TargetSchema{
+		Items: []ItemWithY{{X: &x1, Y: nil}, {X: nil, Y: nil}, {X: &x3, Y: nil}},
+	}
+	if !reflect.DeepEqual(result, expectedRow0) {
+		t.Errorf("row 0: expected %+v, got %+v", expectedRow0, result)
+	}
+
+	// Verify repetition levels match between X and Y
+	row := rowBuf[0]
+	xValues := []parquet.Value{}
+	yValues := []parquet.Value{}
+	for _, val := range row {
+		if val.Column() == 0 { // X column
+			xValues = append(xValues, val)
+		} else if val.Column() == 1 { // Y column
+			yValues = append(yValues, val)
+		}
+	}
+	if len(xValues) != len(yValues) {
+		t.Errorf("row 0: X column has %d values, Y column has %d values", len(xValues), len(yValues))
+	}
+	for i := range xValues {
+		if xValues[i].RepetitionLevel() != yValues[i].RepetitionLevel() {
+			t.Errorf("row 0, value %d: X repLevel=%d, Y repLevel=%d (should match)",
+				i, xValues[i].RepetitionLevel(), yValues[i].RepetitionLevel())
+		}
+		// Y should always be NULL
+		if !yValues[i].IsNull() {
+			t.Errorf("row 0, value %d: Y value should be NULL", i)
+		}
+		// When X is null, Y should also be null at the same level
+		// When X is present, Y should be null at the leaf level
+		if xValues[i].IsNull() {
+			// Both should be null, definition levels should match
+			if xValues[i].DefinitionLevel() != yValues[i].DefinitionLevel() {
+				t.Errorf("row 0, value %d: when X is null, defLevels should match: X=%d, Y=%d",
+					i, xValues[i].DefinitionLevel(), yValues[i].DefinitionLevel())
+			}
+		}
+	}
+
+	// Row 1: 1 item with null X
+	n, err = rows.ReadRows(rowBuf)
+	if err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+	if err := targetSchema.Reconstruct(&result, rowBuf[0]); err != nil {
+		t.Fatal(err)
+	}
+	expectedRow1 := TargetSchema{
+		Items: []ItemWithY{{X: nil, Y: nil}},
+	}
+	if !reflect.DeepEqual(result, expectedRow1) {
+		t.Errorf("row 1: expected %+v, got %+v", expectedRow1, result)
+	}
+}
+
+// TestConvertMissingRequiredInRepeatedGroupWithOptionalAdjacent tests missing required column
+// where the adjacent column is optional
+func TestConvertMissingRequiredInRepeatedGroupWithOptionalAdjacent(t *testing.T) {
+	type Item struct {
+		X *int32 `parquet:"x,optional"`
+	}
+
+	type ItemWithY struct {
+		X *int32 `parquet:"x,optional"`
+		Y int32  `parquet:"y"` // Missing required field should get zero value
+	}
+
+	type SourceSchema struct {
+		Items []Item `parquet:"items"`
+	}
+
+	type TargetSchema struct {
+		Items []ItemWithY `parquet:"items"`
+	}
+
+	sourceSchema := parquet.SchemaOf(&SourceSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	// Create test data with a mix of present and null values for X
+	x1 := int32(1)
+	x3 := int32(3)
+	buffer := parquet.NewGenericBuffer[SourceSchema](sourceSchema)
+	if _, err := buffer.Write([]SourceSchema{
+		{Items: []Item{{X: &x1}, {X: nil}, {X: &x3}}}, // Row 0: 3 items (some with null X)
+		{Items: []Item{{X: nil}}},                     // Row 1: 1 item with null X
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, sourceSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	rows := convertedRowGroup.Rows()
+	defer rows.Close()
+
+	rowBuf := make([]parquet.Row, 1)
+
+	// Row 0: 3 items
+	n, err := rows.ReadRows(rowBuf)
+	if err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Fatalf("expected 1 row, got %d", n)
+	}
+	var result TargetSchema
+	if err := targetSchema.Reconstruct(&result, rowBuf[0]); err != nil {
+		t.Fatal(err)
+	}
+	expectedRow0 := TargetSchema{
+		Items: []ItemWithY{{X: &x1, Y: 0}, {X: nil, Y: 0}, {X: &x3, Y: 0}},
+	}
+	if !reflect.DeepEqual(result, expectedRow0) {
+		t.Errorf("row 0: expected %+v, got %+v", expectedRow0, result)
+	}
+
+	// Verify repetition levels match between X and Y
+	row := rowBuf[0]
+	xValues := []parquet.Value{}
+	yValues := []parquet.Value{}
+	for _, val := range row {
+		if val.Column() == 0 { // X column
+			xValues = append(xValues, val)
+		} else if val.Column() == 1 { // Y column
+			yValues = append(yValues, val)
+		}
+	}
+	if len(xValues) != len(yValues) {
+		t.Errorf("row 0: X column has %d values, Y column has %d values", len(xValues), len(yValues))
+	}
+	for i := range xValues {
+		if xValues[i].RepetitionLevel() != yValues[i].RepetitionLevel() {
+			t.Errorf("row 0, value %d: X repLevel=%d, Y repLevel=%d (should match)",
+				i, xValues[i].RepetitionLevel(), yValues[i].RepetitionLevel())
+		}
+		// Y is required, so should always be non-null
+		if yValues[i].IsNull() {
+			t.Errorf("row 0, value %d: Y should not be NULL (required field)", i)
+		}
+		// Y should have value 0
+		if yValues[i].Int32() != 0 {
+			t.Errorf("row 0, value %d: expected Y=0, got %d", i, yValues[i].Int32())
+		}
+	}
+
+	// Row 1: 1 item with null X
+	n, err = rows.ReadRows(rowBuf)
+	if err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+	if err := targetSchema.Reconstruct(&result, rowBuf[0]); err != nil {
+		t.Fatal(err)
+	}
+	expectedRow1 := TargetSchema{
+		Items: []ItemWithY{{X: nil, Y: 0}},
+	}
+	if !reflect.DeepEqual(result, expectedRow1) {
+		t.Errorf("row 1: expected %+v, got %+v", expectedRow1, result)
+	}
+}
+
+// TestConvertMissingColumnSliceWithAdjacentPages tests that when slicing a missing page
+// with adjacent pages (for level mirroring), the adjacent reader is properly seeked.
+// This is a regression test for a bug where slicing a missing page didn't seek the adjacent reader.
+func TestConvertMissingColumnSliceWithAdjacentPages(t *testing.T) {
+	// Source schema has ID and Name columns
+	type SourceSchema struct {
+		ID   int64  `parquet:"id"`
+		Name string `parquet:"name"`
+	}
+
+	// Target schema has ID, Name, and Extra columns
+	// Extra is missing in source, so it needs to mirror levels from adjacent columns
+	type TargetSchema struct {
+		ID    int64  `parquet:"id"`
+		Extra string `parquet:"extra"` // Missing column that will need adjacent pages
+		Name  string `parquet:"name"`
+	}
+
+	sourceSchema := parquet.SchemaOf(&SourceSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	// Create test data with multiple rows
+	buffer := parquet.NewGenericBuffer[SourceSchema](sourceSchema)
+	testData := []SourceSchema{
+		{ID: 1, Name: "first"},
+		{ID: 2, Name: "second"},
+		{ID: 3, Name: "third"},
+		{ID: 4, Name: "fourth"},
+		{ID: 5, Name: "fifth"},
+	}
+	if _, err := buffer.Write(testData); err != nil {
+		t.Fatal(err)
+	}
+
+	// Convert to target schema
+	conversion, err := parquet.Convert(targetSchema, sourceSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	chunks := convertedRowGroup.ColumnChunks()
+
+	if len(chunks) != 3 {
+		t.Fatalf("expected 3 column chunks, got %d", len(chunks))
+	}
+
+	// Get the Extra column chunk (index 1) - this should be a missing column
+	extraChunk := chunks[1]
+
+	// Read the page from the missing column
+	pages := extraChunk.Pages()
+	defer pages.Close()
+
+	page, err := pages.ReadPage()
+	if err != nil {
+		t.Fatal("error reading page:", err)
+	}
+
+	// Test slicing the page at different offsets
+	testCases := []struct {
+		name  string
+		start int64
+		end   int64
+		want  int
+	}{
+		{"slice first row", 0, 1, 1},
+		{"slice middle rows", 1, 3, 2},
+		{"slice last row", 4, 5, 1},
+		{"slice multiple rows from middle", 2, 5, 3},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Slice the page
+			slicedPage := page.Slice(tc.start, tc.end)
+
+			// Verify the slice has the correct number of values
+			if slicedPage.NumValues() != tc.end-tc.start {
+				t.Errorf("sliced page NumValues: got %d, want %d",
+					slicedPage.NumValues(), tc.end-tc.start)
+			}
+
+			// Read values from the sliced page
+			reader := slicedPage.Values()
+			values := make([]parquet.Value, 10)
+			totalRead := 0
+
+			for {
+				n, err := reader.ReadValues(values)
+				if n > 0 {
+					// Verify that we can read the values and they have proper column indices
+					for i := range n {
+						if values[i].Column() != 1 { // Extra column is at index 1
+							t.Errorf("value has wrong column index: got %d, want 1",
+								values[i].Column())
+						}
+						// Missing required column should produce empty strings
+						if !values[i].IsNull() && values[i].String() != "" {
+							t.Errorf("missing required column should produce empty string, got %q",
+								values[i].String())
+						}
+					}
+					totalRead += n
+				}
+				if err != nil {
+					break
+				}
+			}
+
+			if totalRead != tc.want {
+				t.Errorf("read wrong number of values: got %d, want %d",
+					totalRead, tc.want)
+			}
+		})
+	}
+}
+
+// TestConvertMissingColumnSliceWithOptionalAdjacent tests slicing when the adjacent
+// column has optional values, ensuring levels are still properly mirrored
+func TestConvertMissingColumnSliceWithOptionalAdjacent(t *testing.T) {
+	type SourceSchema struct {
+		ID    int64   `parquet:"id"`
+		Value *string `parquet:"value,optional"` // Optional field with some nulls
+	}
+
+	type TargetSchema struct {
+		ID      int64   `parquet:"id"`
+		Value   *string `parquet:"value,optional"`
+		Missing string  `parquet:"missing"` // Missing required column
+	}
+
+	sourceSchema := parquet.SchemaOf(&SourceSchema{})
+	targetSchema := parquet.SchemaOf(&TargetSchema{})
+
+	// Create test data with mix of null and non-null values
+	val1 := "first"
+	val3 := "third"
+	val5 := "fifth"
+
+	buffer := parquet.NewGenericBuffer[SourceSchema](sourceSchema)
+	if _, err := buffer.Write([]SourceSchema{
+		{ID: 1, Value: &val1},
+		{ID: 2, Value: nil},
+		{ID: 3, Value: &val3},
+		{ID: 4, Value: nil},
+		{ID: 5, Value: &val5},
+		{ID: 6, Value: nil},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	conversion, err := parquet.Convert(targetSchema, sourceSchema)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	convertedRowGroup := parquet.ConvertRowGroup(buffer, conversion)
+	chunks := convertedRowGroup.ColumnChunks()
+
+	if len(chunks) != 3 {
+		t.Fatalf("expected 3 chunks, got %d", len(chunks))
+	}
+
+	// Get the missing column chunk
+	missingChunk := chunks[2] // Missing column
+
+	// Read the page from the missing column
+	pages := missingChunk.Pages()
+	defer pages.Close()
+
+	page, err := pages.ReadPage()
+	if err != nil {
+		t.Fatal("error reading page:", err)
+	}
+
+	// Test slicing at different offsets to ensure adjacent reader seeking works
+	testCases := []struct {
+		name  string
+		start int64
+		end   int64
+		want  int
+	}{
+		{"slice first two rows", 0, 2, 2},
+		{"slice middle rows", 2, 4, 2},
+		{"slice last two rows", 4, 6, 2},
+		{"slice across null boundary", 1, 5, 4},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Slice the page
+			slicedPage := page.Slice(tc.start, tc.end)
+
+			// Verify the slice has the correct number of values
+			if slicedPage.NumValues() != tc.end-tc.start {
+				t.Errorf("sliced page NumValues: got %d, want %d",
+					slicedPage.NumValues(), tc.end-tc.start)
+			}
+
+			// Read values from the sliced page
+			reader := slicedPage.Values()
+			values := make([]parquet.Value, 10)
+			totalRead := 0
+
+			for {
+				n, err := reader.ReadValues(values)
+				if n > 0 {
+					// Verify that we can read the values and they have proper column indices
+					for i := range n {
+						if values[i].Column() != 2 { // Missing column is at index 2
+							t.Errorf("value has wrong column index: got %d, want 2",
+								values[i].Column())
+						}
+						// Missing required column should produce empty strings
+						if !values[i].IsNull() && values[i].String() != "" {
+							t.Errorf("missing required column should produce empty string, got %q",
+								values[i].String())
+						}
+					}
+					totalRead += n
+				}
+				if err != nil {
+					break
+				}
+			}
+
+			if totalRead != tc.want {
+				t.Errorf("read wrong number of values: got %d, want %d",
+					totalRead, tc.want)
+			}
+		})
+	}
+}
+
+func BenchmarkConvertLargeSchemaDifferent(b *testing.B) {
+	const numColumns = 30000
+	const numCommonColumns = 25000 // 25k columns in common, 5k different
+
+	// Build two schemas with many columns, but with some differences
+	toFields := make(parquet.Group)
+	fromFields := make(parquet.Group)
+
+	for i := range numColumns {
+		var toFieldName, fromFieldName string
+		var fieldNode parquet.Node
+
+		if i < numCommonColumns {
+			// Common columns
+			toFieldName = fmt.Sprintf("field_%d", i)
+			fromFieldName = toFieldName
+		} else {
+			// Different columns for to vs from
+			toFieldName = fmt.Sprintf("to_field_%d", i)
+			fromFieldName = fmt.Sprintf("from_field_%d", i)
+		}
+
+		// Alternate between different types
+		switch i % 5 {
+		case 0:
+			fieldNode = parquet.Int(64)
+		case 1:
+			fieldNode = parquet.String()
+		case 2:
+			fieldNode = parquet.Int(32)
+		case 3:
+			fieldNode = parquet.Leaf(parquet.DoubleType)
+		case 4:
+			fieldNode = parquet.Leaf(parquet.BooleanType)
+		}
+
+		toFields[toFieldName] = fieldNode
+		fromFields[fromFieldName] = fieldNode
+	}
+
+	toSchema := parquet.NewSchema("benchmark", toFields)
+	fromSchema := parquet.NewSchema("benchmark", fromFields)
+
+	b.ResetTimer()
+	for b.Loop() {
+		_, err := parquet.Convert(toSchema, fromSchema)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func shreddedVariant(node parquet.Node) parquet.Node {
+	n, err := parquet.ShreddedVariant(node)
+	if err != nil {
+		panic(err)
+	}
+	return n
+}
+
+func TestConvertVariant(t *testing.T) {
+	t.Run("identical unshredded variant", func(t *testing.T) {
+		schema := parquet.NewSchema("test", parquet.Group{
+			"data": parquet.Variant(),
+		})
+		conv, err := parquet.Convert(schema, schema)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Identity conversion for identical schemas
+		if conv.Column(0) != 0 {
+			t.Errorf("column 0 mapping: got %d, want 0", conv.Column(0))
+		}
+		if conv.Column(1) != 1 {
+			t.Errorf("column 1 mapping: got %d, want 1", conv.Column(1))
+		}
+	})
+
+	t.Run("identical shredded variant", func(t *testing.T) {
+		schema := parquet.NewSchema("test", parquet.Group{
+			"data": shreddedVariant(parquet.String()),
+		})
+		conv, err := parquet.Convert(schema, schema)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Identity: metadata(0), typed_value(1), value(2)
+		for i := range 3 {
+			if conv.Column(i) != i {
+				t.Errorf("column %d mapping: got %d, want %d", i, conv.Column(i), i)
+			}
+		}
+	})
+
+	t.Run("unshredded to shredded variant", func(t *testing.T) {
+		// Source: Variant() → metadata (required ByteArray), value (required ByteArray)
+		// Target: ShreddedVariant(String()) → metadata (required), typed_value (optional String), value (optional ByteArray)
+		from := parquet.NewSchema("test", parquet.Group{
+			"data": parquet.Variant(),
+		})
+		to := parquet.NewSchema("test", parquet.Group{
+			"data": shreddedVariant(parquet.String()),
+		})
+
+		conv, err := parquet.Convert(to, from)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Target columns (alphabetically sorted within variant group):
+		//   0: metadata (required ByteArray) — maps from source 0
+		//   1: typed_value (optional String) — missing from source; uses metadata (col 0)
+		//      as a structural template for def/rep levels, but actual values are null
+		//   2: value (optional ByteArray) — maps from source 1
+		if got := conv.Column(0); got != 0 {
+			t.Errorf("metadata column mapping: got %d, want 0", got)
+		}
+		if got := conv.Column(2); got != 1 {
+			t.Errorf("value column mapping: got %d, want 1", got)
+		}
+	})
+
+	t.Run("shredded variant with extra typed_value columns", func(t *testing.T) {
+		// Source has String typed_value, target adds Int32 typed_value
+		from := parquet.NewSchema("test", parquet.Group{
+			"data": shreddedVariant(parquet.String()),
+		})
+		to := parquet.NewSchema("test", parquet.Group{
+			"data": shreddedVariant(parquet.Group{
+				"name": parquet.String(),
+				"age":  parquet.Leaf(parquet.Int32Type),
+			}),
+		})
+
+		conv, err := parquet.Convert(to, from)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Conversion should succeed without panicking — variant's leaf columns
+		// (ByteArray for metadata/value, Int32/String for typed_value) are all
+		// standard types handled by the normal conversion pipeline.
+		_ = conv
+	})
+
+	t.Run("shredded variant with fewer typed_value columns", func(t *testing.T) {
+		from := parquet.NewSchema("test", parquet.Group{
+			"data": shreddedVariant(parquet.Group{
+				"name": parquet.String(),
+				"age":  parquet.Leaf(parquet.Int32Type),
+			}),
+		})
+		to := parquet.NewSchema("test", parquet.Group{
+			"data": shreddedVariant(parquet.String()),
+		})
+
+		conv, err := parquet.Convert(to, from)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		_ = conv
+	})
+
+	t.Run("shredded to unshredded variant", func(t *testing.T) {
+		from := parquet.NewSchema("test", parquet.Group{
+			"data": shreddedVariant(parquet.String()),
+		})
+		to := parquet.NewSchema("test", parquet.Group{
+			"data": parquet.Variant(),
+		})
+
+		conv, err := parquet.Convert(to, from)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Target columns:
+		//   0: metadata (required ByteArray) — maps from source 0
+		//   1: value (required ByteArray) — maps from source 2 (value was optional in source)
+		if got := conv.Column(0); got != 0 {
+			t.Errorf("metadata column mapping: got %d, want 0", got)
+		}
+		// Source typed_value columns are dropped (not in target).
+		// Source value column (optional) maps to target value (required).
+		if got := conv.Column(1); got < 0 {
+			t.Errorf("value column mapping: got %d, want >= 0 (should map from source value)", got)
+		}
+	})
+}
+
+// TestConvertOutOfBoundsLevelsGuard asserts that a Conversion produced by
+// parquet.Convert does not panic when a source row carries repetition or
+// definition levels that exceed the lookup-table size, and instead surfaces
+// those values as typed nulls at the target column. Such out-of-range levels
+// can be synthesized inside the reader pipeline (mask / sibling-fallback)
+// when source and target schemas disagree on optionality or nesting depth.
+func TestConvertOutOfBoundsLevelsGuard(t *testing.T) {
+	type Source struct {
+		X int64 `parquet:"x"`
+	}
+	type Target struct {
+		X *int64 `parquet:"x,optional"`
+	}
+
+	from := parquet.SchemaOf(Source{})
+	to := parquet.SchemaOf(Target{})
+
+	// Required source → optional target makes the definition-level lookup
+	// table non-identity (definitionLevels = [1]), which is what causes
+	// Convert to install convertToLevels in the pipeline.
+	conv, err := parquet.Convert(to, from)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Source max rep=0, max def=0 → lookup tables have length 1. Any
+	// rep/def >= 1 in a source value is out of bounds for the tables.
+	inBounds := parquet.Int64Value(42).Level(0, 0, 0)
+	oobDef := parquet.Int64Value(99).Level(0, 5, 0)
+	oobRep := parquet.Int64Value(100).Level(5, 0, 0)
+
+	rows := []parquet.Row{
+		{inBounds},
+		{oobDef},
+		{oobRep},
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Convert panicked on OOB source levels (expected guard to null the value): %v", r)
+		}
+	}()
+
+	n, err := conv.Convert(rows)
+	if err != nil {
+		t.Fatalf("Convert returned error: %v", err)
+	}
+	if n != len(rows) {
+		t.Fatalf("expected %d rows converted, got %d", len(rows), n)
+	}
+
+	// In-bounds value: payload preserved, def-level remapped via lookup
+	// table from source max (0) to target max (1).
+	if len(rows[0]) != 1 {
+		t.Fatalf("row 0: expected 1 value, got %d", len(rows[0]))
+	}
+	got0 := rows[0][0]
+	if got0.IsNull() {
+		t.Errorf("in-bounds value unexpectedly null: %+v", got0)
+	}
+	if got0.Kind() != parquet.Int64 || got0.Int64() != 42 {
+		t.Errorf("in-bounds value payload mutated: kind=%v int64=%d", got0.Kind(), got0.Int64())
+	}
+	if got0.RepetitionLevel() != 0 || got0.DefinitionLevel() != 1 {
+		t.Errorf("in-bounds levels not remapped correctly: rep=%d def=%d (want rep=0 def=1)",
+			got0.RepetitionLevel(), got0.DefinitionLevel())
+	}
+
+	// OOB definition level: convertToLevels zeroes the Value, then Convert's
+	// post-loop fixup keeps it null (target is optional) and rewrites
+	// columnIndex to the target column.
+	if len(rows[1]) != 1 {
+		t.Fatalf("row 1: expected 1 value, got %d", len(rows[1]))
+	}
+	got1 := rows[1][0]
+	if !got1.IsNull() {
+		t.Errorf("oob-definition value: expected typed null, got kind=%v int64=%d",
+			got1.Kind(), got1.Int64())
+	}
+	if got1.RepetitionLevel() != 0 || got1.DefinitionLevel() != 0 {
+		t.Errorf("oob-definition value levels not reset: rep=%d def=%d",
+			got1.RepetitionLevel(), got1.DefinitionLevel())
+	}
+
+	// OOB repetition level: same outcome — typed null at the target column.
+	if len(rows[2]) != 1 {
+		t.Fatalf("row 2: expected 1 value, got %d", len(rows[2]))
+	}
+	got2 := rows[2][0]
+	if !got2.IsNull() {
+		t.Errorf("oob-repetition value: expected typed null, got kind=%v int64=%d",
+			got2.Kind(), got2.Int64())
+	}
+	if got2.RepetitionLevel() != 0 || got2.DefinitionLevel() != 0 {
+		t.Errorf("oob-repetition value levels not reset: rep=%d def=%d",
+			got2.RepetitionLevel(), got2.DefinitionLevel())
+	}
+
+	// End-to-end sanity: the converted rows reconstruct cleanly into the
+	// target Go type, with the OOB rows surfacing as nil pointers.
+	var present Target
+	if err := to.Reconstruct(&present, rows[0]); err != nil {
+		t.Fatalf("reconstruct in-bounds row: %v", err)
+	}
+	if present.X == nil || *present.X != 42 {
+		t.Errorf("reconstructed in-bounds X: want &42, got %v", present.X)
+	}
+
+	for i, row := range rows[1:] {
+		var v Target
+		if err := to.Reconstruct(&v, row); err != nil {
+			t.Fatalf("reconstruct oob row %d: %v", i+1, err)
+		}
+		if v.X != nil {
+			t.Errorf("reconstructed oob row %d: want X=nil, got %v", i+1, *v.X)
+		}
+	}
+}

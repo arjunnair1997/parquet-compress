@@ -2,10 +2,13 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"html"
 	"io"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,6 +17,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"parquet_compress/internal/reportpdf"
 )
 
 const (
@@ -25,20 +30,22 @@ const (
 )
 
 type config struct {
-	Rows          int64
-	Parallel      int
-	ZstdLevel     int
-	Input         string
-	MaxDictSize   string
-	ExperimentDir string
-	ResultDir     string
-	MarkdownDir   string
-	ConfigDir     string
-	TSVDir        string
-	OutputRoot    string
-	Verify        bool
-	SkipExisting  bool
-	KeepOutput    bool
+	Rows           int64
+	Parallel       int
+	ZstdLevel      int
+	Input          string
+	MaxDictSize    string
+	ExperimentDir  string
+	ResultDir      string
+	MarkdownDir    string
+	ConfigDir      string
+	TSVDir         string
+	OutputRoot     string
+	ShapeStatsJSON string
+	Verify         bool
+	SkipExisting   bool
+	KeepOutput     bool
+	GeneratePDF    bool
 }
 
 type combo struct {
@@ -122,6 +129,66 @@ type settingSummary struct {
 	ZstdNoEncoding    *experimentRanking
 }
 
+type columnShapeStatsSnapshot struct {
+	Columns []columnShapeStats `json:"columns"`
+	Errors  []string           `json:"errors,omitempty"`
+}
+
+type columnShapeStats struct {
+	ColumnIndex      int                  `json:"column_index"`
+	Path             []string             `json:"path"`
+	Name             string               `json:"name"`
+	Type             string               `json:"type"`
+	PhysicalType     string               `json:"physical_type"`
+	SortedAscending  bool                 `json:"sorted_ascending"`
+	SortedDescending bool                 `json:"sorted_descending"`
+	RowGroups        []shapeRowGroupStats `json:"row_groups"`
+	Pages            []shapePageStats     `json:"pages"`
+}
+
+type shapeRowGroupStats struct {
+	RowGroupIndex      int64 `json:"row_group_index"`
+	NumRows            int64 `json:"num_rows"`
+	Cardinality        int64 `json:"cardinality"`
+	PageCount          int   `json:"page_count"`
+	PageCardinalityMin int64 `json:"page_cardinality_min"`
+	PageCardinalityMax int64 `json:"page_cardinality_max"`
+	MinValueLength     int   `json:"min_value_length"`
+	MaxValueLength     int   `json:"max_value_length"`
+}
+
+type shapePageStats struct {
+	RowGroupIndex int64   `json:"row_group_index"`
+	PageIndex     int     `json:"page_index"`
+	FirstRowIndex int64   `json:"first_row_index"`
+	NumRows       int64   `json:"num_rows"`
+	NumValues     int64   `json:"num_values"`
+	Cardinality   int64   `json:"cardinality"`
+	HasBounds     bool    `json:"has_bounds"`
+	MinValue      string  `json:"min_value,omitempty"`
+	MaxValue      string  `json:"max_value,omitempty"`
+	MinValueBytes string  `json:"min_value_bytes,omitempty"`
+	MaxValueBytes string  `json:"max_value_bytes,omitempty"`
+	HasNumeric    bool    `json:"has_numeric"`
+	MinNumeric    float64 `json:"min_numeric,omitempty"`
+	MaxNumeric    float64 `json:"max_numeric,omitempty"`
+	MinLength     int     `json:"min_length"`
+	MaxLength     int     `json:"max_length"`
+}
+
+type columnShapePlots struct {
+	RowGroupCardinality string
+	PageCardinality     string
+	PageBounds          string
+	ValueLength         string
+}
+
+type plotSeries struct {
+	Name   string
+	Color  string
+	Values []float64
+}
+
 func main() {
 	cfg, err := parseFlags(os.Args[1:])
 	if err != nil {
@@ -143,6 +210,7 @@ func parseFlags(args []string) (config, error) {
 		Input:       defaultInput,
 		MaxDictSize: defaultDictMaxSize,
 		Verify:      true,
+		GeneratePDF: true,
 	}
 	fs := flag.NewFlagSet("encoding-matrix", flag.ContinueOnError)
 	fs.Int64Var(&cfg.Rows, "rows", cfg.Rows, "rows per experiment")
@@ -152,9 +220,11 @@ func parseFlags(args []string) (config, error) {
 	fs.StringVar(&cfg.MaxDictSize, "max-dictionary-page-size", cfg.MaxDictSize, "maximum per-column dictionary bytes before falling back to plain encoding")
 	fs.StringVar(&cfg.ExperimentDir, "experiment-dir", "", "fixed-settings experiment directory for result markdown/TSV files; defaults from fixed settings")
 	fs.StringVar(&cfg.OutputRoot, "output-root", "", "root directory for generated parquet output directories; defaults under --experiment-dir")
+	fs.StringVar(&cfg.ShapeStatsJSON, "column-shape-stats-json", "", "optional writer stats JSON used to enrich col_top_5.md; defaults under the row results directory")
 	fs.BoolVar(&cfg.Verify, "verify", cfg.Verify, "verify every generated parquet output")
 	fs.BoolVar(&cfg.SkipExisting, "skip-existing", cfg.SkipExisting, "reuse an existing result markdown/column TSV when present")
 	fs.BoolVar(&cfg.KeepOutput, "keep-output", cfg.KeepOutput, "keep generated parquet output directories after the experiment; only valid with --parallel 1")
+	fs.BoolVar(&cfg.GeneratePDF, "generate-pdf", cfg.GeneratePDF, "write sibling PDFs for generated markdown results; requires Chrome/Chromium or CHROME_PATH")
 	if err := fs.Parse(args); err != nil {
 		return cfg, err
 	}
@@ -179,6 +249,9 @@ func parseFlags(args []string) (config, error) {
 	cfg.TSVDir = filepath.Join(cfg.ResultDir, "tsvs")
 	if cfg.OutputRoot == "" {
 		cfg.OutputRoot = filepath.Join(cfg.ResultDir, "parquet")
+	}
+	if cfg.ShapeStatsJSON == "" {
+		cfg.ShapeStatsJSON = filepath.Join(cfg.MarkdownDir, "column_shape_stats", "column_shape_stats.json")
 	}
 	if !cfg.KeepOutput {
 		if err := requireChildPath(cfg.ResultDir, cfg.OutputRoot, "--output-root"); err != nil {
@@ -281,6 +354,9 @@ func run(cfg config) error {
 		return err
 	}
 	fmt.Printf("wrote matrix summary: %s\n", summary)
+	if cfg.GeneratePDF {
+		fmt.Printf("wrote matrix summary PDF: %s\n", reportpdf.PathForMarkdown(summary))
+	}
 	return nil
 }
 
@@ -413,6 +489,13 @@ func runExperiment(cfg config, toolPath string, c combo) experimentResult {
 
 	existingResult, existingColumns := findExistingResultFiles(cfg.ConfigDir, cfg.TSVDir, c.Slug)
 	if cfg.SkipExisting && existingResult != "" && existingColumns != "" {
+		if cfg.GeneratePDF {
+			if err := ensurePDFForMarkdown(existingResult); err != nil {
+				result.Elapsed = time.Since(started)
+				result.Err = err
+				return result
+			}
+		}
 		columns, err := parseColumnStatsTSV(existingColumns)
 		result.Elapsed = time.Since(started)
 		result.ResultPath = existingResult
@@ -464,6 +547,9 @@ func runExperiment(cfg config, toolPath string, c combo) experimentResult {
 	if cfg.Verify {
 		args = append(args, "--verify")
 	}
+	if !cfg.GeneratePDF {
+		args = append(args, "--generate-pdf=false")
+	}
 
 	cmd := exec.Command(toolPath, args...)
 	cmd.Stdout = logFile
@@ -486,6 +572,16 @@ func runExperiment(cfg config, toolPath string, c combo) experimentResult {
 		result.Err = removeOutputDir(cfg.OutputRoot, result.OutputDir)
 	}
 	return result
+}
+
+func ensurePDFForMarkdown(markdownPath string) error {
+	if _, err := os.Stat(reportpdf.PathForMarkdown(markdownPath)); err == nil {
+		return nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	_, err := reportpdf.Generate(markdownPath)
+	return err
 }
 
 func removeOutputDir(outputRoot, path string) error {
@@ -641,6 +737,7 @@ func writeAggregateFiles(cfg config, results []experimentResult, started, finish
 	columnWinnersPath := tsvBase + "_column-winners.tsv"
 	bestColumnEncodingsPath := tsvBase + "_best-column-encodings.tsv"
 	summaryPath := filepath.Join(cfg.MarkdownDir, baseName+"_summary.md")
+	columnTop5Path := filepath.Join(cfg.MarkdownDir, "col_top_5.md")
 
 	if err := writeExperimentRankingsTSV(allExperimentsPath, rankings, "all"); err != nil {
 		return "", err
@@ -662,7 +759,21 @@ func writeAggregateFiles(cfg config, results []experimentResult, started, finish
 	if err := writeBestColumnEncodingsTSV(bestColumnEncodingsPath, bestColumns); err != nil {
 		return "", err
 	}
-	if err := writeSummaryMarkdown(summaryPath, cfg, rankings, settingSummaries, winners, bestColumns, baseline, started, finished, allExperimentsPath, settingsPath, columnResultsPath, columnWinnersPath, bestColumnEncodingsPath); err != nil {
+	shapeStats, err := loadColumnShapeStats(cfg.ShapeStatsJSON)
+	if err != nil {
+		return "", err
+	}
+	shapePlots := map[string]columnShapePlots{}
+	if shapeStats != nil {
+		shapePlots, err = writeColumnShapePlots(*shapeStats, filepath.Join(filepath.Dir(cfg.ShapeStatsJSON), "images"))
+		if err != nil {
+			return "", err
+		}
+	}
+	if err := writeColumnTop5Markdown(columnTop5Path, cfg, columnObservations, columnResultsPath, shapeStats, shapePlots); err != nil {
+		return "", err
+	}
+	if err := writeSummaryMarkdown(summaryPath, cfg, rankings, settingSummaries, winners, bestColumns, baseline, started, finished, allExperimentsPath, settingsPath, columnResultsPath, columnWinnersPath, bestColumnEncodingsPath, columnTop5Path); err != nil {
 		return "", err
 	}
 	return summaryPath, nil
@@ -1254,7 +1365,7 @@ func writeBestColumnEncodingsTSV(path string, winners []columnWinner) error {
 	})
 }
 
-func writeSummaryMarkdown(path string, cfg config, rankings []experimentRanking, settings []settingSummary, winners []columnWinner, bestColumnWinners []columnWinner, baseline experimentResult, started, finished time.Time, allExperimentsPath, settingsPath, columnResultsPath, columnWinnersPath, bestColumnEncodingsPath string) error {
+func writeSummaryMarkdown(path string, cfg config, rankings []experimentRanking, settings []settingSummary, winners []columnWinner, bestColumnWinners []columnWinner, baseline experimentResult, started, finished time.Time, allExperimentsPath, settingsPath, columnResultsPath, columnWinnersPath, bestColumnEncodingsPath, columnTop5Path string) error {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# Encoding Matrix Summary\n\n")
 	fmt.Fprintf(&b, "- Started: `%s`\n", started.Format(time.RFC3339))
@@ -1275,7 +1386,8 @@ func writeSummaryMarkdown(path string, cfg config, rankings []experimentRanking,
 	fmt.Fprintf(&b, "- Settings with pre/post compression side by side: [%s](%s)\n", filepath.Base(settingsPath), markdownLinkTarget(summaryDir, settingsPath))
 	fmt.Fprintf(&b, "- All per-column observations: [%s](%s)\n", filepath.Base(columnResultsPath), markdownLinkTarget(summaryDir, columnResultsPath))
 	fmt.Fprintf(&b, "- Per-column winners by scope: [%s](%s)\n", filepath.Base(columnWinnersPath), markdownLinkTarget(summaryDir, columnWinnersPath))
-	fmt.Fprintf(&b, "- Best encoding per column: [%s](%s)\n\n", filepath.Base(bestColumnEncodingsPath), markdownLinkTarget(summaryDir, bestColumnEncodingsPath))
+	fmt.Fprintf(&b, "- Best encoding per column: [%s](%s)\n", filepath.Base(bestColumnEncodingsPath), markdownLinkTarget(summaryDir, bestColumnEncodingsPath))
+	fmt.Fprintf(&b, "- Column top 5 rankings with shape stats: [%s](%s)\n\n", filepath.Base(columnTop5Path), markdownLinkTarget(summaryDir, columnTop5Path))
 
 	fmt.Fprintf(&b, "## Ranking Definitions\n\n")
 	fmt.Fprintf(&b, "- Pre-compression uses the `none` run for the same encoding setting: plain/uncompressed baseline encoded bytes divided by that setting's encoded bytes.\n")
@@ -1292,6 +1404,9 @@ func writeSummaryMarkdown(path string, cfg config, rankings []experimentRanking,
 	fmt.Fprintf(&b, "## Column Winners\n\n")
 	fmt.Fprintf(&b, "Best means smallest target bytes across all 96 runs for that column. For `none`, target bytes are encoded bytes; for Snappy/ZSTD, target bytes are compressed bytes.\n\n")
 	writeBestColumnEncodingsMarkdown(&b, bestColumnWinners, summaryDir)
+	if cfg.GeneratePDF {
+		return reportpdf.WriteMarkdownAndPDF(path, []byte(b.String()))
+	}
 	return os.WriteFile(path, []byte(b.String()), 0o644)
 }
 
@@ -1346,6 +1461,499 @@ func writeBestColumnEncodingsMarkdown(b *strings.Builder, winners []columnWinner
 		)
 	}
 	fmt.Fprintf(b, "\n")
+}
+
+func loadColumnShapeStats(path string) (*columnShapeStatsSnapshot, error) {
+	f, err := os.Open(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	var snapshot columnShapeStatsSnapshot
+	if err := json.NewDecoder(f).Decode(&snapshot); err != nil {
+		return nil, err
+	}
+	return &snapshot, nil
+}
+
+func writeColumnTop5Markdown(path string, cfg config, observations []columnObservation, columnResultsPath string, shapeStats *columnShapeStatsSnapshot, shapePlots map[string]columnShapePlots) error {
+	reportDir := filepath.Dir(path)
+	byColumn := make(map[string][]columnObservation)
+	for _, obs := range observations {
+		byColumn[obs.Column.Column] = append(byColumn[obs.Column.Column], obs)
+	}
+	shapeByColumn := make(map[string]columnShapeStats)
+	if shapeStats != nil {
+		for _, col := range shapeStats.Columns {
+			shapeByColumn[col.Name] = col
+		}
+	}
+
+	columns := make([]string, 0, len(byColumn))
+	for column := range byColumn {
+		columns = append(columns, column)
+	}
+	sort.Strings(columns)
+
+	var b strings.Builder
+	fmt.Fprintf(&b, "# Column Top 5 Encoding Rankings\n\n")
+	fmt.Fprintf(&b, "- Experiment: `%s/%s`\n", filepath.Base(cfg.ExperimentDir), filepath.Base(cfg.ResultDir))
+	fmt.Fprintf(&b, "- Source data: [%s](%s)\n", filepath.Base(columnResultsPath), markdownLinkTarget(reportDir, columnResultsPath))
+	fmt.Fprintf(&b, "- Rows: `%s`\n", formatCount(cfg.Rows))
+	fmt.Fprintf(&b, "- Ranking metric: per-column `compressed_bytes`, after Parquet page encoding and Snappy/ZSTD compression.\n")
+	fmt.Fprintf(&b, "- Each numbered item starts with the achieved compressed size for that encoding/compression choice.\n")
+	fmt.Fprintf(&b, "- Duplicate matrix rows with the same effective column encoding are collapsed to the best observed row before ranking.\n")
+	fmt.Fprintf(&b, "- Encodings in this matrix: `plain`, `rle-dict`, `delta-byte-array`, `delta-length-byte-array`. `delta-binary-packed` was not included.\n")
+	if shapeStats != nil {
+		fmt.Fprintf(&b, "- Column shape stats: [%s](%s)\n", filepath.Base(cfg.ShapeStatsJSON), markdownLinkTarget(reportDir, cfg.ShapeStatsJSON))
+		if len(shapeStats.Errors) > 0 {
+			fmt.Fprintf(&b, "- Writer stats collection errors: `%d`\n", len(shapeStats.Errors))
+		}
+	}
+	fmt.Fprintf(&b, "\n")
+
+	for _, column := range columns {
+		observations := byColumn[column]
+		columnType := observations[0].Column.Type
+		fmt.Fprintf(&b, "## %s (%s)\n\n", column, columnType)
+		if shape, ok := shapeByColumn[column]; ok {
+			writeColumnShapeStatsMarkdown(&b, shape, shapePlots[column], reportDir)
+		}
+		writeRankingList(&b, "Compressed overall", topColumnObservations(observations, "overall", 5), true)
+		writeRankingList(&b, "ZSTD", topColumnObservations(observations, "zstd", 5), false)
+		writeRankingList(&b, "Snappy", topColumnObservations(observations, "snappy", 5), false)
+	}
+
+	if cfg.GeneratePDF {
+		return reportpdf.WriteMarkdownAndPDF(path, []byte(b.String()))
+	}
+	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
+func writeColumnShapeStatsMarkdown(b *strings.Builder, shape columnShapeStats, plots columnShapePlots, reportDir string) {
+	rowGroupCardinalities := make([]int64, 0, len(shape.RowGroups))
+	pageCardinalityMins := make([]int64, 0, len(shape.RowGroups))
+	pageCardinalityMaxes := make([]int64, 0, len(shape.RowGroups))
+	minLengths := make([]int, 0, len(shape.RowGroups))
+	maxLengths := make([]int, 0, len(shape.RowGroups))
+	for _, rg := range shape.RowGroups {
+		rowGroupCardinalities = append(rowGroupCardinalities, rg.Cardinality)
+		pageCardinalityMins = append(pageCardinalityMins, rg.PageCardinalityMin)
+		pageCardinalityMaxes = append(pageCardinalityMaxes, rg.PageCardinalityMax)
+		minLengths = append(minLengths, rg.MinValueLength)
+		maxLengths = append(maxLengths, rg.MaxValueLength)
+	}
+
+	fmt.Fprintf(b, "Column shape stats:\n")
+	fmt.Fprintf(b, "- Parquet type: `%s`; physical type: `%s`\n", shape.Type, shape.PhysicalType)
+	fmt.Fprintf(b, "- Sorted ascending across written rows: `%t`; sorted descending: `%t`\n", shape.SortedAscending, shape.SortedDescending)
+	fmt.Fprintf(b, "- Row groups: `%d`; pages: `%d`\n", len(shape.RowGroups), len(shape.Pages))
+	fmt.Fprintf(b, "- Row-group cardinality min/median/max: `%s`\n", summarizeInt64(rowGroupCardinalities))
+	fmt.Fprintf(b, "- Page cardinality per row group min/median/max of mins: `%s`; of maxes: `%s`\n", summarizeInt64(pageCardinalityMins), summarizeInt64(pageCardinalityMaxes))
+	fmt.Fprintf(b, "- Value length per row group min/median/max of mins: `%s`; of maxes: `%s`\n\n", summarizeInt(minLengths), summarizeInt(maxLengths))
+
+	writeShapeImage(b, "Row-group cardinality", plots.RowGroupCardinality, reportDir)
+	writeShapeImage(b, "Page cardinality min/max per row group", plots.PageCardinality, reportDir)
+	writeShapeImage(b, "Page min/max distribution", plots.PageBounds, reportDir)
+	writeShapeImage(b, "Value length min/max per row group", plots.ValueLength, reportDir)
+	fmt.Fprintf(b, "\n")
+}
+
+func writeShapeImage(b *strings.Builder, alt, path, reportDir string) {
+	if path == "" {
+		return
+	}
+	fmt.Fprintf(b, "![%s](%s)\n\n", alt, markdownImageTarget(path))
+}
+
+func markdownImageTarget(path string) string {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return filepath.ToSlash(path)
+	}
+	return filepath.ToSlash(abs)
+}
+
+func writeRankingList(b *strings.Builder, title string, observations []columnObservation, includeCompression bool) {
+	fmt.Fprintf(b, "%s:\n", title)
+	if len(observations) == 0 {
+		fmt.Fprintf(b, "- No compressed observations.\n\n")
+		return
+	}
+	for i, obs := range observations {
+		c := obs.Experiment.Combo
+		prefix := fmt.Sprintf("`%s`", obs.Column.ConfigEncoding)
+		if includeCompression {
+			prefix = fmt.Sprintf("`%s` + `%s`", c.CompressionName, obs.Column.ConfigEncoding)
+		}
+		improvement := ""
+		if obs.HasCompressionRatioImprovementPercent {
+			improvement = fmt.Sprintf("; %s vs plain + %s", formatPercent(obs.CompressionRatioImprovementPct), c.CompressionName)
+		}
+		fmt.Fprintf(b, "%d. %s compressed - %s; %s encoded; %sx post-compression ratio%s; experiment `%s`\n",
+			i+1,
+			formatByteCount(obs.Column.CompressedBytes),
+			prefix,
+			formatByteCount(obs.Column.EncodedBytes),
+			formatRatio(obs.PostCompressionRatio),
+			improvement,
+			c.Slug,
+		)
+	}
+	fmt.Fprintf(b, "\n")
+}
+
+func topColumnObservations(observations []columnObservation, scope string, limit int) []columnObservation {
+	bestByKey := make(map[string]columnObservation)
+	for _, obs := range observations {
+		c := obs.Experiment.Combo
+		if c.Compression == "none" {
+			continue
+		}
+		switch scope {
+		case "zstd":
+			if !strings.HasPrefix(c.CompressionName, "zstd") {
+				continue
+			}
+		case "snappy":
+			if c.CompressionName != "snappy" {
+				continue
+			}
+		}
+		key := c.CompressionName + "\x00" + obs.Column.ConfigEncoding
+		if scope != "overall" {
+			key = obs.Column.ConfigEncoding
+		}
+		if existing, ok := bestByKey[key]; !ok || betterCompressedObservation(obs, existing) {
+			bestByKey[key] = obs
+		}
+	}
+
+	rows := make([]columnObservation, 0, len(bestByKey))
+	for _, obs := range bestByKey {
+		rows = append(rows, obs)
+	}
+	sort.Slice(rows, func(i, j int) bool {
+		if rows[i].Column.CompressedBytes != rows[j].Column.CompressedBytes {
+			return rows[i].Column.CompressedBytes < rows[j].Column.CompressedBytes
+		}
+		if rows[i].Column.EncodedBytes != rows[j].Column.EncodedBytes {
+			return rows[i].Column.EncodedBytes < rows[j].Column.EncodedBytes
+		}
+		return rows[i].Experiment.Combo.Slug < rows[j].Experiment.Combo.Slug
+	})
+	if len(rows) > limit {
+		rows = rows[:limit]
+	}
+	return rows
+}
+
+func betterCompressedObservation(left, right columnObservation) bool {
+	if left.Column.CompressedBytes != right.Column.CompressedBytes {
+		return left.Column.CompressedBytes < right.Column.CompressedBytes
+	}
+	if left.Column.EncodedBytes != right.Column.EncodedBytes {
+		return left.Column.EncodedBytes < right.Column.EncodedBytes
+	}
+	return left.Experiment.Combo.Slug < right.Experiment.Combo.Slug
+}
+
+func writeColumnShapePlots(snapshot columnShapeStatsSnapshot, imagesDir string) (map[string]columnShapePlots, error) {
+	if err := os.MkdirAll(imagesDir, 0o755); err != nil {
+		return nil, err
+	}
+	plots := make(map[string]columnShapePlots, len(snapshot.Columns))
+	for _, col := range snapshot.Columns {
+		slug := sanitizeFilename(col.Name)
+		if slug == "" {
+			slug = fmt.Sprintf("column-%d", col.ColumnIndex)
+		}
+		plot := columnShapePlots{
+			RowGroupCardinality: filepath.Join(imagesDir, slug+"_row_group_cardinality.svg"),
+			PageCardinality:     filepath.Join(imagesDir, slug+"_page_cardinality.svg"),
+			PageBounds:          filepath.Join(imagesDir, slug+"_page_bounds.svg"),
+			ValueLength:         filepath.Join(imagesDir, slug+"_value_length.svg"),
+		}
+		if err := writeLinePlotSVG(plot.RowGroupCardinality, col.Name+" row-group cardinality", "distinct values", []plotSeries{
+			{Name: "row group cardinality", Color: "#2563eb", Values: rowGroupCardinalityValues(col.RowGroups)},
+		}); err != nil {
+			return nil, err
+		}
+		if err := writeLinePlotSVG(plot.PageCardinality, col.Name+" page cardinality per row group", "distinct values", []plotSeries{
+			{Name: "min page cardinality", Color: "#0f766e", Values: rowGroupPageCardinalityValues(col.RowGroups, false)},
+			{Name: "max page cardinality", Color: "#b91c1c", Values: rowGroupPageCardinalityValues(col.RowGroups, true)},
+		}); err != nil {
+			return nil, err
+		}
+		title, yLabel, boundSeries := pageBoundsPlotSeries(col)
+		if err := writeLinePlotSVG(plot.PageBounds, title, yLabel, boundSeries); err != nil {
+			return nil, err
+		}
+		if err := writeLinePlotSVG(plot.ValueLength, col.Name+" value length per row group", "bytes", []plotSeries{
+			{Name: "min length", Color: "#7c3aed", Values: rowGroupLengthValues(col.RowGroups, false)},
+			{Name: "max length", Color: "#ea580c", Values: rowGroupLengthValues(col.RowGroups, true)},
+		}); err != nil {
+			return nil, err
+		}
+		plots[col.Name] = plot
+	}
+	return plots, nil
+}
+
+func rowGroupCardinalityValues(rowGroups []shapeRowGroupStats) []float64 {
+	values := make([]float64, len(rowGroups))
+	for i, rg := range rowGroups {
+		values[i] = float64(rg.Cardinality)
+	}
+	return values
+}
+
+func rowGroupPageCardinalityValues(rowGroups []shapeRowGroupStats, max bool) []float64 {
+	values := make([]float64, len(rowGroups))
+	for i, rg := range rowGroups {
+		if max {
+			values[i] = float64(rg.PageCardinalityMax)
+		} else {
+			values[i] = float64(rg.PageCardinalityMin)
+		}
+	}
+	return values
+}
+
+func rowGroupLengthValues(rowGroups []shapeRowGroupStats, max bool) []float64 {
+	values := make([]float64, len(rowGroups))
+	for i, rg := range rowGroups {
+		if max {
+			values[i] = float64(rg.MaxValueLength)
+		} else {
+			values[i] = float64(rg.MinValueLength)
+		}
+	}
+	return values
+}
+
+func pageBoundsPlotSeries(col columnShapeStats) (string, string, []plotSeries) {
+	hasNumeric := false
+	for _, page := range col.Pages {
+		if page.HasBounds && page.HasNumeric {
+			hasNumeric = true
+			break
+		}
+	}
+	if hasNumeric {
+		mins := make([]float64, 0, len(col.Pages))
+		maxes := make([]float64, 0, len(col.Pages))
+		for _, page := range col.Pages {
+			if !page.HasBounds || !page.HasNumeric {
+				continue
+			}
+			mins = append(mins, page.MinNumeric)
+			maxes = append(maxes, page.MaxNumeric)
+		}
+		return col.Name + " page min/max", "value", []plotSeries{
+			{Name: "page min", Color: "#2563eb", Values: mins},
+			{Name: "page max", Color: "#b91c1c", Values: maxes},
+		}
+	}
+
+	ranks := lexicalBoundRanks(col.Pages)
+	mins := make([]float64, 0, len(col.Pages))
+	maxes := make([]float64, 0, len(col.Pages))
+	for _, page := range col.Pages {
+		if !page.HasBounds {
+			continue
+		}
+		mins = append(mins, float64(ranks[page.MinValueBytes]))
+		maxes = append(maxes, float64(ranks[page.MaxValueBytes]))
+	}
+	return col.Name + " page min/max lexical rank", "lexical rank", []plotSeries{
+		{Name: "page min rank", Color: "#2563eb", Values: mins},
+		{Name: "page max rank", Color: "#b91c1c", Values: maxes},
+	}
+}
+
+func lexicalBoundRanks(pages []shapePageStats) map[string]int {
+	seen := make(map[string]struct{})
+	for _, page := range pages {
+		if !page.HasBounds {
+			continue
+		}
+		seen[page.MinValueBytes] = struct{}{}
+		seen[page.MaxValueBytes] = struct{}{}
+	}
+	values := make([]string, 0, len(seen))
+	for value := range seen {
+		values = append(values, value)
+	}
+	sort.Strings(values)
+	ranks := make(map[string]int, len(values))
+	for i, value := range values {
+		ranks[value] = i + 1
+	}
+	return ranks
+}
+
+func writeLinePlotSVG(path, title, yLabel string, series []plotSeries) error {
+	const (
+		width        = 920
+		height       = 300
+		leftMargin   = 72
+		rightMargin  = 28
+		topMargin    = 42
+		bottomMargin = 54
+	)
+
+	maxPoints := 0
+	minY := math.Inf(1)
+	maxY := math.Inf(-1)
+	for _, s := range series {
+		if len(s.Values) > maxPoints {
+			maxPoints = len(s.Values)
+		}
+		for _, value := range s.Values {
+			if math.IsNaN(value) || math.IsInf(value, 0) {
+				continue
+			}
+			if value < minY {
+				minY = value
+			}
+			if value > maxY {
+				maxY = value
+			}
+		}
+	}
+	if maxPoints == 0 || math.IsInf(minY, 0) || math.IsInf(maxY, 0) {
+		return writeEmptySVG(path, title, "no data")
+	}
+	if minY == maxY {
+		pad := math.Max(1, math.Abs(minY)*0.05)
+		minY -= pad
+		maxY += pad
+	}
+
+	plotWidth := float64(width - leftMargin - rightMargin)
+	plotHeight := float64(height - topMargin - bottomMargin)
+	x := func(i int) float64 {
+		if maxPoints == 1 {
+			return float64(leftMargin) + plotWidth/2
+		}
+		return float64(leftMargin) + (float64(i) * plotWidth / float64(maxPoints-1))
+	}
+	y := func(value float64) float64 {
+		return float64(topMargin) + ((maxY - value) * plotHeight / (maxY - minY))
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">`+"\n", width, height, width, height)
+	fmt.Fprintf(&b, `<rect width="100%%" height="100%%" fill="#ffffff"/>`+"\n")
+	fmt.Fprintf(&b, `<text x="%d" y="24" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">%s</text>`+"\n", leftMargin, html.EscapeString(title))
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">%s</text>`+"\n", leftMargin, height-12, html.EscapeString("page/row-group index"))
+	fmt.Fprintf(&b, `<text x="18" y="%d" transform="rotate(-90 18 %d)" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">%s</text>`+"\n", topMargin+int(plotHeight/2), topMargin+int(plotHeight/2), html.EscapeString(yLabel))
+
+	for i := 0; i <= 4; i++ {
+		value := minY + (float64(i) * (maxY - minY) / 4)
+		yy := y(value)
+		fmt.Fprintf(&b, `<line x1="%d" y1="%.2f" x2="%d" y2="%.2f" stroke="#e5e7eb" stroke-width="1"/>`+"\n", leftMargin, yy, width-rightMargin, yy)
+		fmt.Fprintf(&b, `<text x="%d" y="%.2f" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">%s</text>`+"\n", leftMargin-8, yy+3, formatPlotNumber(value))
+	}
+	fmt.Fprintf(&b, `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#9ca3af" stroke-width="1"/>`+"\n", leftMargin, height-bottomMargin, width-rightMargin, height-bottomMargin)
+	fmt.Fprintf(&b, `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#9ca3af" stroke-width="1"/>`+"\n", leftMargin, topMargin, leftMargin, height-bottomMargin)
+
+	legendX := leftMargin
+	for _, s := range series {
+		fmt.Fprintf(&b, `<circle cx="%d" cy="%d" r="4" fill="%s"/>`+"\n", legendX, height-34, s.Color)
+		fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#374151">%s</text>`+"\n", legendX+8, height-30, html.EscapeString(s.Name))
+		legendX += 180
+	}
+
+	for _, s := range series {
+		if len(s.Values) == 0 {
+			continue
+		}
+		var points strings.Builder
+		for i, value := range s.Values {
+			if math.IsNaN(value) || math.IsInf(value, 0) {
+				continue
+			}
+			fmt.Fprintf(&points, "%.2f,%.2f ", x(i), y(value))
+		}
+		fmt.Fprintf(&b, `<polyline fill="none" stroke="%s" stroke-width="1.8" points="%s"/>`+"\n", s.Color, strings.TrimSpace(points.String()))
+		if len(s.Values) == 1 {
+			fmt.Fprintf(&b, `<circle cx="%.2f" cy="%.2f" r="3" fill="%s"/>`+"\n", x(0), y(s.Values[0]), s.Color)
+		}
+	}
+	fmt.Fprintf(&b, "</svg>\n")
+	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
+func writeEmptySVG(path, title, message string) error {
+	const width, height = 920, 180
+	var b strings.Builder
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">`+"\n", width, height, width, height)
+	fmt.Fprintf(&b, `<rect width="100%%" height="100%%" fill="#ffffff"/>`+"\n")
+	fmt.Fprintf(&b, `<text x="36" y="42" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">%s</text>`+"\n", html.EscapeString(title))
+	fmt.Fprintf(&b, `<text x="36" y="88" font-family="Arial, sans-serif" font-size="13" fill="#6b7280">%s</text>`+"\n", html.EscapeString(message))
+	fmt.Fprintf(&b, "</svg>\n")
+	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
+func summarizeInt64(values []int64) string {
+	if len(values) == 0 {
+		return ""
+	}
+	values = append([]int64(nil), values...)
+	sort.Slice(values, func(i, j int) bool { return values[i] < values[j] })
+	return fmt.Sprintf("%s / %s / %s", formatCount(values[0]), formatCount(values[len(values)/2]), formatCount(values[len(values)-1]))
+}
+
+func summarizeInt(values []int) string {
+	if len(values) == 0 {
+		return ""
+	}
+	values = append([]int(nil), values...)
+	sort.Ints(values)
+	return fmt.Sprintf("%s / %s / %s", formatCount(int64(values[0])), formatCount(int64(values[len(values)/2])), formatCount(int64(values[len(values)-1])))
+}
+
+func formatByteCount(n int64) string {
+	return fmt.Sprintf("%s B (%s)", formatCount(n), formatBytes(n))
+}
+
+func formatCount(n int64) string {
+	s := strconv.FormatInt(n, 10)
+	if len(s) <= 3 {
+		return s
+	}
+	var b strings.Builder
+	prefix := len(s) % 3
+	if prefix == 0 {
+		prefix = 3
+	}
+	b.WriteString(s[:prefix])
+	for i := prefix; i < len(s); i += 3 {
+		b.WriteByte(',')
+		b.WriteString(s[i : i+3])
+	}
+	return b.String()
+}
+
+func formatPercent(value float64) string {
+	return fmt.Sprintf("%.6f%%", value)
+}
+
+func formatPlotNumber(value float64) string {
+	abs := math.Abs(value)
+	if abs >= 1_000_000 || (abs > 0 && abs < 0.01) {
+		return fmt.Sprintf("%.3g", value)
+	}
+	if math.Abs(value-math.Round(value)) < 0.001 {
+		return fmt.Sprintf("%.0f", value)
+	}
+	return fmt.Sprintf("%.2f", value)
 }
 
 func markdownLinkTarget(fromDir, targetPath string) string {
