@@ -231,6 +231,18 @@ type encodingImprovementBucket struct {
 	Count int
 }
 
+type encodingRankDistribution struct {
+	Rows    []encodingRankDistributionRow
+	MaxRank int
+}
+
+type encodingRankDistributionRow struct {
+	Compression string
+	Encoding    string
+	RankCounts  []int
+	Total       int
+}
+
 type barChartBar struct {
 	Label string
 	Value int
@@ -1597,6 +1609,16 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	writeShapeImage(&b, "Column winner distribution", winnerDistributionPath, reportDir)
 	writeWinnerDistributionTable(&b, winnerDistribution)
 
+	rankDistribution := buildEncodingRankDistribution(byColumn)
+	rankDistributionPath := filepath.Join(reportDir, "images", "encoding_rank_distribution.svg")
+	if err := writeEncodingRankDistributionSVG(rankDistributionPath, rankDistribution); err != nil {
+		return err
+	}
+	fmt.Fprintf(&b, "## Encoding Rank Distribution\n\n")
+	fmt.Fprintf(&b, "For each column and compression codec, duplicate matrix rows with the same effective column encoding are collapsed to the smallest compressed byte count. The remaining encodings are sorted by compressed bytes; counts below show how often each compression + encoding landed at rank 1, rank 2, and so on. Encodings that are not valid for a column type are not counted for that column.\n\n")
+	writeShapeImage(&b, "Encoding rank distribution by compression", rankDistributionPath, reportDir)
+	writeEncodingRankDistributionTable(&b, rankDistribution)
+
 	zstdComparison := buildZstdPlainRLEDictComparison(byColumn)
 	zstdComparisonPath := filepath.Join(reportDir, "images", "zstd_plain_vs_rle_dict_improvement.svg")
 	if err := writeZstdPlainRLEDictComparisonSVG(zstdComparisonPath, zstdComparison); err != nil {
@@ -1754,6 +1776,91 @@ func writeWinnerDistributionSVG(path string, rows []winnerDistributionRow) error
 		})
 	}
 	return writeHorizontalBarChartSVG(path, "Column wins by compression + encoding", "columns won", bars)
+}
+
+func buildEncodingRankDistribution(byColumn map[string][]columnObservation) encodingRankDistribution {
+	rowsByKey := make(map[string]*encodingRankDistributionRow)
+	summary := encodingRankDistribution{}
+	scopes := []string{"zstd", "snappy"}
+
+	for _, observations := range byColumn {
+		for _, scope := range scopes {
+			ranked := topColumnObservations(observations, scope, 0)
+			for i, obs := range ranked {
+				rank := i + 1
+				c := obs.Experiment.Combo
+				key := c.CompressionName + "\x00" + obs.Column.ConfigEncoding
+				row := rowsByKey[key]
+				if row == nil {
+					row = &encodingRankDistributionRow{
+						Compression: c.CompressionName,
+						Encoding:    obs.Column.ConfigEncoding,
+					}
+					rowsByKey[key] = row
+				}
+				for len(row.RankCounts) < rank {
+					row.RankCounts = append(row.RankCounts, 0)
+				}
+				row.RankCounts[rank-1]++
+				row.Total++
+				if rank > summary.MaxRank {
+					summary.MaxRank = rank
+				}
+			}
+		}
+	}
+
+	summary.Rows = make([]encodingRankDistributionRow, 0, len(rowsByKey))
+	for _, row := range rowsByKey {
+		for len(row.RankCounts) < summary.MaxRank {
+			row.RankCounts = append(row.RankCounts, 0)
+		}
+		summary.Rows = append(summary.Rows, *row)
+	}
+	sort.Slice(summary.Rows, func(i, j int) bool {
+		left := summary.Rows[i]
+		right := summary.Rows[j]
+		if compressionRankOrder(left.Compression) != compressionRankOrder(right.Compression) {
+			return compressionRankOrder(left.Compression) < compressionRankOrder(right.Compression)
+		}
+		if left.Compression != right.Compression {
+			return left.Compression < right.Compression
+		}
+		if encodingOrder(left.Encoding) != encodingOrder(right.Encoding) {
+			return encodingOrder(left.Encoding) < encodingOrder(right.Encoding)
+		}
+		return left.Encoding < right.Encoding
+	})
+	return summary
+}
+
+func writeEncodingRankDistributionTable(b *strings.Builder, summary encodingRankDistribution) {
+	if len(summary.Rows) == 0 || summary.MaxRank == 0 {
+		fmt.Fprintf(b, "No encoding rank distribution data was available.\n\n")
+		return
+	}
+	fmt.Fprintf(b, "| Compression | Encoding | Ranked columns |")
+	for rank := 1; rank <= summary.MaxRank; rank++ {
+		fmt.Fprintf(b, " Rank %d |", rank)
+	}
+	fmt.Fprintf(b, "\n")
+	fmt.Fprintf(b, "| --- | --- | ---: |")
+	for rank := 1; rank <= summary.MaxRank; rank++ {
+		fmt.Fprintf(b, " ---: |")
+	}
+	fmt.Fprintf(b, "\n")
+	for _, row := range summary.Rows {
+		fmt.Fprintf(b, "| `%s` | `%s` | %d |", row.Compression, row.Encoding, row.Total)
+		for rank := 0; rank < summary.MaxRank; rank++ {
+			count := 0
+			if rank < len(row.RankCounts) {
+				count = row.RankCounts[rank]
+			}
+			fmt.Fprintf(b, " %d |", count)
+		}
+		fmt.Fprintf(b, "\n")
+	}
+	fmt.Fprintf(b, "\n")
 }
 
 func buildZstdPlainRLEDictComparison(byColumn map[string][]columnObservation) zstdPlainRLEDictComparison {
@@ -2039,6 +2146,49 @@ func compressionColor(compression string) string {
 	}
 }
 
+func compressionRankOrder(compression string) int {
+	switch {
+	case strings.HasPrefix(compression, "zstd"):
+		return 0
+	case compression == "snappy":
+		return 1
+	default:
+		return 2
+	}
+}
+
+func encodingOrder(encoding string) int {
+	switch encoding {
+	case "plain":
+		return 0
+	case "rle-dict":
+		return 1
+	case "delta-binary-packed":
+		return 2
+	case "delta-byte-array":
+		return 3
+	case "delta-length-byte-array":
+		return 4
+	default:
+		return 5
+	}
+}
+
+func rankColor(rank int) string {
+	colors := []string{
+		"#16a34a",
+		"#2563eb",
+		"#f59e0b",
+		"#dc2626",
+		"#7c3aed",
+		"#0891b2",
+	}
+	if rank <= 0 {
+		return "#6b7280"
+	}
+	return colors[(rank-1)%len(colors)]
+}
+
 func markdownImageTarget(fromDir, path string) string {
 	rel, err := filepath.Rel(fromDir, path)
 	if err != nil {
@@ -2112,7 +2262,7 @@ func topColumnObservations(observations []columnObservation, scope string, limit
 		}
 		return rows[i].Experiment.Combo.Slug < rows[j].Experiment.Combo.Slug
 	})
-	if len(rows) > limit {
+	if limit > 0 && len(rows) > limit {
 		rows = rows[:limit]
 	}
 	return rows
@@ -2410,6 +2560,82 @@ func writeHorizontalBarChartSVG(path, title, xLabel string, bars []barChartBar) 
 		fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">%s</text>`+"\n", leftMargin-12, y+19, html.EscapeString(bar.Label))
 		fmt.Fprintf(&b, `<rect x="%d" y="%d" width="%.2f" height="18" rx="3" fill="%s"/>`+"\n", leftMargin, y+4, barWidth, bar.Color)
 		fmt.Fprintf(&b, `<text x="%.2f" y="%d" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">%d</text>`+"\n", float64(leftMargin)+barWidth+8, y+18, bar.Value)
+	}
+	fmt.Fprintf(&b, "</svg>\n")
+	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
+func writeEncodingRankDistributionSVG(path string, summary encodingRankDistribution) error {
+	if len(summary.Rows) == 0 || summary.MaxRank == 0 {
+		return writeEmptySVG(path, "Encoding rank distribution by compression", "no data")
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+
+	const (
+		width        = 1040
+		leftMargin   = 260
+		rightMargin  = 92
+		topMargin    = 78
+		bottomMargin = 54
+		rowHeight    = 34
+	)
+	height := topMargin + bottomMargin + rowHeight*len(summary.Rows)
+	maxTotal := 0
+	for _, row := range summary.Rows {
+		if row.Total > maxTotal {
+			maxTotal = row.Total
+		}
+	}
+	if maxTotal == 0 {
+		return writeEmptySVG(path, "Encoding rank distribution by compression", "no ranked columns")
+	}
+
+	plotWidth := float64(width - leftMargin - rightMargin)
+	scale := func(value int) float64 {
+		return float64(value) * plotWidth / float64(maxTotal)
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">`+"\n", width, height, width, height)
+	fmt.Fprintf(&b, `<rect width="100%%" height="100%%" fill="#ffffff"/>`+"\n")
+	fmt.Fprintf(&b, `<text x="%d" y="28" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">Encoding rank distribution by compression</text>`+"\n", leftMargin)
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">columns ranked</text>`+"\n", leftMargin, height-14)
+
+	legendX := leftMargin
+	for rank := 1; rank <= summary.MaxRank; rank++ {
+		fmt.Fprintf(&b, `<rect x="%d" y="44" width="10" height="10" rx="2" fill="%s"/>`+"\n", legendX, rankColor(rank))
+		fmt.Fprintf(&b, `<text x="%d" y="54" font-family="Arial, sans-serif" font-size="11" fill="#374151">rank %d</text>`+"\n", legendX+16, rank)
+		legendX += 78
+	}
+
+	plotTop := topMargin - 6
+	plotBottom := height - bottomMargin + 4
+	for i := 0; i <= 4; i++ {
+		value := float64(i) * float64(maxTotal) / 4
+		x := float64(leftMargin) + value*plotWidth/float64(maxTotal)
+		fmt.Fprintf(&b, `<line x1="%.2f" y1="%d" x2="%.2f" y2="%d" stroke="#eef2f7" stroke-width="1"/>`+"\n", x, plotTop, x, plotBottom)
+		fmt.Fprintf(&b, `<text x="%.2f" y="%d" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">%s</text>`+"\n", x, height-32, formatPlotNumber(value))
+	}
+	fmt.Fprintf(&b, `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#9ca3af" stroke-width="1"/>`+"\n", leftMargin, plotBottom, width-rightMargin, plotBottom)
+
+	for i, row := range summary.Rows {
+		y := topMargin + i*rowHeight
+		fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">%s</text>`+"\n", leftMargin-12, y+19, html.EscapeString(fmt.Sprintf("%s + %s", row.Compression, row.Encoding)))
+		x := float64(leftMargin)
+		for rank, count := range row.RankCounts {
+			if count == 0 {
+				continue
+			}
+			segmentWidth := scale(count)
+			fmt.Fprintf(&b, `<rect x="%.2f" y="%d" width="%.2f" height="18" rx="2" fill="%s"/>`+"\n", x, y+4, segmentWidth, rankColor(rank+1))
+			if segmentWidth >= 22 {
+				fmt.Fprintf(&b, `<text x="%.2f" y="%d" font-family="Arial, sans-serif" font-size="10" font-weight="700" text-anchor="middle" fill="#ffffff">%d</text>`+"\n", x+segmentWidth/2, y+17, count)
+			}
+			x += segmentWidth
+		}
+		fmt.Fprintf(&b, `<text x="%.2f" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#111827">%d</text>`+"\n", x+8, y+17, row.Total)
 	}
 	fmt.Fprintf(&b, "</svg>\n")
 	return os.WriteFile(path, []byte(b.String()), 0o644)

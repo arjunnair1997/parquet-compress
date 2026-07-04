@@ -23,6 +23,25 @@ Counts are based on each column's first `Compressed overall` ranking below: one 
 | `zstd-3` | `delta-binary-packed` | 2 |
 | `snappy` | `plain` | 1 |
 
+## Encoding Rank Distribution
+
+For each column and compression codec, duplicate matrix rows with the same effective column encoding are collapsed to the smallest compressed byte count. The remaining encodings are sorted by compressed bytes; counts below show how often each compression + encoding landed at rank 1, rank 2, and so on. Encodings that are not valid for a column type are not counted for that column.
+
+![Encoding rank distribution by compression](images/encoding_rank_distribution.svg)
+
+| Compression | Encoding | Ranked columns | Rank 1 | Rank 2 | Rank 3 | Rank 4 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `zstd-3` | `plain` | 105 | 55 | 41 | 9 | 0 |
+| `zstd-3` | `rle-dict` | 105 | 48 | 30 | 22 | 5 |
+| `zstd-3` | `delta-binary-packed` | 77 | 2 | 26 | 49 | 0 |
+| `zstd-3` | `delta-byte-array` | 28 | 0 | 1 | 8 | 19 |
+| `zstd-3` | `delta-length-byte-array` | 28 | 0 | 7 | 17 | 4 |
+| `snappy` | `plain` | 105 | 7 | 18 | 56 | 24 |
+| `snappy` | `rle-dict` | 105 | 91 | 8 | 6 | 0 |
+| `snappy` | `delta-binary-packed` | 77 | 7 | 51 | 19 | 0 |
+| `snappy` | `delta-byte-array` | 28 | 0 | 12 | 16 | 0 |
+| `snappy` | `delta-length-byte-array` | 28 | 0 | 16 | 8 | 4 |
+
 ## ZSTD Plain vs RLE Dict Improvement Distribution
 
 For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.
