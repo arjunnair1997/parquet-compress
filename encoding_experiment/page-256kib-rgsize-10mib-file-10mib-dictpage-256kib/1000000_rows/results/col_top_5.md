@@ -42,6 +42,21 @@ For each column and compression codec, duplicate matrix rows with the same effec
 | `snappy` | `delta-byte-array` | 28 | 0 | 12 | 16 | 0 |
 | `snappy` | `delta-length-byte-array` | 28 | 0 | 16 | 8 | 4 |
 
+## ZSTD Plain Winner Second-Place Distribution
+
+For columns where `zstd + plain` is rank 1 in the ZSTD-only compressed-byte ranking, this counts which encoding landed at rank 2 after collapsing duplicate matrix rows to each encoding's smallest compressed byte count.
+
+![ZSTD plain winner second-place distribution](images/zstd_plain_winner_second_place_distribution.svg)
+
+- Columns where `zstd + plain` ranked first: `55`
+- Missing second-place rows: `0`
+
+| Second-place encoding | Columns |
+| --- | ---: |
+| `zstd + rle-dict` | 29 |
+| `zstd + delta-binary-packed` | 20 |
+| `zstd + delta-length-byte-array` | 6 |
+
 ## ZSTD Plain vs RLE Dict Improvement Distribution
 
 For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.

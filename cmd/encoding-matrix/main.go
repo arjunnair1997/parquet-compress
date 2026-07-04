@@ -243,6 +243,18 @@ type encodingRankDistributionRow struct {
 	Total       int
 }
 
+type secondPlaceDistribution struct {
+	Rows               []secondPlaceDistributionRow
+	FirstPlaceEncoding string
+	FirstPlaceCount    int
+	MissingSecondPlace int
+}
+
+type secondPlaceDistributionRow struct {
+	Encoding string
+	Count    int
+}
+
 type barChartBar struct {
 	Label string
 	Value int
@@ -1619,6 +1631,16 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	writeShapeImage(&b, "Encoding rank distribution by compression", rankDistributionPath, reportDir)
 	writeEncodingRankDistributionTable(&b, rankDistribution)
 
+	zstdPlainSecondPlace := buildZstdPlainWinnerSecondPlaceDistribution(byColumn)
+	zstdPlainSecondPlacePath := filepath.Join(reportDir, "images", "zstd_plain_winner_second_place_distribution.svg")
+	if err := writeZstdPlainWinnerSecondPlaceDistributionSVG(zstdPlainSecondPlacePath, zstdPlainSecondPlace); err != nil {
+		return err
+	}
+	fmt.Fprintf(&b, "## ZSTD Plain Winner Second-Place Distribution\n\n")
+	fmt.Fprintf(&b, "For columns where `zstd + plain` is rank 1 in the ZSTD-only compressed-byte ranking, this counts which encoding landed at rank 2 after collapsing duplicate matrix rows to each encoding's smallest compressed byte count.\n\n")
+	writeShapeImage(&b, "ZSTD plain winner second-place distribution", zstdPlainSecondPlacePath, reportDir)
+	writeSecondPlaceDistributionTable(&b, zstdPlainSecondPlace)
+
 	zstdComparison := buildZstdPlainRLEDictComparison(byColumn)
 	zstdComparisonPath := filepath.Join(reportDir, "images", "zstd_plain_vs_rle_dict_improvement.svg")
 	if err := writeZstdPlainRLEDictComparisonSVG(zstdComparisonPath, zstdComparison); err != nil {
@@ -1859,6 +1881,58 @@ func writeEncodingRankDistributionTable(b *strings.Builder, summary encodingRank
 			fmt.Fprintf(b, " %d |", count)
 		}
 		fmt.Fprintf(b, "\n")
+	}
+	fmt.Fprintf(b, "\n")
+}
+
+func buildZstdPlainWinnerSecondPlaceDistribution(byColumn map[string][]columnObservation) secondPlaceDistribution {
+	counts := make(map[string]int)
+	summary := secondPlaceDistribution{
+		FirstPlaceEncoding: "plain",
+	}
+	for _, observations := range byColumn {
+		ranked := topColumnObservations(observations, "zstd", 0)
+		if len(ranked) == 0 || ranked[0].Column.ConfigEncoding != summary.FirstPlaceEncoding {
+			continue
+		}
+		summary.FirstPlaceCount++
+		if len(ranked) < 2 {
+			summary.MissingSecondPlace++
+			continue
+		}
+		counts[ranked[1].Column.ConfigEncoding]++
+	}
+
+	summary.Rows = make([]secondPlaceDistributionRow, 0, len(counts))
+	for encoding, count := range counts {
+		summary.Rows = append(summary.Rows, secondPlaceDistributionRow{
+			Encoding: encoding,
+			Count:    count,
+		})
+	}
+	sort.Slice(summary.Rows, func(i, j int) bool {
+		if summary.Rows[i].Count != summary.Rows[j].Count {
+			return summary.Rows[i].Count > summary.Rows[j].Count
+		}
+		if encodingOrder(summary.Rows[i].Encoding) != encodingOrder(summary.Rows[j].Encoding) {
+			return encodingOrder(summary.Rows[i].Encoding) < encodingOrder(summary.Rows[j].Encoding)
+		}
+		return summary.Rows[i].Encoding < summary.Rows[j].Encoding
+	})
+	return summary
+}
+
+func writeSecondPlaceDistributionTable(b *strings.Builder, summary secondPlaceDistribution) {
+	fmt.Fprintf(b, "- Columns where `zstd + %s` ranked first: `%d`\n", summary.FirstPlaceEncoding, summary.FirstPlaceCount)
+	fmt.Fprintf(b, "- Missing second-place rows: `%d`\n\n", summary.MissingSecondPlace)
+	if len(summary.Rows) == 0 {
+		fmt.Fprintf(b, "No second-place data was available.\n\n")
+		return
+	}
+	fmt.Fprintf(b, "| Second-place encoding | Columns |\n")
+	fmt.Fprintf(b, "| --- | ---: |\n")
+	for _, row := range summary.Rows {
+		fmt.Fprintf(b, "| `zstd + %s` | %d |\n", row.Encoding, row.Count)
 	}
 	fmt.Fprintf(b, "\n")
 }
@@ -2141,6 +2215,23 @@ func compressionColor(compression string) string {
 		return "#2563eb"
 	case compression == "snappy":
 		return "#0f766e"
+	default:
+		return "#6b7280"
+	}
+}
+
+func encodingColor(encoding string) string {
+	switch encoding {
+	case "plain":
+		return "#2563eb"
+	case "rle-dict":
+		return "#0f766e"
+	case "delta-binary-packed":
+		return "#7c3aed"
+	case "delta-byte-array":
+		return "#d97706"
+	case "delta-length-byte-array":
+		return "#be123c"
 	default:
 		return "#6b7280"
 	}
@@ -2639,6 +2730,23 @@ func writeEncodingRankDistributionSVG(path string, summary encodingRankDistribut
 	}
 	fmt.Fprintf(&b, "</svg>\n")
 	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
+func writeZstdPlainWinnerSecondPlaceDistributionSVG(path string, summary secondPlaceDistribution) error {
+	bars := make([]barChartBar, 0, len(summary.Rows))
+	for _, row := range summary.Rows {
+		bars = append(bars, barChartBar{
+			Label: fmt.Sprintf("zstd + %s", row.Encoding),
+			Value: row.Count,
+			Color: encodingColor(row.Encoding),
+		})
+	}
+	return writeHorizontalBarChartSVG(
+		path,
+		"Second place when ZSTD plain ranks first",
+		"columns where zstd + plain is rank 1",
+		bars,
+	)
 }
 
 func writeGroupedHistogramSVG(path, title, yLabel string, buckets []zstdPlainRLEDictBucket) error {
