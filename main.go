@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
+	"encoding/csv"
 	"errors"
 	"flag"
 	"fmt"
@@ -24,11 +25,12 @@ import (
 )
 
 const (
-	defaultInput      = "data/clickbench/hits.tsv.gz"
-	defaultOutputDir  = "clickbench parquet files"
-	defaultResultsDir = "experiment results"
-	defaultRows       = int64(1_000_000)
-	defaultPageSize   = 256 * 1024
+	defaultInput              = "data/clickbench/hits.tsv.gz"
+	defaultOutputDir          = "clickbench parquet files"
+	defaultResultsDir         = "experiment results"
+	defaultRows               = int64(1_000_000)
+	defaultPageSize           = 256 * 1024
+	defaultDictionaryPageSize = 1 * 1024 * 1024
 )
 
 type columnKind int
@@ -42,6 +44,25 @@ const (
 	kindString
 )
 
+func (k columnKind) String() string {
+	switch k {
+	case kindInt16:
+		return "int16"
+	case kindInt32:
+		return "int32"
+	case kindInt64:
+		return "int64"
+	case kindDate:
+		return "date"
+	case kindTimestampMillis:
+		return "timestamp_millis"
+	case kindString:
+		return "string"
+	default:
+		return "unknown"
+	}
+}
+
 type columnSpec struct {
 	Name string
 	Kind columnKind
@@ -51,8 +72,10 @@ type config struct {
 	Input             string
 	OutputDir         string
 	ResultsDir        string
+	TSVDir            string
 	Rows              int64
 	MaxPageSize       int64
+	MaxDictPageSize   int64
 	MaxRowGroupRows   int64
 	MaxRowGroupSize   int64
 	MaxFileSize       int64
@@ -63,19 +86,21 @@ type config struct {
 	TimestampEncoding string
 	Compression       string
 	ZstdLevel         int
-	DataPageVersion   int
-	ResultNote        string
 	Verify            bool
 	VerifyOnly        bool
+	ComparePlainBase  bool
+	BaselineOutputDir string
 }
 
 type runStats struct {
 	InputBytes      int64
 	Rows            int64
 	Files           []fileStat
+	Columns         []columnStat
 	StartedAt       time.Time
 	FinishedAt      time.Time
 	ResultPath      string
+	ColumnStatsPath string
 	OutputDir       string
 	SchemaColumns   int
 	CompressionName string
@@ -91,9 +116,25 @@ type verifyStats struct {
 }
 
 type fileStat struct {
-	Path string
-	Rows int64
-	Size int64
+	Path               string
+	Rows               int64
+	Size               int64
+	PhysicalSize       int64
+	EncodedSize        int64
+	CompressedDataSize int64
+}
+
+type columnStat struct {
+	Name               string
+	Kind               string
+	ConfiguredEncoding string
+	SourceBytes        int64
+	PhysicalBytes      int64
+	EncodedBytes       int64
+	CompressedBytes    int64
+	Values             int64
+	MetadataEncodings  map[string]struct{}
+	PageEncodingStats  map[string]int64
 }
 
 func main() {
@@ -110,7 +151,13 @@ func main() {
 		}
 		return
 	}
-	if err := run(cfg); err != nil {
+	if cfg.ComparePlainBase {
+		if err := runWithPlainBaseline(cfg); err != nil {
+			exitf("%v", err)
+		}
+		return
+	}
+	if _, err := run(cfg); err != nil {
 		exitf("%v", err)
 	}
 }
@@ -120,6 +167,7 @@ func parseFlags(args []string) (config, error) {
 	fs := flag.NewFlagSet("clickbench-parquet", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
 	cfg.MaxPageSize = defaultPageSize
+	cfg.MaxDictPageSize = defaultDictionaryPageSize
 	fs.Usage = func() {
 		fmt.Fprintf(fs.Output(), "Usage of %s:\n", fs.Name())
 		fs.PrintDefaults()
@@ -137,8 +185,10 @@ func parseFlags(args []string) (config, error) {
 	fs.StringVar(&cfg.Input, "input", defaultInput, "path to hits.tsv or hits.tsv.gz")
 	fs.StringVar(&cfg.OutputDir, "output-dir", defaultOutputDir, "directory for generated parquet part files")
 	fs.StringVar(&cfg.ResultsDir, "results-dir", defaultResultsDir, "directory for markdown experiment result files")
+	fs.StringVar(&cfg.TSVDir, "tsv-dir", "", "directory for TSV result files; defaults to a tsvs directory near --results-dir")
 	fs.Int64Var(&cfg.Rows, "rows", defaultRows, "number of input rows to write")
 	fs.Var(sizeFlag{&cfg.MaxPageSize}, "max-page-size", "target parquet page buffer size, e.g. 256KiB, 1MiB")
+	fs.Var(sizeFlag{&cfg.MaxDictPageSize}, "max-dictionary-page-size", "maximum per-column dictionary bytes before falling back to plain encoding; 0 disables the cap")
 	fs.Int64Var(&cfg.MaxRowGroupRows, "max-row-group-rows", 0, "approximate maximum rows per row group; 0 disables the row-count limit")
 	fs.Var(sizeFlag{&cfg.MaxRowGroupSize}, "max-row-group-size", "approximate row group byte-size threshold; 0 disables the byte-size limit")
 	fs.Var(sizeFlag{&cfg.MaxFileSize}, "max-file-size", "approximate parquet file byte-size threshold; 0 writes one file")
@@ -149,10 +199,10 @@ func parseFlags(args []string) (config, error) {
 	fs.StringVar(&cfg.TimestampEncoding, "timestamp-encoding", "", "encoding for timestamp columns: plain, rle-dict; defaults to --encoding")
 	fs.StringVar(&cfg.Compression, "compression", "none", "compression: none, snappy, zstd")
 	fs.IntVar(&cfg.ZstdLevel, "zstd-level", 3, "zstd compression level when --compression=zstd")
-	fs.IntVar(&cfg.DataPageVersion, "data-page-version", 2, "parquet data page version: 1 or 2")
-	fs.StringVar(&cfg.ResultNote, "result-note", "", "short note included in the generated experiment result filename")
 	fs.BoolVar(&cfg.Verify, "verify", false, "read generated parquet files and compare them to parsed source rows after writing")
 	fs.BoolVar(&cfg.VerifyOnly, "verify-only", false, "verify existing parquet files in --output-dir without writing new files")
+	fs.BoolVar(&cfg.ComparePlainBase, "compare-plain-baseline", false, "also run a plain-encoding, uncompressed baseline with the same rows/page/row-group/file settings and write a comparison result")
+	fs.StringVar(&cfg.BaselineOutputDir, "baseline-output-dir", "", "output directory for --compare-plain-baseline; defaults to --output-dir plus -plain-uncompressed-baseline")
 
 	if err := fs.Parse(args); err != nil {
 		return cfg, err
@@ -163,6 +213,9 @@ func parseFlags(args []string) (config, error) {
 	if cfg.MaxPageSize <= 0 {
 		return cfg, fmt.Errorf("--max-page-size must be > 0")
 	}
+	if cfg.MaxDictPageSize < 0 {
+		return cfg, fmt.Errorf("--max-dictionary-page-size must be >= 0")
+	}
 	if cfg.MaxRowGroupRows < 0 {
 		return cfg, fmt.Errorf("--max-row-group-rows must be >= 0")
 	}
@@ -171,9 +224,6 @@ func parseFlags(args []string) (config, error) {
 	}
 	if cfg.MaxFileSize < 0 {
 		return cfg, fmt.Errorf("--max-file-size must be >= 0")
-	}
-	if cfg.DataPageVersion != 1 && cfg.DataPageVersion != 2 {
-		return cfg, fmt.Errorf("--data-page-version must be 1 or 2")
 	}
 	cfg.Encoding = normalizeEncodingName(cfg.Encoding)
 	if cfg.IntEncoding == "" {
@@ -193,7 +243,17 @@ func parseFlags(args []string) (config, error) {
 	cfg.DateEncoding = normalizeEncodingName(cfg.DateEncoding)
 	cfg.TimestampEncoding = normalizeEncodingName(cfg.TimestampEncoding)
 	cfg.Compression = normalizeCompressionName(cfg.Compression)
+	if cfg.TSVDir == "" {
+		cfg.TSVDir = defaultTSVDir(cfg.ResultsDir)
+	}
 	return cfg, validateEncodingGroups(cfg)
+}
+
+func defaultTSVDir(resultsDir string) string {
+	if filepath.Base(resultsDir) == "results" {
+		return filepath.Join(filepath.Dir(resultsDir), "tsvs")
+	}
+	return filepath.Join(resultsDir, "tsvs")
 }
 
 func runVerifyOnly(cfg config) error {
@@ -211,28 +271,34 @@ func runVerifyOnly(cfg config) error {
 	return nil
 }
 
-func run(cfg config) error {
+func run(cfg config) (runStats, error) {
 	started := time.Now()
 	schema := clickBenchSchema()
 	columnIndexes, err := columnIndexesByTSVPosition(schema)
 	if err != nil {
-		return err
+		return runStats{}, err
 	}
 	writerOptions, compressionName, encodingByGroup, err := writerOptions(cfg, schema)
 	if err != nil {
-		return err
+		return runStats{}, err
 	}
 
 	if err := os.MkdirAll(cfg.OutputDir, 0o755); err != nil {
-		return err
+		return runStats{}, err
+	}
+	if err := clearPartFiles(cfg.OutputDir); err != nil {
+		return runStats{}, err
 	}
 	if err := os.MkdirAll(cfg.ResultsDir, 0o755); err != nil {
-		return err
+		return runStats{}, err
+	}
+	if err := os.MkdirAll(cfg.TSVDir, 0o755); err != nil {
+		return runStats{}, err
 	}
 
 	input, closeInput, err := openInput(cfg.Input)
 	if err != nil {
-		return err
+		return runStats{}, err
 	}
 	defer closeInput()
 
@@ -245,16 +311,18 @@ func run(cfg config) error {
 		SchemaColumns:   len(schema.Columns()),
 		CompressionName: compressionName,
 		EncodingByGroup: encodingByGroup,
+		Columns:         newColumnStats(cfg),
 	}
 
 	var (
-		currentFile     *os.File
-		currentWriter   *parquet.Writer
-		currentFileRows int64
-		rowGroupRows    int64
-		rowGroupStart   int64
-		partIndex       int
-		longLineScratch []byte
+		currentFile              *os.File
+		currentWriter            *parquet.Writer
+		currentFileRows          int64
+		currentFilePhysicalBytes int64
+		rowGroupRows             int64
+		rowGroupStart            int64
+		partIndex                int
+		longLineScratch          []byte
 	)
 
 	closePart := func() error {
@@ -272,20 +340,18 @@ func run(cfg config) error {
 			currentFile = nil
 			return err
 		}
-		info, err := os.Stat(currentFile.Name())
+		fileStats, err := collectParquetFileStats(currentFile.Name(), currentFileRows, stats.Columns)
 		if err != nil {
 			currentWriter = nil
 			currentFile = nil
 			return err
 		}
-		stats.Files = append(stats.Files, fileStat{
-			Path: currentFile.Name(),
-			Rows: currentFileRows,
-			Size: info.Size(),
-		})
+		fileStats.PhysicalSize = currentFilePhysicalBytes
+		stats.Files = append(stats.Files, fileStats)
 		currentWriter = nil
 		currentFile = nil
 		currentFileRows = 0
+		currentFilePhysicalBytes = 0
 		rowGroupRows = 0
 		rowGroupStart = 0
 		return nil
@@ -305,6 +371,7 @@ func run(cfg config) error {
 		currentFile = f
 		currentWriter = parquet.NewWriter(f, writerOptions...)
 		currentFileRows = 0
+		currentFilePhysicalBytes = 0
 		rowGroupRows = 0
 		rowGroupStart = currentWriter.Size()
 		return nil
@@ -316,37 +383,42 @@ func run(cfg config) error {
 			if errors.Is(err, io.EOF) {
 				break
 			}
-			return err
+			return runStats{}, err
 		}
 		stats.InputBytes += int64(len(line))
 		line = trimLineEnding(line)
 		fields = splitTabs(line, fields)
 		if len(fields) != len(clickBenchColumns) {
-			return fmt.Errorf("row %d has %d fields, expected %d", stats.Rows+1, len(fields), len(clickBenchColumns))
+			return runStats{}, fmt.Errorf("row %d has %d fields, expected %d", stats.Rows+1, len(fields), len(clickBenchColumns))
 		}
-		if err := buildRow(row, fields, columnIndexes); err != nil {
-			return fmt.Errorf("row %d: %w", stats.Rows+1, err)
+		for i, field := range fields {
+			stats.Columns[i].SourceBytes += int64(len(field))
+		}
+		physicalRowBytes, err := buildRow(row, fields, columnIndexes, stats.Columns)
+		if err != nil {
+			return runStats{}, fmt.Errorf("row %d: %w", stats.Rows+1, err)
 		}
 		if err := openPart(); err != nil {
-			return err
+			return runStats{}, err
 		}
 		if _, err := currentWriter.WriteRows([]parquet.Row{row}); err != nil {
-			return fmt.Errorf("write row %d: %w", stats.Rows+1, err)
+			return runStats{}, fmt.Errorf("write row %d: %w", stats.Rows+1, err)
 		}
 
 		stats.Rows++
 		currentFileRows++
+		currentFilePhysicalBytes += physicalRowBytes
 		rowGroupRows++
 
 		if cfg.MaxRowGroupRows > 0 && rowGroupRows >= cfg.MaxRowGroupRows {
 			if err := currentWriter.Flush(); err != nil {
-				return err
+				return runStats{}, err
 			}
 			rowGroupRows = 0
 			rowGroupStart = currentWriter.Size()
 		} else if cfg.MaxRowGroupSize > 0 && currentWriter.Size()-rowGroupStart >= cfg.MaxRowGroupSize {
 			if err := currentWriter.Flush(); err != nil {
-				return err
+				return runStats{}, err
 			}
 			rowGroupRows = 0
 			rowGroupStart = currentWriter.Size()
@@ -354,33 +426,68 @@ func run(cfg config) error {
 
 		if cfg.MaxFileSize > 0 && currentWriter.Size() >= cfg.MaxFileSize {
 			if err := closePart(); err != nil {
-				return err
+				return runStats{}, err
 			}
 		}
 	}
 
 	if err := closePart(); err != nil {
-		return err
+		return runStats{}, err
 	}
 	stats.FinishedAt = time.Now()
 	if stats.Rows == 0 {
-		return fmt.Errorf("no rows were written")
+		return runStats{}, fmt.Errorf("no rows were written")
 	}
 	if cfg.Verify {
 		verifyStats, err := verifyOutput(cfg, schema)
 		if err != nil {
-			return err
+			return runStats{}, err
 		}
 		stats.Verification = verifyStats
 	}
 
-	resultPath, err := writeResultFile(cfg, stats)
+	if err := writeResultFile(cfg, &stats); err != nil {
+		return runStats{}, err
+	}
+	printSummary(cfg, stats)
+	return stats, nil
+}
+
+func runWithPlainBaseline(cfg config) error {
+	candidateStats, err := run(cfg)
 	if err != nil {
 		return err
 	}
-	stats.ResultPath = resultPath
-	printSummary(cfg, stats)
+
+	baselineCfg := plainBaselineConfig(cfg)
+	baselineStats, err := run(baselineCfg)
+	if err != nil {
+		return err
+	}
+
+	comparisonPath, err := writeComparisonResultFile(cfg, candidateStats, baselineCfg, baselineStats)
+	if err != nil {
+		return err
+	}
+	printComparisonSummary(candidateStats, baselineStats, comparisonPath)
 	return nil
+}
+
+func plainBaselineConfig(cfg config) config {
+	baseline := cfg
+	baseline.ComparePlainBase = false
+	if baseline.BaselineOutputDir != "" {
+		baseline.OutputDir = baseline.BaselineOutputDir
+	} else {
+		baseline.OutputDir = cfg.OutputDir + "-plain-uncompressed-baseline"
+	}
+	baseline.Encoding = "plain"
+	baseline.IntEncoding = "plain"
+	baseline.StringEncoding = "plain"
+	baseline.DateEncoding = "plain"
+	baseline.TimestampEncoding = "plain"
+	baseline.Compression = "none"
+	return baseline
 }
 
 func writerOptions(cfg config, schema *parquet.Schema) ([]parquet.WriterOption, string, map[string]string, error) {
@@ -408,7 +515,7 @@ func writerOptions(cfg config, schema *parquet.Schema) ([]parquet.WriterOption, 
 	opts := []parquet.WriterOption{
 		schema,
 		parquet.PageBufferSize(int(cfg.MaxPageSize)),
-		parquet.DataPageVersion(cfg.DataPageVersion),
+		parquet.DictionaryMaxBytes(cfg.MaxDictPageSize),
 		parquet.Compression(compressionCodec),
 		parquet.DefaultEncodingFor(parquet.Boolean, &parquet.Plain),
 		parquet.DefaultEncodingFor(parquet.Int32, intEncoding),
@@ -432,6 +539,109 @@ func writerOptions(cfg config, schema *parquet.Schema) ([]parquet.WriterOption, 
 		"date":      cfg.DateEncoding,
 		"timestamp": cfg.TimestampEncoding,
 	}, nil
+}
+
+func clearPartFiles(dir string) error {
+	paths, err := filepath.Glob(filepath.Join(dir, "part-*.parquet"))
+	if err != nil {
+		return err
+	}
+	for _, path := range paths {
+		if err := os.Remove(path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func newColumnStats(cfg config) []columnStat {
+	columns := make([]columnStat, len(clickBenchColumns))
+	for i, col := range clickBenchColumns {
+		columns[i] = columnStat{
+			Name:               col.Name,
+			Kind:               col.Kind.String(),
+			ConfiguredEncoding: configuredEncodingForKind(cfg, col.Kind),
+			MetadataEncodings:  make(map[string]struct{}),
+			PageEncodingStats:  make(map[string]int64),
+		}
+	}
+	return columns
+}
+
+func configuredEncodingForKind(cfg config, kind columnKind) string {
+	switch kind {
+	case kindInt16, kindInt32, kindInt64:
+		return cfg.IntEncoding
+	case kindDate:
+		return cfg.DateEncoding
+	case kindTimestampMillis:
+		return cfg.TimestampEncoding
+	case kindString:
+		return cfg.StringEncoding
+	default:
+		return cfg.Encoding
+	}
+}
+
+func collectParquetFileStats(path string, fallbackRows int64, columns []columnStat) (fileStat, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fileStat{}, err
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return fileStat{}, err
+	}
+	defer f.Close()
+
+	pf, err := parquet.OpenFile(f, info.Size(), parquet.SkipPageIndex(true), parquet.SkipBloomFilters(true))
+	if err != nil {
+		return fileStat{}, err
+	}
+
+	stat := fileStat{
+		Path: path,
+		Rows: fallbackRows,
+		Size: info.Size(),
+	}
+	var metadataRows int64
+	for _, rowGroup := range pf.Metadata().RowGroups {
+		metadataRows += rowGroup.NumRows
+		for _, chunk := range rowGroup.Columns {
+			md := chunk.MetaData
+			stat.EncodedSize += md.TotalUncompressedSize
+			stat.CompressedDataSize += md.TotalCompressedSize
+			columnStatIndex := columnStatIndexByPath(columns, md.PathInSchema)
+			if columnStatIndex < 0 {
+				continue
+			}
+			column := &columns[columnStatIndex]
+			column.EncodedBytes += md.TotalUncompressedSize
+			column.CompressedBytes += md.TotalCompressedSize
+			column.Values += md.NumValues
+			for _, encoding := range md.Encoding {
+				column.MetadataEncodings[encoding.String()] = struct{}{}
+			}
+			for _, pageStat := range md.EncodingStats {
+				key := fmt.Sprintf("%s/%s", pageStat.PageType.String(), pageStat.Encoding.String())
+				column.PageEncodingStats[key] += int64(pageStat.Count)
+			}
+		}
+	}
+	if metadataRows > 0 {
+		stat.Rows = metadataRows
+	}
+	return stat, nil
+}
+
+func columnStatIndexByPath(columns []columnStat, path []string) int {
+	name := strings.Join(path, ".")
+	for i := range columns {
+		if columns[i].Name == name {
+			return i
+		}
+	}
+	return -1
 }
 
 func verifyOutput(cfg config, schema *parquet.Schema) (*verifyStats, error) {
@@ -569,7 +779,7 @@ func (e *expectedRows) Next() (parquet.Row, error) {
 	if len(e.fields) != len(clickBenchColumns) {
 		return nil, fmt.Errorf("source row %d has %d fields, expected %d", e.rowNumber+1, len(e.fields), len(clickBenchColumns))
 	}
-	if err := buildRow(e.row, e.fields, e.columnIndexes); err != nil {
+	if _, err := buildRow(e.row, e.fields, e.columnIndexes, nil); err != nil {
 		return nil, err
 	}
 	e.rowNumber++
@@ -683,44 +893,56 @@ func splitTabs(line []byte, fields [][]byte) [][]byte {
 	return append(fields, line[start:])
 }
 
-func buildRow(row parquet.Row, fields [][]byte, columnIndexes []int) error {
+func buildRow(row parquet.Row, fields [][]byte, columnIndexes []int, columns []columnStat) (int64, error) {
+	var rowPhysicalBytes int64
 	for tsvIndex, field := range fields {
 		spec := clickBenchColumns[tsvIndex]
 		columnIndex := columnIndexes[tsvIndex]
 		var value parquet.Value
+		var physicalBytes int64
 		switch spec.Kind {
 		case kindInt16, kindInt32:
 			n, err := parseInt64Bytes(field)
 			if err != nil {
-				return fmt.Errorf("%s: %w", spec.Name, err)
+				return 0, fmt.Errorf("%s: %w", spec.Name, err)
 			}
 			value = parquet.Int32Value(int32(n))
+			physicalBytes = 4
 		case kindInt64:
 			n, err := parseInt64Bytes(field)
 			if err != nil {
-				return fmt.Errorf("%s: %w", spec.Name, err)
+				return 0, fmt.Errorf("%s: %w", spec.Name, err)
 			}
 			value = parquet.Int64Value(n)
+			physicalBytes = 8
 		case kindDate:
 			days, err := parseDateDays(field)
 			if err != nil {
-				return fmt.Errorf("%s: %w", spec.Name, err)
+				return 0, fmt.Errorf("%s: %w", spec.Name, err)
 			}
 			value = parquet.Int32Value(days)
+			physicalBytes = 4
 		case kindTimestampMillis:
 			millis, err := parseTimestampMillis(field)
 			if err != nil {
-				return fmt.Errorf("%s: %w", spec.Name, err)
+				return 0, fmt.Errorf("%s: %w", spec.Name, err)
 			}
 			value = parquet.Int64Value(millis)
+			physicalBytes = 8
 		case kindString:
-			value = parquet.ByteArrayValue(unescapeClickHouseTSV(field))
+			unescaped := unescapeClickHouseTSV(field)
+			value = parquet.ByteArrayValue(unescaped)
+			physicalBytes = int64(len(unescaped))
 		default:
-			return fmt.Errorf("%s: unsupported column kind", spec.Name)
+			return 0, fmt.Errorf("%s: unsupported column kind", spec.Name)
 		}
+		if columns != nil {
+			columns[tsvIndex].PhysicalBytes += physicalBytes
+		}
+		rowPhysicalBytes += physicalBytes
 		row[columnIndex] = value.Level(0, 0, columnIndex)
 	}
-	return nil
+	return rowPhysicalBytes, nil
 }
 
 func parseInt64Bytes(b []byte) (int64, error) {
@@ -1076,11 +1298,32 @@ func formatBytes(n int64) string {
 	return fmt.Sprintf("%.2f PiB", value/unit)
 }
 
-func writeResultFile(cfg config, stats runStats) (string, error) {
-	name := fmt.Sprintf("%s_%s.md", stats.StartedAt.Format("2006-01-02"), experimentDescription(cfg, stats))
-	path := filepath.Join(cfg.ResultsDir, name)
+func writeResultFile(cfg config, stats *runStats) error {
+	baseName := fmt.Sprintf("%s_%s", stats.StartedAt.Format("2006-01-02"), experimentDescription(cfg, *stats))
+	resultPath := filepath.Join(cfg.ResultsDir, baseName+".md")
+	columnStatsPath := filepath.Join(cfg.TSVDir, baseName+"_columns.tsv")
+
+	stats.ResultPath = resultPath
+	stats.ColumnStatsPath = columnStatsPath
+
+	if err := writeColumnStatsTSV(columnStatsPath, stats.Columns); err != nil {
+		return err
+	}
+
 	var b strings.Builder
-	writeMarkdownSummary(&b, cfg, stats)
+	writeMarkdownSummary(&b, cfg, *stats)
+	return os.WriteFile(resultPath, []byte(b.String()), 0o644)
+}
+
+func writeComparisonResultFile(candidateCfg config, candidate runStats, baselineCfg config, baseline runStats) (string, error) {
+	baseName := fmt.Sprintf("%s_%s", candidate.StartedAt.Format("2006-01-02"), comparisonDescription(candidateCfg, candidate))
+	path := filepath.Join(candidateCfg.ResultsDir, baseName+".md")
+	columnComparisonPath := filepath.Join(candidateCfg.TSVDir, baseName+"_columns.tsv")
+	if err := writeColumnComparisonTSV(columnComparisonPath, candidate.Columns, baseline.Columns); err != nil {
+		return "", err
+	}
+	var b strings.Builder
+	writeComparisonMarkdown(&b, candidateCfg, candidate, baselineCfg, baseline, path, columnComparisonPath)
 	return path, os.WriteFile(path, []byte(b.String()), 0o644)
 }
 
@@ -1090,34 +1333,15 @@ func experimentDescription(cfg config, stats runStats) string {
 		fmt.Sprintf("comp-%s", stats.CompressionName),
 		fmt.Sprintf("int-%s", cfg.IntEncoding),
 		fmt.Sprintf("str-%s", cfg.StringEncoding),
-		fmt.Sprintf("page-%s", compactSize(cfg.MaxPageSize)),
-	}
-	if cfg.MaxRowGroupRows > 0 {
-		parts = append(parts, fmt.Sprintf("rgrows-%d", cfg.MaxRowGroupRows))
-	}
-	if cfg.MaxRowGroupSize > 0 {
-		parts = append(parts, fmt.Sprintf("rgsize-%s", compactSize(cfg.MaxRowGroupSize)))
-	}
-	if cfg.MaxFileSize > 0 {
-		parts = append(parts, fmt.Sprintf("file-%s", compactSize(cfg.MaxFileSize)))
-	}
-	if cfg.ResultNote != "" {
-		parts = append(parts, cfg.ResultNote)
+		fmt.Sprintf("date-%s", cfg.DateEncoding),
+		fmt.Sprintf("ts-%s", cfg.TimestampEncoding),
 	}
 	return sanitizeFilename(strings.Join(parts, "_"))
 }
 
-func compactSize(n int64) string {
-	switch {
-	case n%(1024*1024*1024) == 0 && n >= 1024*1024*1024:
-		return fmt.Sprintf("%dGiB", n/(1024*1024*1024))
-	case n%(1024*1024) == 0 && n >= 1024*1024:
-		return fmt.Sprintf("%dMiB", n/(1024*1024))
-	case n%1024 == 0 && n >= 1024:
-		return fmt.Sprintf("%dKiB", n/1024)
-	default:
-		return fmt.Sprintf("%dB", n)
-	}
+func comparisonDescription(cfg config, stats runStats) string {
+	parts := []string{"compare-plain-uncompressed", experimentDescription(cfg, stats)}
+	return sanitizeFilename(strings.Join(parts, "_"))
 }
 
 func sanitizeFilename(s string) string {
@@ -1141,6 +1365,9 @@ func sanitizeFilename(s string) string {
 
 func writeMarkdownSummary(b *strings.Builder, cfg config, stats runStats) {
 	parquetBytes := totalParquetBytes(stats.Files)
+	physicalBytes := totalPhysicalBytes(stats.Files)
+	encodedBytes := totalEncodedBytes(stats.Files)
+	compressedDataBytes := totalCompressedDataBytes(stats.Files)
 	elapsed := stats.FinishedAt.Sub(stats.StartedAt)
 	fmt.Fprintf(b, "# ClickBench Parquet Experiment\n\n")
 	fmt.Fprintf(b, "- Started: `%s`\n", stats.StartedAt.Format(time.RFC3339))
@@ -1148,11 +1375,15 @@ func writeMarkdownSummary(b *strings.Builder, cfg config, stats runStats) {
 	fmt.Fprintf(b, "- Input: `%s`\n", cfg.Input)
 	fmt.Fprintf(b, "- Output directory: `%s`\n", stats.OutputDir)
 	fmt.Fprintf(b, "- Rows: `%d`\n", stats.Rows)
-	fmt.Fprintf(b, "- Source TSV bytes for rows: `%d` (%s)\n", stats.InputBytes, formatBytes(stats.InputBytes))
-	fmt.Fprintf(b, "- Parquet bytes: `%d` (%s)\n", parquetBytes, formatBytes(parquetBytes))
-	fmt.Fprintf(b, "- Parquet/source ratio: `%.6f`\n", float64(parquetBytes)/float64(stats.InputBytes))
-	fmt.Fprintf(b, "- Source bytes/row: `%.3f`\n", float64(stats.InputBytes)/float64(stats.Rows))
-	fmt.Fprintf(b, "- Parquet bytes/row: `%.3f`\n", float64(parquetBytes)/float64(stats.Rows))
+	fmt.Fprintf(b, "- Source TSV bytes for rows, reference only: `%d` (%s)\n", stats.InputBytes, formatBytes(stats.InputBytes))
+	fmt.Fprintf(b, "- Parquet physical bytes before page encoding: `%d` (%s)\n", physicalBytes, formatBytes(physicalBytes))
+	fmt.Fprintf(b, "- Encoded column bytes before codec compression: `%d` (%s)\n", encodedBytes, formatBytes(encodedBytes))
+	fmt.Fprintf(b, "- Compressed column data bytes after codec compression: `%d` (%s)\n", compressedDataBytes, formatBytes(compressedDataBytes))
+	fmt.Fprintf(b, "- Parquet file bytes: `%d` (%s)\n", parquetBytes, formatBytes(parquetBytes))
+	fmt.Fprintf(b, "- Physical/encoded ratio: `%s`\n", formatMultiplier(physicalBytes, encodedBytes))
+	fmt.Fprintf(b, "- Encoded/compressed-data ratio: `%s`\n", formatMultiplier(encodedBytes, compressedDataBytes))
+	fmt.Fprintf(b, "- Physical/compressed-data ratio: `%s`\n", formatMultiplier(physicalBytes, compressedDataBytes))
+	fmt.Fprintf(b, "- Physical/parquet-file ratio: `%s`\n", formatMultiplier(physicalBytes, parquetBytes))
 	fmt.Fprintf(b, "- Files: `%d`\n\n", len(stats.Files))
 	fmt.Fprintf(b, "## Settings\n\n")
 	fmt.Fprintf(b, "- Compression: `%s`\n", stats.CompressionName)
@@ -1161,10 +1392,11 @@ func writeMarkdownSummary(b *strings.Builder, cfg config, stats runStats) {
 	fmt.Fprintf(b, "- Date encoding: `%s`\n", cfg.DateEncoding)
 	fmt.Fprintf(b, "- Timestamp encoding: `%s`\n", cfg.TimestampEncoding)
 	fmt.Fprintf(b, "- Max page size: `%s`\n", formatBytes(cfg.MaxPageSize))
+	fmt.Fprintf(b, "- Max dictionary page size: `%s`\n", formatBytes(cfg.MaxDictPageSize))
 	fmt.Fprintf(b, "- Max row group rows: `%d`\n", cfg.MaxRowGroupRows)
 	fmt.Fprintf(b, "- Max row group size: `%s`\n", formatBytes(cfg.MaxRowGroupSize))
-	fmt.Fprintf(b, "- Max file size: `%s`\n", formatBytes(cfg.MaxFileSize))
-	fmt.Fprintf(b, "- Data page version: `%d`\n\n", cfg.DataPageVersion)
+	fmt.Fprintf(b, "- Max file size: `%s`\n\n", formatBytes(cfg.MaxFileSize))
+	writeSchemaMarkdown(b)
 	if stats.Verification != nil {
 		fmt.Fprintf(b, "## Verification\n\n")
 		fmt.Fprintf(b, "- Status: `passed`\n")
@@ -1173,30 +1405,340 @@ func writeMarkdownSummary(b *strings.Builder, cfg config, stats runStats) {
 		fmt.Fprintf(b, "- Elapsed: `%s`\n", stats.Verification.Elapsed.Round(time.Millisecond))
 		fmt.Fprintf(b, "- Source TSV bytes checked: `%d` (%s)\n\n", stats.Verification.SourceBytes, formatBytes(stats.Verification.SourceBytes))
 	}
+	writeColumnStatsMarkdown(b, stats.Columns, stats.ResultPath, stats.ColumnStatsPath)
 	fmt.Fprintf(b, "## Files\n\n")
 	for _, f := range stats.Files {
-		fmt.Fprintf(b, "- `%s`: `%d` rows, `%d` bytes (%s)\n", f.Path, f.Rows, f.Size, formatBytes(f.Size))
+		fmt.Fprintf(b, "- `%s`: `%d` rows, `%d` file bytes (%s), `%d` physical bytes (%s), `%d` encoded bytes (%s), `%d` compressed data bytes (%s)\n",
+			f.Path, f.Rows,
+			f.Size, formatBytes(f.Size),
+			f.PhysicalSize, formatBytes(f.PhysicalSize),
+			f.EncodedSize, formatBytes(f.EncodedSize),
+			f.CompressedDataSize, formatBytes(f.CompressedDataSize),
+		)
 	}
 }
 
 func printSummary(cfg config, stats runStats) {
 	parquetBytes := totalParquetBytes(stats.Files)
+	physicalBytes := totalPhysicalBytes(stats.Files)
+	encodedBytes := totalEncodedBytes(stats.Files)
+	compressedDataBytes := totalCompressedDataBytes(stats.Files)
 	elapsed := stats.FinishedAt.Sub(stats.StartedAt)
 	fmt.Printf("wrote %d rows into %d parquet file(s)\n", stats.Rows, len(stats.Files))
 	fmt.Printf("write elapsed: %s\n", elapsed.Round(time.Millisecond))
-	fmt.Printf("source TSV bytes for rows: %d (%s)\n", stats.InputBytes, formatBytes(stats.InputBytes))
-	fmt.Printf("parquet bytes: %d (%s)\n", parquetBytes, formatBytes(parquetBytes))
-	fmt.Printf("parquet/source ratio: %.6f\n", float64(parquetBytes)/float64(stats.InputBytes))
-	fmt.Printf("source bytes/row: %.3f\n", float64(stats.InputBytes)/float64(stats.Rows))
-	fmt.Printf("parquet bytes/row: %.3f\n", float64(parquetBytes)/float64(stats.Rows))
+	fmt.Printf("source TSV bytes for rows, reference only: %d (%s)\n", stats.InputBytes, formatBytes(stats.InputBytes))
+	fmt.Printf("parquet physical bytes before page encoding: %d (%s)\n", physicalBytes, formatBytes(physicalBytes))
+	fmt.Printf("encoded column bytes before codec compression: %d (%s)\n", encodedBytes, formatBytes(encodedBytes))
+	fmt.Printf("compressed column data bytes after codec compression: %d (%s)\n", compressedDataBytes, formatBytes(compressedDataBytes))
+	fmt.Printf("parquet file bytes: %d (%s)\n", parquetBytes, formatBytes(parquetBytes))
+	fmt.Printf("physical/encoded ratio: %s\n", formatMultiplier(physicalBytes, encodedBytes))
+	fmt.Printf("encoded/compressed-data ratio: %s\n", formatMultiplier(encodedBytes, compressedDataBytes))
+	fmt.Printf("physical/compressed-data ratio: %s\n", formatMultiplier(physicalBytes, compressedDataBytes))
+	fmt.Printf("physical/parquet-file ratio: %s\n", formatMultiplier(physicalBytes, parquetBytes))
+	fmt.Printf("max dictionary page size: %s\n", formatBytes(cfg.MaxDictPageSize))
 	fmt.Printf("output dir: %s\n", cfg.OutputDir)
 	fmt.Printf("result file: %s\n", stats.ResultPath)
 	if stats.Verification != nil {
 		fmt.Printf("verification: passed, %d rows from %d file(s), %s\n", stats.Verification.Rows, stats.Verification.Files, stats.Verification.Elapsed.Round(time.Millisecond))
 	}
-	for _, f := range stats.Files {
-		fmt.Printf("  %s: %d rows, %s\n", f.Path, f.Rows, formatBytes(f.Size))
+	fmt.Println("columns:")
+	for _, c := range stats.Columns {
+		fmt.Printf("  %s: type=%s configured=%s metadata=%s physical=%s encoded=%s compressed=%s physical/encoded=%s encoded/compressed=%s physical/compressed=%s source-reference=%s\n",
+			c.Name,
+			c.Kind,
+			c.ConfiguredEncoding,
+			stringSet(c.MetadataEncodings),
+			formatBytes(c.PhysicalBytes),
+			formatBytes(c.EncodedBytes),
+			formatBytes(c.CompressedBytes),
+			formatMultiplier(c.PhysicalBytes, c.EncodedBytes),
+			formatMultiplier(c.EncodedBytes, c.CompressedBytes),
+			formatMultiplier(c.PhysicalBytes, c.CompressedBytes),
+			formatBytes(c.SourceBytes),
+		)
 	}
+	for _, f := range stats.Files {
+		fmt.Printf("  %s: %d rows, file=%s, physical=%s, encoded=%s, compressed-data=%s\n",
+			f.Path, f.Rows, formatBytes(f.Size), formatBytes(f.PhysicalSize), formatBytes(f.EncodedSize), formatBytes(f.CompressedDataSize))
+	}
+}
+
+func printComparisonSummary(candidate, baseline runStats, path string) {
+	baselineEncoded := totalEncodedBytes(baseline.Files)
+	candidateEncoded := totalEncodedBytes(candidate.Files)
+	baselineCompressed := totalCompressedDataBytes(baseline.Files)
+	candidateCompressed := totalCompressedDataBytes(candidate.Files)
+	baselineParquet := totalParquetBytes(baseline.Files)
+	candidateParquet := totalParquetBytes(candidate.Files)
+
+	fmt.Printf("plain baseline comparison result file: %s\n", path)
+	fmt.Printf("encoded bytes baseline/candidate: %s (%s -> %s)\n",
+		formatMultiplier(baselineEncoded, candidateEncoded),
+		formatBytes(baselineEncoded),
+		formatBytes(candidateEncoded),
+	)
+	fmt.Printf("compressed-data bytes baseline/candidate: %s (%s -> %s)\n",
+		formatMultiplier(baselineCompressed, candidateCompressed),
+		formatBytes(baselineCompressed),
+		formatBytes(candidateCompressed),
+	)
+	fmt.Printf("parquet file bytes baseline/candidate: %s (%s -> %s)\n",
+		formatMultiplier(baselineParquet, candidateParquet),
+		formatBytes(baselineParquet),
+		formatBytes(candidateParquet),
+	)
+}
+
+func writeComparisonMarkdown(b *strings.Builder, candidateCfg config, candidate runStats, baselineCfg config, baseline runStats, comparisonPath, columnComparisonPath string) {
+	baselinePhysical := totalPhysicalBytes(baseline.Files)
+	candidatePhysical := totalPhysicalBytes(candidate.Files)
+	baselineEncoded := totalEncodedBytes(baseline.Files)
+	candidateEncoded := totalEncodedBytes(candidate.Files)
+	baselineCompressed := totalCompressedDataBytes(baseline.Files)
+	candidateCompressed := totalCompressedDataBytes(candidate.Files)
+	baselineParquet := totalParquetBytes(baseline.Files)
+	candidateParquet := totalParquetBytes(candidate.Files)
+
+	fmt.Fprintf(b, "# ClickBench Plain-Uncompressed Baseline Comparison\n\n")
+	fmt.Fprintf(b, "- Candidate result: `%s`\n", candidate.ResultPath)
+	fmt.Fprintf(b, "- Plain baseline result: `%s`\n", baseline.ResultPath)
+	fmt.Fprintf(b, "- Candidate output directory: `%s`\n", candidate.OutputDir)
+	fmt.Fprintf(b, "- Plain baseline output directory: `%s`\n", baseline.OutputDir)
+	fmt.Fprintf(b, "- Rows: candidate `%d`, baseline `%d`\n", candidate.Rows, baseline.Rows)
+	fmt.Fprintf(b, "- Candidate write elapsed: `%s`\n", candidate.FinishedAt.Sub(candidate.StartedAt).Round(time.Millisecond))
+	fmt.Fprintf(b, "- Plain baseline write elapsed: `%s`\n", baseline.FinishedAt.Sub(baseline.StartedAt).Round(time.Millisecond))
+	fmt.Fprintf(b, "- Plain baseline definition: same rows/page/row-group/file settings, all encodings `plain`, compression `none`\n\n")
+	writeSchemaMarkdown(b)
+
+	fmt.Fprintf(b, "## Settings\n\n")
+	fmt.Fprintf(b, "| Setting | Candidate | Plain baseline |\n")
+	fmt.Fprintf(b, "| --- | --- | --- |\n")
+	fmt.Fprintf(b, "| Compression | `%s` | `%s` |\n", candidate.CompressionName, baseline.CompressionName)
+	fmt.Fprintf(b, "| Int encoding | `%s` | `%s` |\n", candidateCfg.IntEncoding, baselineCfg.IntEncoding)
+	fmt.Fprintf(b, "| String encoding | `%s` | `%s` |\n", candidateCfg.StringEncoding, baselineCfg.StringEncoding)
+	fmt.Fprintf(b, "| Date encoding | `%s` | `%s` |\n", candidateCfg.DateEncoding, baselineCfg.DateEncoding)
+	fmt.Fprintf(b, "| Timestamp encoding | `%s` | `%s` |\n", candidateCfg.TimestampEncoding, baselineCfg.TimestampEncoding)
+	fmt.Fprintf(b, "| Max page size | `%s` | `%s` |\n", formatBytes(candidateCfg.MaxPageSize), formatBytes(baselineCfg.MaxPageSize))
+	fmt.Fprintf(b, "| Max dictionary page size | `%s` | `%s` |\n", formatBytes(candidateCfg.MaxDictPageSize), formatBytes(baselineCfg.MaxDictPageSize))
+	fmt.Fprintf(b, "| Max row group rows | `%d` | `%d` |\n", candidateCfg.MaxRowGroupRows, baselineCfg.MaxRowGroupRows)
+	fmt.Fprintf(b, "| Max row group size | `%s` | `%s` |\n", formatBytes(candidateCfg.MaxRowGroupSize), formatBytes(baselineCfg.MaxRowGroupSize))
+	fmt.Fprintf(b, "| Max file size | `%s` | `%s` |\n\n", formatBytes(candidateCfg.MaxFileSize), formatBytes(baselineCfg.MaxFileSize))
+
+	fmt.Fprintf(b, "## Totals\n\n")
+	fmt.Fprintf(b, "| Metric | Plain baseline | Candidate | Baseline/candidate |\n")
+	fmt.Fprintf(b, "| --- | ---: | ---: | ---: |\n")
+	fmt.Fprintf(b, "| Physical bytes | `%d` (%s) | `%d` (%s) | `%s` |\n",
+		baselinePhysical, formatBytes(baselinePhysical),
+		candidatePhysical, formatBytes(candidatePhysical),
+		formatMultiplier(baselinePhysical, candidatePhysical),
+	)
+	fmt.Fprintf(b, "| Encoded column bytes | `%d` (%s) | `%d` (%s) | `%s` |\n",
+		baselineEncoded, formatBytes(baselineEncoded),
+		candidateEncoded, formatBytes(candidateEncoded),
+		formatMultiplier(baselineEncoded, candidateEncoded),
+	)
+	fmt.Fprintf(b, "| Compressed column data bytes | `%d` (%s) | `%d` (%s) | `%s` |\n",
+		baselineCompressed, formatBytes(baselineCompressed),
+		candidateCompressed, formatBytes(candidateCompressed),
+		formatMultiplier(baselineCompressed, candidateCompressed),
+	)
+	fmt.Fprintf(b, "| Parquet file bytes | `%d` (%s) | `%d` (%s) | `%s` |\n\n",
+		baselineParquet, formatBytes(baselineParquet),
+		candidateParquet, formatBytes(candidateParquet),
+		formatMultiplier(baselineParquet, candidateParquet),
+	)
+
+	fmt.Fprintf(b, "## Columns\n\n")
+	fmt.Fprintf(b, "Encoding ratio compares plain-uncompressed baseline encoded bytes to candidate encoded bytes. Total ratio compares plain-uncompressed baseline encoded bytes to candidate compressed bytes.\n\n")
+	if columnComparisonPath != "" {
+		name := filepath.Base(columnComparisonPath)
+		fmt.Fprintf(b, "Column comparison TSV: [%s](%s)\n\n", name, markdownLinkTarget(filepath.Dir(comparisonPath), columnComparisonPath))
+	}
+	fmt.Fprintf(b, "| Column | Type | Candidate encoding | Candidate metadata | Baseline encoded bytes | Candidate encoded bytes | Candidate compressed bytes | Encoding ratio | Candidate codec ratio | Total ratio |\n")
+	fmt.Fprintf(b, "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+	baselineColumns := columnStatsByName(baseline.Columns)
+	for _, candidateColumn := range candidate.Columns {
+		baselineColumn, ok := baselineColumns[candidateColumn.Name]
+		if !ok {
+			continue
+		}
+		fmt.Fprintf(b, "| `%s` | `%s` | `%s` | `%s` | `%d` (%s) | `%d` (%s) | `%d` (%s) | `%s` | `%s` | `%s` |\n",
+			candidateColumn.Name,
+			candidateColumn.Kind,
+			candidateColumn.ConfiguredEncoding,
+			stringSet(candidateColumn.MetadataEncodings),
+			baselineColumn.EncodedBytes, formatBytes(baselineColumn.EncodedBytes),
+			candidateColumn.EncodedBytes, formatBytes(candidateColumn.EncodedBytes),
+			candidateColumn.CompressedBytes, formatBytes(candidateColumn.CompressedBytes),
+			formatMultiplier(baselineColumn.EncodedBytes, candidateColumn.EncodedBytes),
+			formatMultiplier(candidateColumn.EncodedBytes, candidateColumn.CompressedBytes),
+			formatMultiplier(baselineColumn.EncodedBytes, candidateColumn.CompressedBytes),
+		)
+	}
+	fmt.Fprintf(b, "\n")
+}
+
+func columnStatsByName(columns []columnStat) map[string]columnStat {
+	byName := make(map[string]columnStat, len(columns))
+	for _, column := range columns {
+		byName[column.Name] = column
+	}
+	return byName
+}
+
+func writeSchemaMarkdown(b *strings.Builder) {
+	fmt.Fprintf(b, "## Schema\n\n")
+	fmt.Fprintf(b, "- Columns: `%d`, generated from the built-in ClickBench `hits` column list in source TSV field order.\n", len(clickBenchColumns))
+	fmt.Fprintf(b, "- Mapping: each input row is split on tabs, and field `N` is written to ClickBench column `N` with the same name.\n")
+	fmt.Fprintf(b, "- All Parquet columns are required.\n")
+	fmt.Fprintf(b, "- String fields are ClickHouse TSV-unescaped before writing.\n\n")
+	fmt.Fprintf(b, "| ClickBench kind | Parquet column type | Physical value written |\n")
+	fmt.Fprintf(b, "| --- | --- | --- |\n")
+	fmt.Fprintf(b, "| `int16` | `parquet.Int(16)` | `INT32`, signed 16-bit logical type |\n")
+	fmt.Fprintf(b, "| `int32` | `parquet.Int(32)` | `INT32`, signed 32-bit logical type |\n")
+	fmt.Fprintf(b, "| `int64` | `parquet.Int(64)` | `INT64`, signed 64-bit logical type |\n")
+	fmt.Fprintf(b, "| `date` | `parquet.Date()` | `INT32` days since Unix epoch |\n")
+	fmt.Fprintf(b, "| `timestamp_millis` | `parquet.Timestamp(parquet.Millisecond)` | `INT64` milliseconds since Unix epoch |\n")
+	fmt.Fprintf(b, "| `string` | `parquet.String()` | `BYTE_ARRAY` UTF-8 string |\n\n")
+}
+
+func writeColumnStatsTSV(path string, columns []columnStat) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	w := csv.NewWriter(f)
+	w.Comma = '\t'
+	if err := w.Write([]string{
+		"column",
+		"type",
+		"config_encoding",
+		"metadata_encodings",
+		"page_encodings",
+		"values",
+		"physical_bytes",
+		"encoded_bytes",
+		"compressed_bytes",
+		"physical_encoded_ratio",
+		"encoded_compressed_ratio",
+		"physical_compressed_ratio",
+		"source_field_bytes",
+	}); err != nil {
+		return err
+	}
+	for _, c := range columns {
+		if err := w.Write([]string{
+			c.Name,
+			c.Kind,
+			c.ConfiguredEncoding,
+			stringSet(c.MetadataEncodings),
+			int64MapString(c.PageEncodingStats),
+			strconv.FormatInt(c.Values, 10),
+			strconv.FormatInt(c.PhysicalBytes, 10),
+			strconv.FormatInt(c.EncodedBytes, 10),
+			strconv.FormatInt(c.CompressedBytes, 10),
+			formatRatioDecimal(c.PhysicalBytes, c.EncodedBytes),
+			formatRatioDecimal(c.EncodedBytes, c.CompressedBytes),
+			formatRatioDecimal(c.PhysicalBytes, c.CompressedBytes),
+			strconv.FormatInt(c.SourceBytes, 10),
+		}); err != nil {
+			return err
+		}
+	}
+	w.Flush()
+	return w.Error()
+}
+
+func writeColumnComparisonTSV(path string, candidateColumns, baselineColumns []columnStat) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	w := csv.NewWriter(f)
+	w.Comma = '\t'
+	if err := w.Write([]string{
+		"column",
+		"type",
+		"candidate_encoding",
+		"candidate_metadata_encodings",
+		"candidate_page_encodings",
+		"values",
+		"baseline_encoded_bytes",
+		"candidate_encoded_bytes",
+		"candidate_compressed_bytes",
+		"encoding_ratio",
+		"candidate_codec_ratio",
+		"total_ratio",
+	}); err != nil {
+		return err
+	}
+
+	baselineByName := columnStatsByName(baselineColumns)
+	for _, candidate := range candidateColumns {
+		baseline, ok := baselineByName[candidate.Name]
+		if !ok {
+			continue
+		}
+		if err := w.Write([]string{
+			candidate.Name,
+			candidate.Kind,
+			candidate.ConfiguredEncoding,
+			stringSet(candidate.MetadataEncodings),
+			int64MapString(candidate.PageEncodingStats),
+			strconv.FormatInt(candidate.Values, 10),
+			strconv.FormatInt(baseline.EncodedBytes, 10),
+			strconv.FormatInt(candidate.EncodedBytes, 10),
+			strconv.FormatInt(candidate.CompressedBytes, 10),
+			formatRatioDecimal(baseline.EncodedBytes, candidate.EncodedBytes),
+			formatRatioDecimal(candidate.EncodedBytes, candidate.CompressedBytes),
+			formatRatioDecimal(baseline.EncodedBytes, candidate.CompressedBytes),
+		}); err != nil {
+			return err
+		}
+	}
+	w.Flush()
+	return w.Error()
+}
+
+func writeColumnStatsMarkdown(b *strings.Builder, columns []columnStat, resultPath, columnStatsPath string) {
+	fmt.Fprintf(b, "## Columns\n\n")
+	fmt.Fprintf(b, "Physical bytes are Parquet physical value payloads before page encoding: fixed-width physical sizes for ints, dates, and timestamps, and BYTE_ARRAY payload bytes after TSV unescaping for strings, excluding PLAIN length prefixes. Encoded bytes are Parquet column chunk total uncompressed sizes after Parquet encoding and before the snappy/zstd codec. Compressed bytes are Parquet column chunk total compressed sizes after the codec. Source field bytes are included only as a TSV reference and exclude delimiters and line endings.\n\n")
+	if columnStatsPath != "" {
+		name := filepath.Base(columnStatsPath)
+		fmt.Fprintf(b, "Column stats TSV: [%s](%s)\n\n", name, markdownLinkTarget(filepath.Dir(resultPath), columnStatsPath))
+	}
+	fmt.Fprintf(b, "| Column | Type | Config encoding | Metadata encodings | Page encodings | Values | Physical bytes | Encoded bytes | Compressed bytes | Physical/encoded | Encoded/compressed | Physical/compressed | Source field bytes |\n")
+	fmt.Fprintf(b, "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+	for _, c := range columns {
+		fmt.Fprintf(b, "| `%s` | `%s` | `%s` | `%s` | `%s` | `%d` | `%d` (%s) | `%d` (%s) | `%d` (%s) | `%s` | `%s` | `%s` | `%d` (%s) |\n",
+			c.Name,
+			c.Kind,
+			c.ConfiguredEncoding,
+			stringSet(c.MetadataEncodings),
+			int64MapString(c.PageEncodingStats),
+			c.Values,
+			c.PhysicalBytes, formatBytes(c.PhysicalBytes),
+			c.EncodedBytes, formatBytes(c.EncodedBytes),
+			c.CompressedBytes, formatBytes(c.CompressedBytes),
+			formatMultiplier(c.PhysicalBytes, c.EncodedBytes),
+			formatMultiplier(c.EncodedBytes, c.CompressedBytes),
+			formatMultiplier(c.PhysicalBytes, c.CompressedBytes),
+			c.SourceBytes, formatBytes(c.SourceBytes),
+		)
+	}
+	fmt.Fprintf(b, "\n")
+}
+
+func markdownLinkTarget(fromDir, targetPath string) string {
+	rel, err := filepath.Rel(fromDir, targetPath)
+	if err != nil {
+		return filepath.ToSlash(targetPath)
+	}
+	return filepath.ToSlash(rel)
 }
 
 func totalParquetBytes(files []fileStat) int64 {
@@ -1205,6 +1747,72 @@ func totalParquetBytes(files []fileStat) int64 {
 		total += f.Size
 	}
 	return total
+}
+
+func totalPhysicalBytes(files []fileStat) int64 {
+	var total int64
+	for _, f := range files {
+		total += f.PhysicalSize
+	}
+	return total
+}
+
+func totalEncodedBytes(files []fileStat) int64 {
+	var total int64
+	for _, f := range files {
+		total += f.EncodedSize
+	}
+	return total
+}
+
+func totalCompressedDataBytes(files []fileStat) int64 {
+	var total int64
+	for _, f := range files {
+		total += f.CompressedDataSize
+	}
+	return total
+}
+
+func formatMultiplier(numerator, denominator int64) string {
+	if denominator == 0 {
+		return "n/a"
+	}
+	return fmt.Sprintf("%.3fx", float64(numerator)/float64(denominator))
+}
+
+func formatRatioDecimal(numerator, denominator int64) string {
+	if denominator == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%.6f", float64(numerator)/float64(denominator))
+}
+
+func stringSet(values map[string]struct{}) string {
+	if len(values) == 0 {
+		return "n/a"
+	}
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return strings.Join(keys, ", ")
+}
+
+func int64MapString(values map[string]int64) string {
+	if len(values) == 0 {
+		return "n/a"
+	}
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	parts := make([]string, len(keys))
+	for i, key := range keys {
+		parts[i] = fmt.Sprintf("%s:%d", key, values[key])
+	}
+	return strings.Join(parts, ", ")
 }
 
 func exitf(format string, args ...any) {

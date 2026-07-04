@@ -1,0 +1,202 @@
+# ClickBench Parquet Experiment
+
+- Started: `2026-07-03T15:29:15-04:00`
+- Write elapsed: `11.417s`
+- Input: `data/clickbench/hits.tsv.gz`
+- Output directory: `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain`
+- Rows: `1000000`
+- Source TSV bytes for rows, reference only: `778360762` (742.30 MiB)
+- Parquet physical bytes before page encoding: `712398624` (679.40 MiB)
+- Encoded column bytes before codec compression: `821479853` (783.42 MiB)
+- Compressed column data bytes after codec compression: `134119447` (127.91 MiB)
+- Parquet file bytes: `135081309` (128.82 MiB)
+- Physical/encoded ratio: `0.867x`
+- Encoded/compressed-data ratio: `6.125x`
+- Physical/compressed-data ratio: `5.312x`
+- Physical/parquet-file ratio: `5.274x`
+- Files: `31`
+
+## Settings
+
+- Compression: `snappy`
+- Int encoding: `plain`
+- String encoding: `plain`
+- Date encoding: `rle-dict`
+- Timestamp encoding: `plain`
+- Max page size: `256.00 KiB`
+- Max dictionary page size: `1.00 MiB`
+- Max row group rows: `0`
+- Max row group size: `10.00 MiB`
+- Max file size: `10.00 MiB`
+
+## Schema
+
+- Columns: `105`, generated from the built-in ClickBench `hits` column list in source TSV field order.
+- Mapping: each input row is split on tabs, and field `N` is written to ClickBench column `N` with the same name.
+- All Parquet columns are required.
+- String fields are ClickHouse TSV-unescaped before writing.
+
+| ClickBench kind | Parquet column type | Physical value written |
+| --- | --- | --- |
+| `int16` | `parquet.Int(16)` | `INT32`, signed 16-bit logical type |
+| `int32` | `parquet.Int(32)` | `INT32`, signed 32-bit logical type |
+| `int64` | `parquet.Int(64)` | `INT64`, signed 64-bit logical type |
+| `date` | `parquet.Date()` | `INT32` days since Unix epoch |
+| `timestamp_millis` | `parquet.Timestamp(parquet.Millisecond)` | `INT64` milliseconds since Unix epoch |
+| `string` | `parquet.String()` | `BYTE_ARRAY` UTF-8 string |
+
+## Verification
+
+- Status: `passed`
+- Rows read and compared: `1000000`
+- Files read: `31`
+- Elapsed: `7.001s`
+- Source TSV bytes checked: `778360762` (742.30 MiB)
+
+## Columns
+
+Physical bytes are Parquet physical value payloads before page encoding: fixed-width physical sizes for ints, dates, and timestamps, and BYTE_ARRAY payload bytes after TSV unescaping for strings, excluding PLAIN length prefixes. Encoded bytes are Parquet column chunk total uncompressed sizes after Parquet encoding and before the snappy/zstd codec. Compressed bytes are Parquet column chunk total compressed sizes after the codec. Source field bytes are included only as a TSV reference and exclude delimiters and line endings.
+
+Column stats TSV: [2026-07-03_rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain_columns.tsv](../../tsvs/2026-07-03_rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain_columns.tsv)
+
+| Column | Type | Config encoding | Metadata encodings | Page encodings | Values | Physical bytes | Encoded bytes | Compressed bytes | Physical/encoded | Encoded/compressed | Physical/compressed | Source field bytes |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `WatchID` | `int64` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `8000000` (7.63 MiB) | `8004879` (7.63 MiB) | `8005306` (7.63 MiB) | `0.999x` | `1.000x` | `0.999x` | `19000000` (18.12 MiB) |
+| `JavaEnable` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003841` (3.82 MiB) | `262080` (255.94 KiB) | `0.999x` | `15.277x` | `15.263x` | `1000000` (976.56 KiB) |
+| `Title` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:505` | `1000000` | `138409995` (132.00 MiB) | `142875551` (136.26 MiB) | `20907434` (19.94 MiB) | `0.969x` | `6.834x` | `6.620x` | `138440901` (132.03 MiB) |
+| `GoodEvent` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003840` (3.82 MiB) | `204384` (199.59 KiB) | `0.999x` | `19.590x` | `19.571x` | `1000000` (976.56 KiB) |
+| `EventTime` | `timestamp_millis` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `8000000` (7.63 MiB) | `8004874` (7.63 MiB) | `4282538` (4.08 MiB) | `0.999x` | `1.869x` | `1.868x` | `19000000` (18.12 MiB) |
+| `EventDate` | `date` | `rle-dict` | `PLAIN, RLE_DICTIONARY` | `DATA_PAGE_V2/RLE_DICTIONARY:61, DICTIONARY_PAGE/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `5304` (5.18 KiB) | `5548` (5.42 KiB) | `754.148x` | `0.956x` | `720.981x` | `10000000` (9.54 MiB) |
+| `CounterID` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003835` (3.82 MiB) | `204400` (199.61 KiB) | `0.999x` | `19.588x` | `19.569x` | `2000000` (1.91 MiB) |
+| `ClientIP` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003896` (3.82 MiB) | `719475` (702.61 KiB) | `0.999x` | `5.565x` | `5.560x` | `10032124` (9.57 MiB) |
+| `RegionID` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003844` (3.82 MiB) | `396803` (387.50 KiB) | `0.999x` | `10.090x` | `10.081x` | `2539898` (2.42 MiB) |
+| `UserID` | `int64` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `8000000` (7.63 MiB) | `8004876` (7.63 MiB) | `1084954` (1.03 MiB) | `0.999x` | `7.378x` | `7.374x` | `18637316` (17.77 MiB) |
+| `CounterClass` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003838` (3.82 MiB) | `204211` (199.42 KiB) | `0.999x` | `19.606x` | `19.588x` | `1000000` (976.56 KiB) |
+| `OS` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003836` (3.82 MiB) | `318127` (310.67 KiB) | `0.999x` | `12.586x` | `12.574x` | `1733675` (1.65 MiB) |
+| `UserAgent` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003842` (3.82 MiB) | `342163` (334.14 KiB) | `0.999x` | `11.702x` | `11.690x` | `1088411` (1.04 MiB) |
+| `URL` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:343` | `1000000` | `88562192` (84.46 MiB) | `92652032` (88.36 MiB) | `20481173` (19.53 MiB) | `0.956x` | `4.524x` | `4.324x` | `88563396` (84.46 MiB) |
+| `Referer` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:299` | `1000000` | `79583339` (75.90 MiB) | `83645516` (79.77 MiB) | `19049930` (18.17 MiB) | `0.951x` | `4.391x` | `4.178x` | `79585848` (75.90 MiB) |
+| `IsRefresh` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003872` (3.82 MiB) | `492001` (480.47 KiB) | `0.999x` | `8.138x` | `8.130x` | `1000000` (976.56 KiB) |
+| `RefererCategoryID` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003871` (3.82 MiB) | `508973` (497.04 KiB) | `0.999x` | `7.867x` | `7.859x` | `4634835` (4.42 MiB) |
+| `RefererRegionID` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003855` (3.82 MiB) | `458155` (447.42 KiB) | `0.999x` | `8.739x` | `8.731x` | `2814059` (2.68 MiB) |
+| `URLCategoryID` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003839` (3.82 MiB) | `271981` (265.61 KiB) | `0.999x` | `14.721x` | `14.707x` | `4525496` (4.32 MiB) |
+| `URLRegionID` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003840` (3.82 MiB) | `232193` (226.75 KiB) | `0.999x` | `17.244x` | `17.227x` | `2981244` (2.84 MiB) |
+| `ResolutionWidth` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003842` (3.82 MiB) | `373501` (364.75 KiB) | `0.999x` | `10.720x` | `10.709x` | `3967065` (3.78 MiB) |
+| `ResolutionHeight` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003842` (3.82 MiB) | `373203` (364.46 KiB) | `0.999x` | `10.728x` | `10.718x` | `3407277` (3.25 MiB) |
+| `ResolutionDepth` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003840` (3.82 MiB) | `283031` (276.40 KiB) | `0.999x` | `14.146x` | `14.133x` | `1994256` (1.90 MiB) |
+| `FlashMajor` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003841` (3.82 MiB) | `245330` (239.58 KiB) | `0.999x` | `16.320x` | `16.305x` | `1923540` (1.83 MiB) |
+| `FlashMinor` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003842` (3.82 MiB) | `328473` (320.77 KiB) | `0.999x` | `12.189x` | `12.178x` | `1318244` (1.26 MiB) |
+| `FlashMinor2` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `3354477` (3.20 MiB) | `7358095` (7.02 MiB) | `536907` (524.32 KiB) | `0.456x` | `13.705x` | `6.248x` | `3354477` (3.20 MiB) |
+| `NetMajor` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003840` (3.82 MiB) | `219227` (214.09 KiB) | `0.999x` | `18.263x` | `18.246x` | `1000000` (976.56 KiB) |
+| `NetMinor` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003839` (3.82 MiB) | `217390` (212.29 KiB) | `0.999x` | `18.418x` | `18.400x` | `1000000` (976.56 KiB) |
+| `UserAgentMajor` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003844` (3.82 MiB) | `365132` (356.57 KiB) | `0.999x` | `10.965x` | `10.955x` | `1885645` (1.80 MiB) |
+| `UserAgentMinor` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `3767530` (3.59 MiB) | `7771146` (7.41 MiB) | `467157` (456.21 KiB) | `0.485x` | `16.635x` | `8.065x` | `3777059` (3.60 MiB) |
+| `CookieEnable` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003839` (3.82 MiB) | `204913` (200.11 KiB) | `0.999x` | `19.539x` | `19.520x` | `1000000` (976.56 KiB) |
+| `JavascriptEnable` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003839` (3.82 MiB) | `205021` (200.22 KiB) | `0.999x` | `19.529x` | `19.510x` | `1000000` (976.56 KiB) |
+| `IsMobile` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003840` (3.82 MiB) | `218496` (213.38 KiB) | `0.999x` | `18.325x` | `18.307x` | `1000000` (976.56 KiB) |
+| `MobilePhone` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003841` (3.82 MiB) | `215444` (210.39 KiB) | `0.999x` | `18.584x` | `18.566x` | `1001922` (978.44 KiB) |
+| `MobilePhoneModel` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `81583` (79.67 KiB) | `4085141` (3.90 MiB) | `220009` (214.85 KiB) | `0.020x` | `18.568x` | `0.371x` | `81583` (79.67 KiB) |
+| `Params` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `0` (0 B) | `4002374` (3.82 MiB) | `202747` (198.00 KiB) | `0.000x` | `19.741x` | `0.000x` | `0` (0 B) |
+| `IPNetworkID` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003875` (3.82 MiB) | `561067` (547.92 KiB) | `0.999x` | `7.136x` | `7.129x` | `6865544` (6.55 MiB) |
+| `TraficSourceID` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003873` (3.82 MiB) | `526838` (514.49 KiB) | `0.999x` | `7.600x` | `7.592x` | `1728158` (1.65 MiB) |
+| `SearchEngineID` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003837` (3.82 MiB) | `293160` (286.29 KiB) | `0.999x` | `13.658x` | `13.644x` | `1006573` (982.98 KiB) |
+| `SearchPhrase` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `3528017` (3.36 MiB) | `7535912` (7.19 MiB) | `1097979` (1.05 MiB) | `0.468x` | `6.863x` | `3.213x` | `3528108` (3.36 MiB) |
+| `AdvEngineID` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003841` (3.82 MiB) | `220362` (215.20 KiB) | `0.999x` | `18.169x` | `18.152x` | `1004631` (981.08 KiB) |
+| `IsArtifical` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003871` (3.82 MiB) | `505860` (494.00 KiB) | `0.999x` | `7.915x` | `7.907x` | `1000000` (976.56 KiB) |
+| `WindowClientWidth` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003873` (3.82 MiB) | `516813` (504.70 KiB) | `0.999x` | `7.747x` | `7.740x` | `3825106` (3.65 MiB) |
+| `WindowClientHeight` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003882` (3.82 MiB) | `551926` (538.99 KiB) | `0.999x` | `7.254x` | `7.247x` | `3055745` (2.91 MiB) |
+| `ClientTimeZone` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003841` (3.82 MiB) | `285782` (279.08 KiB) | `0.999x` | `14.010x` | `13.997x` | `2989177` (2.85 MiB) |
+| `ClientEventTime` | `timestamp_millis` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `8000000` (7.63 MiB) | `8004878` (7.63 MiB) | `4229102` (4.03 MiB) | `0.999x` | `1.893x` | `1.892x` | `19000000` (18.12 MiB) |
+| `SilverlightVersion1` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003840` (3.82 MiB) | `287297` (280.56 KiB) | `0.999x` | `13.936x` | `13.923x` | `1000017` (976.58 KiB) |
+| `SilverlightVersion2` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003841` (3.82 MiB) | `269793` (263.47 KiB) | `0.999x` | `14.840x` | `14.826x` | `1000000` (976.56 KiB) |
+| `SilverlightVersion3` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003836` (3.82 MiB) | `304855` (297.71 KiB) | `0.999x` | `13.134x` | `13.121x` | `2728282` (2.60 MiB) |
+| `SilverlightVersion4` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003838` (3.82 MiB) | `204251` (199.46 KiB) | `0.999x` | `19.603x` | `19.584x` | `1000000` (976.56 KiB) |
+| `PageCharset` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:91` | `1000000` | `13587860` (12.96 MiB) | `17595484` (16.78 MiB) | `921883` (900.28 KiB) | `0.772x` | `19.086x` | `14.739x` | `13587860` (12.96 MiB) |
+| `CodeVersion` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003842` (3.82 MiB) | `205240` (200.43 KiB) | `0.999x` | `19.508x` | `19.489x` | `3997297` (3.81 MiB) |
+| `IsLink` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003841` (3.82 MiB) | `256535` (250.52 KiB) | `0.999x` | `15.607x` | `15.592x` | `1000000` (976.56 KiB) |
+| `IsDownload` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003840` (3.82 MiB) | `206700` (201.86 KiB) | `0.999x` | `19.370x` | `19.352x` | `1000000` (976.56 KiB) |
+| `IsNotBounce` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003845` (3.82 MiB) | `235443` (229.92 KiB) | `0.999x` | `17.006x` | `16.989x` | `1000000` (976.56 KiB) |
+| `FUniqID` | `int64` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `8000000` (7.63 MiB) | `8004873` (7.63 MiB) | `1151640` (1.10 MiB) | `0.999x` | `6.951x` | `6.947x` | `18077896` (17.24 MiB) |
+| `OriginalURL` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:140` | `1000000` | `27797671` (26.51 MiB) | `31860205` (30.38 MiB) | `7041975` (6.72 MiB) | `0.872x` | `4.524x` | `3.947x` | `27797732` (26.51 MiB) |
+| `HID` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003902` (3.82 MiB) | `3688245` (3.52 MiB) | `0.999x` | `1.086x` | `1.085x` | `8956330` (8.54 MiB) |
+| `IsOldCounter` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003838` (3.82 MiB) | `204211` (199.42 KiB) | `0.999x` | `19.606x` | `19.588x` | `1000000` (976.56 KiB) |
+| `IsEvent` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003838` (3.82 MiB) | `204211` (199.42 KiB) | `0.999x` | `19.606x` | `19.588x` | `1000000` (976.56 KiB) |
+| `IsParameter` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003838` (3.82 MiB) | `204211` (199.42 KiB) | `0.999x` | `19.606x` | `19.588x` | `1000000` (976.56 KiB) |
+| `DontCountHits` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003841` (3.82 MiB) | `295712` (288.78 KiB) | `0.999x` | `13.540x` | `13.527x` | `1000000` (976.56 KiB) |
+| `WithHash` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003838` (3.82 MiB) | `204211` (199.42 KiB) | `0.999x` | `19.606x` | `19.588x` | `1000000` (976.56 KiB) |
+| `HitColor` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `1000000` (976.56 KiB) | `5003111` (4.77 MiB) | `294376` (287.48 KiB) | `0.200x` | `16.996x` | `3.397x` | `1000000` (976.56 KiB) |
+| `LocalEventTime` | `timestamp_millis` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `8000000` (7.63 MiB) | `8004878` (7.63 MiB) | `4285034` (4.09 MiB) | `0.999x` | `1.868x` | `1.867x` | `19000000` (18.12 MiB) |
+| `Age` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003839` (3.82 MiB) | `333969` (326.14 KiB) | `0.999x` | `11.989x` | `11.977x` | `1740725` (1.66 MiB) |
+| `Sex` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003839` (3.82 MiB) | `302636` (295.54 KiB) | `0.999x` | `13.230x` | `13.217x` | `1000000` (976.56 KiB) |
+| `Income` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003840` (3.82 MiB) | `318314` (310.85 KiB) | `0.999x` | `12.578x` | `12.566x` | `1000000` (976.56 KiB) |
+| `Interests` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003844` (3.82 MiB) | `385713` (376.67 KiB) | `0.999x` | `10.380x` | `10.370x` | `2180312` (2.08 MiB) |
+| `Robotness` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003842` (3.82 MiB) | `381871` (372.92 KiB) | `0.999x` | `10.485x` | `10.475x` | `1423051` (1.36 MiB) |
+| `RemoteIP` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003898` (3.82 MiB) | `707631` (691.05 KiB) | `0.999x` | `5.658x` | `5.653x` | `10016734` (9.55 MiB) |
+| `WindowName` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003846` (3.82 MiB) | `295297` (288.38 KiB) | `0.999x` | `13.559x` | `13.546x` | `2197789` (2.10 MiB) |
+| `OpenerName` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003837` (3.82 MiB) | `204210` (199.42 KiB) | `0.999x` | `19.606x` | `19.588x` | `2000000` (1.91 MiB) |
+| `HistoryLength` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003842` (3.82 MiB) | `258321` (252.27 KiB) | `0.999x` | `15.499x` | `15.485x` | `1940175` (1.85 MiB) |
+| `BrowserLanguage` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `2001192` (1.91 MiB) | `6004665` (5.73 MiB) | `321305` (313.77 KiB) | `0.333x` | `18.688x` | `6.228x` | `2001192` (1.91 MiB) |
+| `BrowserCountry` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `3325142` (3.17 MiB) | `7328760` (6.99 MiB) | `457119` (446.41 KiB) | `0.454x` | `16.032x` | `7.274x` | `3987713` (3.80 MiB) |
+| `SocialNetwork` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `0` (0 B) | `4002374` (3.82 MiB) | `202747` (198.00 KiB) | `0.000x` | `19.741x` | `0.000x` | `0` (0 B) |
+| `SocialAction` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `0` (0 B) | `4002374` (3.82 MiB) | `202747` (198.00 KiB) | `0.000x` | `19.741x` | `0.000x` | `0` (0 B) |
+| `HTTPError` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003838` (3.82 MiB) | `204211` (199.42 KiB) | `0.999x` | `19.606x` | `19.588x` | `1000000` (976.56 KiB) |
+| `SendTiming` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003844` (3.82 MiB) | `269011` (262.71 KiB) | `0.999x` | `14.884x` | `14.869x` | `1035866` (1011.59 KiB) |
+| `DNSTiming` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003841` (3.82 MiB) | `327238` (319.57 KiB) | `0.999x` | `12.235x` | `12.224x` | `1026953` (1002.88 KiB) |
+| `ConnectTiming` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003877` (3.82 MiB) | `564907` (551.67 KiB) | `0.999x` | `7.088x` | `7.081x` | `1145637` (1.09 MiB) |
+| `ResponseStartTiming` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003901` (3.82 MiB) | `1725771` (1.65 MiB) | `0.999x` | `2.320x` | `2.318x` | `2288673` (2.18 MiB) |
+| `ResponseEndTiming` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003899` (3.82 MiB) | `1283105` (1.22 MiB) | `0.999x` | `3.120x` | `3.117x` | `1573269` (1.50 MiB) |
+| `FetchTiming` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003897` (3.82 MiB) | `809744` (790.77 KiB) | `0.999x` | `4.945x` | `4.940x` | `1273464` (1.21 MiB) |
+| `SocialSourceNetworkID` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003842` (3.82 MiB) | `204593` (199.80 KiB) | `0.999x` | `19.570x` | `19.551x` | `1000056` (976.62 KiB) |
+| `SocialSourcePage` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `1024` (1.00 KiB) | `4004127` (3.82 MiB) | `204267` (199.48 KiB) | `0.000x` | `19.602x` | `0.005x` | `1024` (1.00 KiB) |
+| `ParamPrice` | `int64` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `8000000` (7.63 MiB) | `8004813` (7.63 MiB) | `405193` (395.70 KiB) | `0.999x` | `19.756x` | `19.744x` | `1000000` (976.56 KiB) |
+| `ParamOrderID` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `0` (0 B) | `4002374` (3.82 MiB) | `202747` (198.00 KiB) | `0.000x` | `19.741x` | `0.000x` | `0` (0 B) |
+| `ParamCurrency` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `3000000` (2.86 MiB) | `7003595` (6.68 MiB) | `354310` (346.01 KiB) | `0.428x` | `19.767x` | `8.467x` | `3000000` (2.86 MiB) |
+| `ParamCurrencyID` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003838` (3.82 MiB) | `204211` (199.42 KiB) | `0.999x` | `19.606x` | `19.588x` | `1000000` (976.56 KiB) |
+| `OpenstatServiceName` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `58030` (56.67 KiB) | `4062844` (3.87 MiB) | `218527` (213.41 KiB) | `0.014x` | `18.592x` | `0.266x` | `58030` (56.67 KiB) |
+| `OpenstatCampaignID` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `22051` (21.53 KiB) | `4025885` (3.84 MiB) | `214726` (209.69 KiB) | `0.005x` | `18.749x` | `0.103x` | `22051` (21.53 KiB) |
+| `OpenstatAdID` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `25445` (24.85 KiB) | `4029294` (3.84 MiB) | `219121` (213.99 KiB) | `0.006x` | `18.388x` | `0.116x` | `25445` (24.85 KiB) |
+| `OpenstatSourceID` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `48191` (47.06 KiB) | `4052055` (3.86 MiB) | `214337` (209.31 KiB) | `0.012x` | `18.905x` | `0.225x` | `48191` (47.06 KiB) |
+| `UTMSource` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `49433` (48.27 KiB) | `4053509` (3.87 MiB) | `219156` (214.02 KiB) | `0.012x` | `18.496x` | `0.226x` | `49433` (48.27 KiB) |
+| `UTMMedium` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `16873` (16.48 KiB) | `4020161` (3.83 MiB) | `214412` (209.39 KiB) | `0.004x` | `18.750x` | `0.079x` | `16873` (16.48 KiB) |
+| `UTMCampaign` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `91870` (89.72 KiB) | `4097905` (3.91 MiB) | `230443` (225.04 KiB) | `0.022x` | `17.783x` | `0.399x` | `91871` (89.72 KiB) |
+| `UTMContent` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `13001` (12.70 KiB) | `4016830` (3.83 MiB) | `212246` (207.27 KiB) | `0.003x` | `18.925x` | `0.061x` | `13001` (12.70 KiB) |
+| `UTMTerm` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `28101` (27.44 KiB) | `4032972` (3.85 MiB) | `214590` (209.56 KiB) | `0.007x` | `18.794x` | `0.131x` | `28101` (27.44 KiB) |
+| `FromTag` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `45607` (44.54 KiB) | `4048503` (3.86 MiB) | `221677` (216.48 KiB) | `0.011x` | `18.263x` | `0.206x` | `45607` (44.54 KiB) |
+| `HasGCLID` | `int16` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003837` (3.82 MiB) | `213602` (208.60 KiB) | `0.999x` | `18.744x` | `18.726x` | `1000000` (976.56 KiB) |
+| `RefererHash` | `int64` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `8000000` (7.63 MiB) | `8004876` (7.63 MiB) | `3641103` (3.47 MiB) | `0.999x` | `2.198x` | `2.197x` | `19349242` (18.45 MiB) |
+| `URLHash` | `int64` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `8000000` (7.63 MiB) | `8004877` (7.63 MiB) | `4387136` (4.18 MiB) | `0.999x` | `1.825x` | `1.824x` | `19343177` (18.45 MiB) |
+| `CLID` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:61` | `1000000` | `4000000` (3.81 MiB) | `4003841` (3.82 MiB) | `204661` (199.86 KiB) | `0.999x` | `19.563x` | `19.545x` | `1000380` (976.93 KiB) |
+
+## Files
+
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00000.parquet`: `33080` rows, `4302512` file bytes (4.10 MiB), `25688269` physical bytes (24.50 MiB), `29305676` encoded bytes (27.95 MiB), `4270502` compressed data bytes (4.07 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00001.parquet`: `33119` rows, `4251900` file bytes (4.05 MiB), `25471713` physical bytes (24.29 MiB), `29099963` encoded bytes (27.75 MiB), `4219508` compressed data bytes (4.02 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00002.parquet`: `32647` rows, `4243595` file bytes (4.05 MiB), `25563896` physical bytes (24.38 MiB), `29143359` encoded bytes (27.79 MiB), `4210709` compressed data bytes (4.02 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00003.parquet`: `32908` rows, `4240417` file bytes (4.04 MiB), `25511508` physical bytes (24.33 MiB), `29115635` encoded bytes (27.77 MiB), `4207973` compressed data bytes (4.01 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00004.parquet`: `33126` rows, `4260220` file bytes (4.06 MiB), `25719309` physical bytes (24.53 MiB), `29348704` encoded bytes (27.99 MiB), `4226994` compressed data bytes (4.03 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00005.parquet`: `33365` rows, `4215738` file bytes (4.02 MiB), `25741639` physical bytes (24.55 MiB), `29394469` encoded bytes (28.03 MiB), `4183252` compressed data bytes (3.99 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00006.parquet`: `32907` rows, `4214591` file bytes (4.02 MiB), `25326679` physical bytes (24.15 MiB), `28928761` encoded bytes (27.59 MiB), `4182377` compressed data bytes (3.99 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00007.parquet`: `33163` rows, `4246776` file bytes (4.05 MiB), `25735167` physical bytes (24.54 MiB), `29369435` encoded bytes (28.01 MiB), `4214231` compressed data bytes (4.02 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00008.parquet`: `32988` rows, `4212399` file bytes (4.02 MiB), `25535016` physical bytes (24.35 MiB), `29144111` encoded bytes (27.79 MiB), `4179476` compressed data bytes (3.99 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00009.parquet`: `33125` rows, `4198344` file bytes (4.00 MiB), `25550780` physical bytes (24.37 MiB), `29176486` encoded bytes (27.82 MiB), `4165995` compressed data bytes (3.97 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00010.parquet`: `33038` rows, `4229134` file bytes (4.03 MiB), `25515097` physical bytes (24.33 MiB), `29128567` encoded bytes (27.78 MiB), `4197054` compressed data bytes (4.00 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00011.parquet`: `33022` rows, `4158115` file bytes (3.97 MiB), `25378853` physical bytes (24.20 MiB), `28993927` encoded bytes (27.65 MiB), `4125844` compressed data bytes (3.93 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00012.parquet`: `33180` rows, `4179465` file bytes (3.99 MiB), `25570041` physical bytes (24.39 MiB), `29204665` encoded bytes (27.85 MiB), `4147127` compressed data bytes (3.96 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00013.parquet`: `33192` rows, `4229308` file bytes (4.03 MiB), `25532794` physical bytes (24.35 MiB), `29164200` encoded bytes (27.81 MiB), `4197245` compressed data bytes (4.00 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00014.parquet`: `32784` rows, `4150239` file bytes (3.96 MiB), `25200488` physical bytes (24.03 MiB), `28786313` encoded bytes (27.45 MiB), `4117951` compressed data bytes (3.93 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00015.parquet`: `33330` rows, `4516510` file bytes (4.31 MiB), `24026934` physical bytes (22.91 MiB), `27663265` encoded bytes (26.38 MiB), `4485225` compressed data bytes (4.28 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00016.parquet`: `33244` rows, `4657978` file bytes (4.44 MiB), `22876477` physical bytes (21.82 MiB), `26493599` encoded bytes (25.27 MiB), `4627658` compressed data bytes (4.41 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00017.parquet`: `32272` rows, `4673581` file bytes (4.46 MiB), `22414892` physical bytes (21.38 MiB), `25926098` encoded bytes (24.73 MiB), `4643283` compressed data bytes (4.43 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00018.parquet`: `33178` rows, `4645942` file bytes (4.43 MiB), `21050852` physical bytes (20.08 MiB), `24654089` encoded bytes (23.51 MiB), `4615517` compressed data bytes (4.40 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00019.parquet`: `32632` rows, `4726353` file bytes (4.51 MiB), `21202738` physical bytes (20.22 MiB), `24747660` encoded bytes (23.60 MiB), `4695778` compressed data bytes (4.48 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00020.parquet`: `32195` rows, `4680414` file bytes (4.46 MiB), `20753316` physical bytes (19.79 MiB), `24251226` encoded bytes (23.13 MiB), `4649989` compressed data bytes (4.43 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00021.parquet`: `33076` rows, `4729442` file bytes (4.51 MiB), `21152942` physical bytes (20.17 MiB), `24747546` encoded bytes (23.60 MiB), `4698442` compressed data bytes (4.48 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00022.parquet`: `32751` rows, `4745174` file bytes (4.53 MiB), `21129389` physical bytes (20.15 MiB), `24687504` encoded bytes (23.54 MiB), `4714637` compressed data bytes (4.50 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00023.parquet`: `32976` rows, `4694030` file bytes (4.48 MiB), `21220996` physical bytes (20.24 MiB), `24804126` encoded bytes (23.66 MiB), `4663095` compressed data bytes (4.45 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00024.parquet`: `32763` rows, `4692879` file bytes (4.48 MiB), `21041171` physical bytes (20.07 MiB), `24599449` encoded bytes (23.46 MiB), `4662646` compressed data bytes (4.45 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00025.parquet`: `32806` rows, `4740006` file bytes (4.52 MiB), `21144380` physical bytes (20.16 MiB), `24708355` encoded bytes (23.56 MiB), `4709173` compressed data bytes (4.49 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00026.parquet`: `33005` rows, `4649454` file bytes (4.43 MiB), `20969703` physical bytes (20.00 MiB), `24553398` encoded bytes (23.42 MiB), `4619310` compressed data bytes (4.41 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00027.parquet`: `32926` rows, `4682474` file bytes (4.47 MiB), `21006649` physical bytes (20.03 MiB), `24584468` encoded bytes (23.45 MiB), `4651604` compressed data bytes (4.44 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00028.parquet`: `32928` rows, `4645614` file bytes (4.43 MiB), `21026374` physical bytes (20.05 MiB), `24603497` encoded bytes (23.46 MiB), `4615031` compressed data bytes (4.40 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00029.parquet`: `32878` rows, `4635824` file bytes (4.42 MiB), `20951856` physical bytes (19.98 MiB), `24522890` encoded bytes (23.39 MiB), `4605488` compressed data bytes (4.39 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-1mib/1000000_rows/parquet/rows-1000000-comp-snappy-int-plain-str-plain-date-rle-dict-ts-plain/part-00030.parquet`: `11396` rows, `1632881` file bytes (1.56 MiB), `7388706` physical bytes (7.05 MiB), `8628412` encoded bytes (8.23 MiB), `1616333` compressed data bytes (1.54 MiB)
