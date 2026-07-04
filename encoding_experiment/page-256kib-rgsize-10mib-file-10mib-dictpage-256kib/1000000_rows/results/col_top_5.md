@@ -1,7 +1,7 @@
 # Column Top 5 Encoding Rankings
 
 - Experiment: `page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows`
-- Source data: [2026-07-03_rows-1000000_encoding-matrix_column-results.tsv](../tsvs/2026-07-03_rows-1000000_encoding-matrix_column-results.tsv)
+- Source data: [2026-07-04_rows-1000000_encoding-matrix_column-results.tsv](../tsvs/2026-07-04_rows-1000000_encoding-matrix_column-results.tsv)
 - Rows: `1,000,000`
 - Ranking metric: per-column `compressed_bytes`, after Parquet page encoding and Snappy/ZSTD compression.
 - Each numbered item starts with the achieved compressed size for that encoding/compression choice.
@@ -22,6 +22,72 @@ Counts are based on each column's first `Compressed overall` ranking below: one 
 | `snappy` | `rle-dict` | 2 |
 | `zstd-3` | `delta-binary-packed` | 2 |
 | `snappy` | `plain` | 1 |
+
+## ZSTD Plain vs RLE Dict Improvement Distribution
+
+For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.
+
+![ZSTD plain versus RLE dictionary improvement distribution](images/zstd_plain_vs_rle_dict_improvement.svg)
+
+- Compared columns: `105`
+- `zstd + plain` smaller: `56`; `zstd + rle-dict` smaller: `49`; ties: `0`; missing comparisons: `0`
+
+| Improvement bucket | `zstd + plain` better | `zstd + rle-dict` better |
+| --- | ---: | ---: |
+| `0-10%` | 6 | 13 |
+| `10-20%` | 19 | 15 |
+| `20-30%` | 15 | 10 |
+| `30-40%` | 7 | 5 |
+| `40-50%` | 8 | 4 |
+| `50-60%` | 1 | 2 |
+
+## Delta Binary Packed Winner vs Second Best Improvement Distribution
+
+For each column, this looks at the `Compressed overall` ranking below. Only columns where `delta-binary-packed` is the best observed compressed result are bucketed. Improvement is `(second-best compressed bytes - delta-binary-packed compressed bytes) / second-best compressed bytes * 100`.
+
+![Delta binary packed winner improvement over second best](images/delta_binary_packed_winner_vs_second_best_improvement.svg)
+
+- Delta-binary-packed winner columns: `2`
+- Missing second-best rows: `0`
+
+| Improvement bucket | `delta-binary-packed` better than second best |
+| --- | ---: |
+| `0-10%` | 2 |
+| `10-20%` | 0 |
+
+## Snappy Plain vs RLE Dict Improvement Distribution
+
+For each column, this compares the best observed `snappy + plain` compressed byte count with the best observed `snappy + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.
+
+- Compared columns: `105`
+- `snappy + rle-dict` smaller: `93`; `snappy + plain` smaller: `12`; ties: `0`; missing comparisons: `0`
+
+![Snappy RLE dictionary improvement over plain](images/snappy_rle_dict_better_than_plain_improvement.svg)
+
+`snappy + rle-dict` better buckets:
+
+| Improvement bucket | `snappy + rle-dict` better |
+| --- | ---: |
+| `0-10%` | 5 |
+| `10-20%` | 3 |
+| `20-30%` | 5 |
+| `30-40%` | 2 |
+| `40-50%` | 5 |
+| `50-60%` | 7 |
+| `60-70%` | 9 |
+| `70-80%` | 8 |
+| `80-90%` | 13 |
+| `90-100%` | 36 |
+
+![Snappy plain improvement over RLE dictionary](images/snappy_plain_better_than_rle_dict_improvement.svg)
+
+`snappy + plain` better buckets:
+
+| Improvement bucket | `snappy + plain` better |
+| --- | ---: |
+| `0-10%` | 5 |
+| `10-20%` | 4 |
+| `20-30%` | 3 |
 
 ## AdvEngineID (int16)
 

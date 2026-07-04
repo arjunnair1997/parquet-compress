@@ -195,6 +195,42 @@ type winnerDistributionRow struct {
 	Wins        int
 }
 
+type zstdPlainRLEDictComparison struct {
+	Buckets            []zstdPlainRLEDictBucket
+	ComparedColumns    int
+	PlainBetterCount   int
+	RLEDictBetterCount int
+	TieCount           int
+	MissingCount       int
+}
+
+type zstdPlainRLEDictBucket struct {
+	Label         string
+	PlainBetter   int
+	RLEDictBetter int
+}
+
+type deltaBinaryPackedWinnerComparison struct {
+	Buckets                []encodingImprovementBucket
+	WinnerCount            int
+	MissingSecondBestCount int
+}
+
+type snappyPlainRLEDictComparison struct {
+	RLEDictBetterBuckets []encodingImprovementBucket
+	PlainBetterBuckets   []encodingImprovementBucket
+	ComparedColumns      int
+	RLEDictBetterCount   int
+	PlainBetterCount     int
+	TieCount             int
+	MissingCount         int
+}
+
+type encodingImprovementBucket struct {
+	Label string
+	Count int
+}
+
 type barChartBar struct {
 	Label string
 	Value int
@@ -1561,6 +1597,49 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	writeShapeImage(&b, "Column winner distribution", winnerDistributionPath, reportDir)
 	writeWinnerDistributionTable(&b, winnerDistribution)
 
+	zstdComparison := buildZstdPlainRLEDictComparison(byColumn)
+	zstdComparisonPath := filepath.Join(reportDir, "images", "zstd_plain_vs_rle_dict_improvement.svg")
+	if err := writeZstdPlainRLEDictComparisonSVG(zstdComparisonPath, zstdComparison); err != nil {
+		return err
+	}
+	fmt.Fprintf(&b, "## ZSTD Plain vs RLE Dict Improvement Distribution\n\n")
+	fmt.Fprintf(&b, "For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.\n\n")
+	writeShapeImage(&b, "ZSTD plain versus RLE dictionary improvement distribution", zstdComparisonPath, reportDir)
+	writeZstdPlainRLEDictComparisonTable(&b, zstdComparison)
+
+	deltaBinaryPackedComparison := buildDeltaBinaryPackedWinnerComparison(byColumn)
+	deltaBinaryPackedComparisonPath := filepath.Join(reportDir, "images", "delta_binary_packed_winner_vs_second_best_improvement.svg")
+	if err := writeDeltaBinaryPackedWinnerComparisonSVG(deltaBinaryPackedComparisonPath, deltaBinaryPackedComparison); err != nil {
+		return err
+	}
+	fmt.Fprintf(&b, "## Delta Binary Packed Winner vs Second Best Improvement Distribution\n\n")
+	fmt.Fprintf(&b, "For each column, this looks at the `Compressed overall` ranking below. Only columns where `delta-binary-packed` is the best observed compressed result are bucketed. Improvement is `(second-best compressed bytes - delta-binary-packed compressed bytes) / second-best compressed bytes * 100`.\n\n")
+	writeShapeImage(&b, "Delta binary packed winner improvement over second best", deltaBinaryPackedComparisonPath, reportDir)
+	writeDeltaBinaryPackedWinnerComparisonTable(&b, deltaBinaryPackedComparison)
+
+	snappyComparison := buildSnappyPlainRLEDictComparison(byColumn)
+	snappyRLEDictBetterPath := filepath.Join(reportDir, "images", "snappy_rle_dict_better_than_plain_improvement.svg")
+	if err := writeSnappyRLEDictBetterComparisonSVG(snappyRLEDictBetterPath, snappyComparison); err != nil {
+		return err
+	}
+	snappyPlainBetterPath := filepath.Join(reportDir, "images", "snappy_plain_better_than_rle_dict_improvement.svg")
+	if err := writeSnappyPlainBetterComparisonSVG(snappyPlainBetterPath, snappyComparison); err != nil {
+		return err
+	}
+	fmt.Fprintf(&b, "## Snappy Plain vs RLE Dict Improvement Distribution\n\n")
+	fmt.Fprintf(&b, "For each column, this compares the best observed `snappy + plain` compressed byte count with the best observed `snappy + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.\n\n")
+	fmt.Fprintf(&b, "- Compared columns: `%d`\n", snappyComparison.ComparedColumns)
+	fmt.Fprintf(&b, "- `snappy + rle-dict` smaller: `%d`; `snappy + plain` smaller: `%d`; ties: `%d`; missing comparisons: `%d`\n\n",
+		snappyComparison.RLEDictBetterCount,
+		snappyComparison.PlainBetterCount,
+		snappyComparison.TieCount,
+		snappyComparison.MissingCount,
+	)
+	writeShapeImage(&b, "Snappy RLE dictionary improvement over plain", snappyRLEDictBetterPath, reportDir)
+	writeSnappyRLEDictBetterComparisonTable(&b, snappyComparison)
+	writeShapeImage(&b, "Snappy plain improvement over RLE dictionary", snappyPlainBetterPath, reportDir)
+	writeSnappyPlainBetterComparisonTable(&b, snappyComparison)
+
 	for _, column := range columns {
 		observations := byColumn[column]
 		columnType := observations[0].Column.Type
@@ -1675,6 +1754,278 @@ func writeWinnerDistributionSVG(path string, rows []winnerDistributionRow) error
 		})
 	}
 	return writeHorizontalBarChartSVG(path, "Column wins by compression + encoding", "columns won", bars)
+}
+
+func buildZstdPlainRLEDictComparison(byColumn map[string][]columnObservation) zstdPlainRLEDictComparison {
+	type comparisonValue struct {
+		plainBetter bool
+		pct         float64
+	}
+
+	var values []comparisonValue
+	summary := zstdPlainRLEDictComparison{}
+	for _, observations := range byColumn {
+		plain, plainOK := bestCompressedObservationFor(observations, "zstd", "plain")
+		rleDict, rleDictOK := bestCompressedObservationFor(observations, "zstd", "rle-dict")
+		if !plainOK || !rleDictOK {
+			summary.MissingCount++
+			continue
+		}
+		summary.ComparedColumns++
+		plainBytes := plain.Column.CompressedBytes
+		rleDictBytes := rleDict.Column.CompressedBytes
+		switch {
+		case plainBytes < rleDictBytes:
+			summary.PlainBetterCount++
+			values = append(values, comparisonValue{
+				plainBetter: true,
+				pct:         percentSmaller(plainBytes, rleDictBytes),
+			})
+		case rleDictBytes < plainBytes:
+			summary.RLEDictBetterCount++
+			values = append(values, comparisonValue{
+				pct: percentSmaller(rleDictBytes, plainBytes),
+			})
+		default:
+			summary.TieCount++
+		}
+	}
+
+	maxBucket := 1
+	for _, value := range values {
+		index := improvementBucketIndex(value.pct)
+		if index > maxBucket {
+			maxBucket = index
+		}
+	}
+	if maxBucket > 10 {
+		maxBucket = 10
+	}
+	summary.Buckets = make([]zstdPlainRLEDictBucket, maxBucket+1)
+	for i := range summary.Buckets {
+		summary.Buckets[i].Label = improvementBucketLabel(i)
+	}
+	for _, value := range values {
+		index := improvementBucketIndex(value.pct)
+		if index >= len(summary.Buckets) {
+			index = len(summary.Buckets) - 1
+		}
+		if value.plainBetter {
+			summary.Buckets[index].PlainBetter++
+		} else {
+			summary.Buckets[index].RLEDictBetter++
+		}
+	}
+	return summary
+}
+
+func bestCompressedObservationFor(observations []columnObservation, compressionPrefix, encoding string) (columnObservation, bool) {
+	var best columnObservation
+	found := false
+	for _, obs := range observations {
+		if !strings.HasPrefix(obs.Experiment.Combo.CompressionName, compressionPrefix) {
+			continue
+		}
+		if obs.Column.ConfigEncoding != encoding {
+			continue
+		}
+		if !found || betterCompressedObservation(obs, best) {
+			best = obs
+			found = true
+		}
+	}
+	return best, found
+}
+
+func percentSmaller(smaller, larger int64) float64 {
+	if larger <= 0 {
+		return 0
+	}
+	return (float64(larger-smaller) / float64(larger)) * 100
+}
+
+func improvementBucketIndex(pct float64) int {
+	if pct < 0 || math.IsNaN(pct) || math.IsInf(pct, 0) {
+		return 0
+	}
+	index := int(pct / 10)
+	if index > 10 {
+		return 10
+	}
+	return index
+}
+
+func improvementBucketLabel(index int) string {
+	if index >= 10 {
+		return "100%+"
+	}
+	return fmt.Sprintf("%d-%d%%", index*10, (index+1)*10)
+}
+
+func writeZstdPlainRLEDictComparisonTable(b *strings.Builder, summary zstdPlainRLEDictComparison) {
+	fmt.Fprintf(b, "- Compared columns: `%d`\n", summary.ComparedColumns)
+	fmt.Fprintf(b, "- `zstd + plain` smaller: `%d`; `zstd + rle-dict` smaller: `%d`; ties: `%d`; missing comparisons: `%d`\n\n",
+		summary.PlainBetterCount,
+		summary.RLEDictBetterCount,
+		summary.TieCount,
+		summary.MissingCount,
+	)
+	fmt.Fprintf(b, "| Improvement bucket | `zstd + plain` better | `zstd + rle-dict` better |\n")
+	fmt.Fprintf(b, "| --- | ---: | ---: |\n")
+	for _, bucket := range summary.Buckets {
+		fmt.Fprintf(b, "| `%s` | %d | %d |\n", bucket.Label, bucket.PlainBetter, bucket.RLEDictBetter)
+	}
+	fmt.Fprintf(b, "\n")
+}
+
+func writeZstdPlainRLEDictComparisonSVG(path string, summary zstdPlainRLEDictComparison) error {
+	return writeGroupedHistogramSVG(
+		path,
+		"ZSTD plain vs RLE dictionary improvement",
+		"columns",
+		summary.Buckets,
+	)
+}
+
+func buildDeltaBinaryPackedWinnerComparison(byColumn map[string][]columnObservation) deltaBinaryPackedWinnerComparison {
+	var improvements []float64
+	summary := deltaBinaryPackedWinnerComparison{}
+	for _, observations := range byColumn {
+		top := topColumnObservations(observations, "overall", 2)
+		if len(top) == 0 || top[0].Column.ConfigEncoding != "delta-binary-packed" {
+			continue
+		}
+		summary.WinnerCount++
+		if len(top) < 2 {
+			summary.MissingSecondBestCount++
+			continue
+		}
+		improvements = append(improvements, percentSmaller(top[0].Column.CompressedBytes, top[1].Column.CompressedBytes))
+	}
+	summary.Buckets = buildImprovementBuckets(improvements)
+	return summary
+}
+
+func buildImprovementBuckets(values []float64) []encodingImprovementBucket {
+	maxBucket := 1
+	for _, value := range values {
+		index := improvementBucketIndex(value)
+		if index > maxBucket {
+			maxBucket = index
+		}
+	}
+	if maxBucket > 10 {
+		maxBucket = 10
+	}
+	buckets := make([]encodingImprovementBucket, maxBucket+1)
+	for i := range buckets {
+		buckets[i].Label = improvementBucketLabel(i)
+	}
+	for _, value := range values {
+		index := improvementBucketIndex(value)
+		if index >= len(buckets) {
+			index = len(buckets) - 1
+		}
+		buckets[index].Count++
+	}
+	return buckets
+}
+
+func writeDeltaBinaryPackedWinnerComparisonTable(b *strings.Builder, summary deltaBinaryPackedWinnerComparison) {
+	fmt.Fprintf(b, "- Delta-binary-packed winner columns: `%d`\n", summary.WinnerCount)
+	fmt.Fprintf(b, "- Missing second-best rows: `%d`\n\n", summary.MissingSecondBestCount)
+	writeImprovementBucketTable(b, "`delta-binary-packed` better than second best", summary.Buckets)
+}
+
+func writeDeltaBinaryPackedWinnerComparisonSVG(path string, summary deltaBinaryPackedWinnerComparison) error {
+	return writeImprovementBucketChartSVG(
+		path,
+		"Delta-binary-packed winner improvement over second best",
+		"columns where delta-binary-packed is best",
+		summary.Buckets,
+		"#7c3aed",
+	)
+}
+
+func buildSnappyPlainRLEDictComparison(byColumn map[string][]columnObservation) snappyPlainRLEDictComparison {
+	var rleDictImprovements []float64
+	var plainImprovements []float64
+	summary := snappyPlainRLEDictComparison{}
+	for _, observations := range byColumn {
+		plain, plainOK := bestCompressedObservationFor(observations, "snappy", "plain")
+		rleDict, rleDictOK := bestCompressedObservationFor(observations, "snappy", "rle-dict")
+		if !plainOK || !rleDictOK {
+			summary.MissingCount++
+			continue
+		}
+		summary.ComparedColumns++
+		plainBytes := plain.Column.CompressedBytes
+		rleDictBytes := rleDict.Column.CompressedBytes
+		switch {
+		case rleDictBytes < plainBytes:
+			summary.RLEDictBetterCount++
+			rleDictImprovements = append(rleDictImprovements, percentSmaller(rleDictBytes, plainBytes))
+		case plainBytes < rleDictBytes:
+			summary.PlainBetterCount++
+			plainImprovements = append(plainImprovements, percentSmaller(plainBytes, rleDictBytes))
+		default:
+			summary.TieCount++
+		}
+	}
+	summary.RLEDictBetterBuckets = buildImprovementBuckets(rleDictImprovements)
+	summary.PlainBetterBuckets = buildImprovementBuckets(plainImprovements)
+	return summary
+}
+
+func writeSnappyRLEDictBetterComparisonTable(b *strings.Builder, summary snappyPlainRLEDictComparison) {
+	fmt.Fprintf(b, "`snappy + rle-dict` better buckets:\n\n")
+	writeImprovementBucketTable(b, "`snappy + rle-dict` better", summary.RLEDictBetterBuckets)
+}
+
+func writeSnappyPlainBetterComparisonTable(b *strings.Builder, summary snappyPlainRLEDictComparison) {
+	fmt.Fprintf(b, "`snappy + plain` better buckets:\n\n")
+	writeImprovementBucketTable(b, "`snappy + plain` better", summary.PlainBetterBuckets)
+}
+
+func writeImprovementBucketTable(b *strings.Builder, valueHeader string, buckets []encodingImprovementBucket) {
+	fmt.Fprintf(b, "| Improvement bucket | %s |\n", valueHeader)
+	fmt.Fprintf(b, "| --- | ---: |\n")
+	for _, bucket := range buckets {
+		fmt.Fprintf(b, "| `%s` | %d |\n", bucket.Label, bucket.Count)
+	}
+	fmt.Fprintf(b, "\n")
+}
+
+func writeSnappyRLEDictBetterComparisonSVG(path string, summary snappyPlainRLEDictComparison) error {
+	return writeImprovementBucketChartSVG(
+		path,
+		"Snappy RLE dictionary improvement over plain",
+		"columns where rle-dict is smaller",
+		summary.RLEDictBetterBuckets,
+		"#0f766e",
+	)
+}
+
+func writeSnappyPlainBetterComparisonSVG(path string, summary snappyPlainRLEDictComparison) error {
+	return writeImprovementBucketChartSVG(
+		path,
+		"Snappy plain improvement over RLE dictionary",
+		"columns where plain is smaller",
+		summary.PlainBetterBuckets,
+		"#2563eb",
+	)
+}
+
+func writeImprovementBucketChartSVG(path, title, xLabel string, buckets []encodingImprovementBucket, color string) error {
+	bars := make([]barChartBar, 0, len(buckets))
+	for _, bucket := range buckets {
+		bars = append(bars, barChartBar{
+			Label: bucket.Label,
+			Value: bucket.Count,
+			Color: color,
+		})
+	}
+	return writeHorizontalBarChartSVG(path, title, xLabel, bars)
 }
 
 func compressionColor(compression string) string {
@@ -2060,6 +2411,94 @@ func writeHorizontalBarChartSVG(path, title, xLabel string, bars []barChartBar) 
 		fmt.Fprintf(&b, `<rect x="%d" y="%d" width="%.2f" height="18" rx="3" fill="%s"/>`+"\n", leftMargin, y+4, barWidth, bar.Color)
 		fmt.Fprintf(&b, `<text x="%.2f" y="%d" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">%d</text>`+"\n", float64(leftMargin)+barWidth+8, y+18, bar.Value)
 	}
+	fmt.Fprintf(&b, "</svg>\n")
+	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
+func writeGroupedHistogramSVG(path, title, yLabel string, buckets []zstdPlainRLEDictBucket) error {
+	if len(buckets) == 0 {
+		return writeEmptySVG(path, title, "no data")
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+
+	const (
+		width        = 920
+		height       = 360
+		leftMargin   = 64
+		rightMargin  = 28
+		topMargin    = 62
+		bottomMargin = 72
+	)
+
+	maxValue := 0
+	for _, bucket := range buckets {
+		if bucket.PlainBetter > maxValue {
+			maxValue = bucket.PlainBetter
+		}
+		if bucket.RLEDictBetter > maxValue {
+			maxValue = bucket.RLEDictBetter
+		}
+	}
+	if maxValue == 0 {
+		return writeEmptySVG(path, title, "no directional wins")
+	}
+
+	plotWidth := float64(width - leftMargin - rightMargin)
+	plotHeight := float64(height - topMargin - bottomMargin)
+	groupWidth := plotWidth / float64(len(buckets))
+	barGap := 4.0
+	barWidth := math.Min(28, (groupWidth-16-barGap)/2)
+	if barWidth < 2 {
+		barWidth = 2
+	}
+	y := func(value int) float64 {
+		return float64(topMargin) + ((float64(maxValue-value) * plotHeight) / float64(maxValue))
+	}
+	barHeight := func(value int) float64 {
+		return (float64(value) * plotHeight) / float64(maxValue)
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">`+"\n", width, height, width, height)
+	fmt.Fprintf(&b, `<rect width="100%%" height="100%%" fill="#ffffff"/>`+"\n")
+	fmt.Fprintf(&b, `<text x="%d" y="28" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">%s</text>`+"\n", leftMargin, html.EscapeString(title))
+	fmt.Fprintf(&b, `<rect x="%d" y="42" width="10" height="10" fill="#2563eb"/>`+"\n", leftMargin)
+	fmt.Fprintf(&b, `<text x="%d" y="52" font-family="Arial, sans-serif" font-size="11" fill="#374151">zstd + plain better</text>`+"\n", leftMargin+16)
+	fmt.Fprintf(&b, `<rect x="%d" y="42" width="10" height="10" fill="#0f766e"/>`+"\n", leftMargin+160)
+	fmt.Fprintf(&b, `<text x="%d" y="52" font-family="Arial, sans-serif" font-size="11" fill="#374151">zstd + rle-dict better</text>`+"\n", leftMargin+176)
+	fmt.Fprintf(&b, `<text x="18" y="%d" transform="rotate(-90 18 %d)" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">%s</text>`+"\n", topMargin+int(plotHeight/2), topMargin+int(plotHeight/2), html.EscapeString(yLabel))
+
+	for i := 0; i <= 4; i++ {
+		value := int(math.Round(float64(i) * float64(maxValue) / 4))
+		yy := y(value)
+		fmt.Fprintf(&b, `<line x1="%d" y1="%.2f" x2="%d" y2="%.2f" stroke="#e5e7eb" stroke-width="1"/>`+"\n", leftMargin, yy, width-rightMargin, yy)
+		fmt.Fprintf(&b, `<text x="%d" y="%.2f" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">%d</text>`+"\n", leftMargin-8, yy+3, value)
+	}
+	fmt.Fprintf(&b, `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#9ca3af" stroke-width="1"/>`+"\n", leftMargin, height-bottomMargin, width-rightMargin, height-bottomMargin)
+	fmt.Fprintf(&b, `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#9ca3af" stroke-width="1"/>`+"\n", leftMargin, topMargin, leftMargin, height-bottomMargin)
+
+	for i, bucket := range buckets {
+		center := float64(leftMargin) + float64(i)*groupWidth + groupWidth/2
+		plainX := center - barGap/2 - barWidth
+		rleDictX := center + barGap/2
+		plainHeight := barHeight(bucket.PlainBetter)
+		rleDictHeight := barHeight(bucket.RLEDictBetter)
+		plainY := float64(height-bottomMargin) - plainHeight
+		rleDictY := float64(height-bottomMargin) - rleDictHeight
+
+		fmt.Fprintf(&b, `<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="2" fill="#2563eb"/>`+"\n", plainX, plainY, barWidth, plainHeight)
+		fmt.Fprintf(&b, `<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="2" fill="#0f766e"/>`+"\n", rleDictX, rleDictY, barWidth, rleDictHeight)
+		if bucket.PlainBetter > 0 {
+			fmt.Fprintf(&b, `<text x="%.2f" y="%.2f" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#111827">%d</text>`+"\n", plainX+barWidth/2, plainY-4, bucket.PlainBetter)
+		}
+		if bucket.RLEDictBetter > 0 {
+			fmt.Fprintf(&b, `<text x="%.2f" y="%.2f" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#111827">%d</text>`+"\n", rleDictX+barWidth/2, rleDictY-4, bucket.RLEDictBetter)
+		}
+		fmt.Fprintf(&b, `<text x="%.2f" y="%d" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#374151">%s</text>`+"\n", center, height-bottomMargin+20, html.EscapeString(bucket.Label))
+	}
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">compressed-byte improvement bucket</text>`+"\n", leftMargin, height-14)
 	fmt.Fprintf(&b, "</svg>\n")
 	return os.WriteFile(path, []byte(b.String()), 0o644)
 }
