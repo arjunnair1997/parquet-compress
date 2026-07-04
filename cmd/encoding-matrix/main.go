@@ -189,6 +189,18 @@ type plotSeries struct {
 	Values []float64
 }
 
+type winnerDistributionRow struct {
+	Compression string
+	Encoding    string
+	Wins        int
+}
+
+type barChartBar struct {
+	Label string
+	Value int
+	Color string
+}
+
 func main() {
 	cfg, err := parseFlags(os.Args[1:])
 	if err != nil {
@@ -210,7 +222,6 @@ func parseFlags(args []string) (config, error) {
 		Input:       defaultInput,
 		MaxDictSize: defaultDictMaxSize,
 		Verify:      true,
-		GeneratePDF: true,
 	}
 	fs := flag.NewFlagSet("encoding-matrix", flag.ContinueOnError)
 	fs.Int64Var(&cfg.Rows, "rows", cfg.Rows, "rows per experiment")
@@ -224,7 +235,7 @@ func parseFlags(args []string) (config, error) {
 	fs.BoolVar(&cfg.Verify, "verify", cfg.Verify, "verify every generated parquet output")
 	fs.BoolVar(&cfg.SkipExisting, "skip-existing", cfg.SkipExisting, "reuse an existing result markdown/column TSV when present")
 	fs.BoolVar(&cfg.KeepOutput, "keep-output", cfg.KeepOutput, "keep generated parquet output directories after the experiment; only valid with --parallel 1")
-	fs.BoolVar(&cfg.GeneratePDF, "generate-pdf", cfg.GeneratePDF, "write sibling PDFs for generated markdown results; requires Chrome/Chromium or CHROME_PATH")
+	fs.BoolVar(&cfg.GeneratePDF, "generate-pdf", cfg.GeneratePDF, "write sibling PDFs for generated markdown results; disabled by default")
 	if err := fs.Parse(args); err != nil {
 		return cfg, err
 	}
@@ -387,9 +398,9 @@ func buildEnv(root string) []string {
 
 func matrixCombos(rows int64, zstdLevel int) []combo {
 	compressions := []string{"none", "snappy", "zstd"}
-	intEncodings := []string{"plain", "rle-dict"}
-	dateEncodings := []string{"plain", "rle-dict"}
-	timestampEncodings := []string{"plain", "rle-dict"}
+	intEncodings := []string{"plain", "rle-dict", "delta-binary-packed"}
+	dateEncodings := []string{"plain", "rle-dict", "delta-binary-packed"}
+	timestampEncodings := []string{"plain", "rle-dict", "delta-binary-packed"}
 	stringEncodings := []string{"plain", "rle-dict", "delta-byte-array", "delta-length-byte-array"}
 
 	var combos []combo
@@ -497,7 +508,11 @@ func runExperiment(cfg config, toolPath string, c combo) experimentResult {
 			}
 		}
 		columns, err := parseColumnStatsTSV(existingColumns)
-		result.Elapsed = time.Since(started)
+		if elapsed, ok := parseWriteElapsed(existingResult); ok {
+			result.Elapsed = elapsed
+		} else {
+			result.Elapsed = time.Since(started)
+		}
 		result.ResultPath = existingResult
 		result.ColumnTSVPath = existingColumns
 		result.Columns = columns
@@ -572,6 +587,26 @@ func runExperiment(cfg config, toolPath string, c combo) experimentResult {
 		result.Err = removeOutputDir(cfg.OutputRoot, result.OutputDir)
 	}
 	return result
+}
+
+func parseWriteElapsed(markdownPath string) (time.Duration, bool) {
+	data, err := os.ReadFile(markdownPath)
+	if err != nil {
+		return 0, false
+	}
+	const prefix = "- Write elapsed: `"
+	for _, line := range strings.Split(string(data), "\n") {
+		if !strings.HasPrefix(line, prefix) {
+			continue
+		}
+		value := strings.TrimSuffix(strings.TrimPrefix(line, prefix), "`")
+		elapsed, err := time.ParseDuration(value)
+		if err != nil {
+			return 0, false
+		}
+		return elapsed, true
+	}
+	return 0, false
 }
 
 func ensurePDFForMarkdown(markdownPath string) error {
@@ -1507,7 +1542,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	fmt.Fprintf(&b, "- Ranking metric: per-column `compressed_bytes`, after Parquet page encoding and Snappy/ZSTD compression.\n")
 	fmt.Fprintf(&b, "- Each numbered item starts with the achieved compressed size for that encoding/compression choice.\n")
 	fmt.Fprintf(&b, "- Duplicate matrix rows with the same effective column encoding are collapsed to the best observed row before ranking.\n")
-	fmt.Fprintf(&b, "- Encodings in this matrix: `plain`, `rle-dict`, `delta-byte-array`, `delta-length-byte-array`. `delta-binary-packed` was not included.\n")
+	fmt.Fprintf(&b, "- Encodings in this matrix: `plain`, `rle-dict`, `delta-binary-packed`, `delta-byte-array`, `delta-length-byte-array`.\n")
 	if shapeStats != nil {
 		fmt.Fprintf(&b, "- Column shape stats: [%s](%s)\n", filepath.Base(cfg.ShapeStatsJSON), markdownLinkTarget(reportDir, cfg.ShapeStatsJSON))
 		if len(shapeStats.Errors) > 0 {
@@ -1515,6 +1550,16 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 		}
 	}
 	fmt.Fprintf(&b, "\n")
+
+	winnerDistribution := buildCompressedWinnerDistribution(byColumn)
+	winnerDistributionPath := filepath.Join(reportDir, "images", "column_winner_distribution.svg")
+	if err := writeWinnerDistributionSVG(winnerDistributionPath, winnerDistribution); err != nil {
+		return err
+	}
+	fmt.Fprintf(&b, "## Winner Distribution\n\n")
+	fmt.Fprintf(&b, "Counts are based on each column's first `Compressed overall` ranking below: one winner per column, grouped by compression algorithm and configured column encoding.\n\n")
+	writeShapeImage(&b, "Column winner distribution", winnerDistributionPath, reportDir)
+	writeWinnerDistributionTable(&b, winnerDistribution)
 
 	for _, column := range columns {
 		observations := byColumn[column]
@@ -1567,15 +1612,88 @@ func writeShapeImage(b *strings.Builder, alt, path, reportDir string) {
 	if path == "" {
 		return
 	}
-	fmt.Fprintf(b, "![%s](%s)\n\n", alt, markdownImageTarget(path))
+	fmt.Fprintf(b, "![%s](%s)\n\n", alt, markdownImageTarget(reportDir, path))
 }
 
-func markdownImageTarget(path string) string {
-	abs, err := filepath.Abs(path)
+func buildCompressedWinnerDistribution(byColumn map[string][]columnObservation) []winnerDistributionRow {
+	counts := make(map[string]*winnerDistributionRow)
+	for _, observations := range byColumn {
+		top := topColumnObservations(observations, "overall", 1)
+		if len(top) == 0 {
+			continue
+		}
+		obs := top[0]
+		c := obs.Experiment.Combo
+		key := c.CompressionName + "\x00" + obs.Column.ConfigEncoding
+		row := counts[key]
+		if row == nil {
+			row = &winnerDistributionRow{
+				Compression: c.CompressionName,
+				Encoding:    obs.Column.ConfigEncoding,
+			}
+			counts[key] = row
+		}
+		row.Wins++
+	}
+
+	rows := make([]winnerDistributionRow, 0, len(counts))
+	for _, row := range counts {
+		rows = append(rows, *row)
+	}
+	sort.Slice(rows, func(i, j int) bool {
+		if rows[i].Wins != rows[j].Wins {
+			return rows[i].Wins > rows[j].Wins
+		}
+		if rows[i].Compression != rows[j].Compression {
+			return rows[i].Compression < rows[j].Compression
+		}
+		return rows[i].Encoding < rows[j].Encoding
+	})
+	return rows
+}
+
+func writeWinnerDistributionTable(b *strings.Builder, rows []winnerDistributionRow) {
+	if len(rows) == 0 {
+		fmt.Fprintf(b, "No compressed winner data was available.\n\n")
+		return
+	}
+	fmt.Fprintf(b, "| Compression | Encoding | Column wins |\n")
+	fmt.Fprintf(b, "| --- | --- | ---: |\n")
+	for _, row := range rows {
+		fmt.Fprintf(b, "| `%s` | `%s` | %d |\n", row.Compression, row.Encoding, row.Wins)
+	}
+	fmt.Fprintf(b, "\n")
+}
+
+func writeWinnerDistributionSVG(path string, rows []winnerDistributionRow) error {
+	bars := make([]barChartBar, 0, len(rows))
+	for _, row := range rows {
+		bars = append(bars, barChartBar{
+			Label: fmt.Sprintf("%s + %s", row.Compression, row.Encoding),
+			Value: row.Wins,
+			Color: compressionColor(row.Compression),
+		})
+	}
+	return writeHorizontalBarChartSVG(path, "Column wins by compression + encoding", "columns won", bars)
+}
+
+func compressionColor(compression string) string {
+	switch {
+	case strings.HasPrefix(compression, "zstd"):
+		return "#2563eb"
+	case compression == "snappy":
+		return "#0f766e"
+	default:
+		return "#6b7280"
+	}
+}
+
+func markdownImageTarget(fromDir, path string) string {
+	rel, err := filepath.Rel(fromDir, path)
 	if err != nil {
 		return filepath.ToSlash(path)
 	}
-	return filepath.ToSlash(abs)
+	return strings.ReplaceAll(filepath.ToSlash(rel), " ", "%20")
 }
 
 func writeRankingList(b *strings.Builder, title string, observations []columnObservation, includeCompression bool) {
@@ -1586,10 +1704,7 @@ func writeRankingList(b *strings.Builder, title string, observations []columnObs
 	}
 	for i, obs := range observations {
 		c := obs.Experiment.Combo
-		prefix := fmt.Sprintf("`%s`", obs.Column.ConfigEncoding)
-		if includeCompression {
-			prefix = fmt.Sprintf("`%s` + `%s`", c.CompressionName, obs.Column.ConfigEncoding)
-		}
+		prefix := fmt.Sprintf("`%s` + `%s`", c.CompressionName, obs.Column.ConfigEncoding)
 		improvement := ""
 		if obs.HasCompressionRatioImprovementPercent {
 			improvement = fmt.Sprintf("; %s vs plain + %s", formatPercent(obs.CompressionRatioImprovementPct), c.CompressionName)
@@ -1890,8 +2005,70 @@ func writeLinePlotSVG(path, title, yLabel string, series []plotSeries) error {
 	return os.WriteFile(path, []byte(b.String()), 0o644)
 }
 
+func writeHorizontalBarChartSVG(path, title, xLabel string, bars []barChartBar) error {
+	if len(bars) == 0 {
+		return writeEmptySVG(path, title, "no data")
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+
+	const (
+		width        = 920
+		leftMargin   = 260
+		rightMargin  = 92
+		topMargin    = 48
+		bottomMargin = 52
+		rowHeight    = 34
+	)
+	height := topMargin + bottomMargin + rowHeight*len(bars)
+	maxValue := 0
+	for _, bar := range bars {
+		if bar.Value > maxValue {
+			maxValue = bar.Value
+		}
+	}
+	if maxValue == 0 {
+		return writeEmptySVG(path, title, "no data")
+	}
+
+	plotWidth := float64(width - leftMargin - rightMargin)
+	scale := func(value int) float64 {
+		return float64(value) * plotWidth / float64(maxValue)
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">`+"\n", width, height, width, height)
+	fmt.Fprintf(&b, `<rect width="100%%" height="100%%" fill="#ffffff"/>`+"\n")
+	fmt.Fprintf(&b, `<text x="%d" y="26" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">%s</text>`+"\n", leftMargin, html.EscapeString(title))
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">%s</text>`+"\n", leftMargin, height-14, html.EscapeString(xLabel))
+
+	plotTop := topMargin - 6
+	plotBottom := height - bottomMargin + 4
+	for i := 0; i <= 4; i++ {
+		value := float64(i) * float64(maxValue) / 4
+		x := float64(leftMargin) + value*plotWidth/float64(maxValue)
+		fmt.Fprintf(&b, `<line x1="%.2f" y1="%d" x2="%.2f" y2="%d" stroke="#eef2f7" stroke-width="1"/>`+"\n", x, plotTop, x, plotBottom)
+		fmt.Fprintf(&b, `<text x="%.2f" y="%d" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">%s</text>`+"\n", x, height-32, formatPlotNumber(value))
+	}
+	fmt.Fprintf(&b, `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#9ca3af" stroke-width="1"/>`+"\n", leftMargin, plotBottom, width-rightMargin, plotBottom)
+
+	for i, bar := range bars {
+		y := topMargin + i*rowHeight
+		barWidth := scale(bar.Value)
+		fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">%s</text>`+"\n", leftMargin-12, y+19, html.EscapeString(bar.Label))
+		fmt.Fprintf(&b, `<rect x="%d" y="%d" width="%.2f" height="18" rx="3" fill="%s"/>`+"\n", leftMargin, y+4, barWidth, bar.Color)
+		fmt.Fprintf(&b, `<text x="%.2f" y="%d" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">%d</text>`+"\n", float64(leftMargin)+barWidth+8, y+18, bar.Value)
+	}
+	fmt.Fprintf(&b, "</svg>\n")
+	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
 func writeEmptySVG(path, title, message string) error {
 	const width, height = 920, 180
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
 	var b strings.Builder
 	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">`+"\n", width, height, width, height)
 	fmt.Fprintf(&b, `<rect width="100%%" height="100%%" fill="#ffffff"/>`+"\n")

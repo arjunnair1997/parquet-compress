@@ -1,0 +1,200 @@
+# ClickBench Parquet Experiment
+
+- Started: `2026-07-03T23:39:43-04:00`
+- Write elapsed: `12.141s`
+- Input: `data/clickbench/hits.tsv.gz`
+- Output directory: `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed`
+- Rows: `1000000`
+- Source TSV bytes for rows, reference only: `778360762` (742.30 MiB)
+- Parquet physical bytes before page encoding: `712398624` (679.40 MiB)
+- Encoded column bytes before codec compression: `579295458` (552.46 MiB)
+- Compressed column data bytes after codec compression: `98159947` (93.61 MiB)
+- Parquet file bytes: `99057987` (94.47 MiB)
+- Physical/encoded ratio: `1.230x`
+- Encoded/compressed-data ratio: `5.902x`
+- Physical/compressed-data ratio: `7.258x`
+- Physical/parquet-file ratio: `7.192x`
+- Files: `29`
+
+## Settings
+
+- Compression: `zstd-3`
+- Int encoding: `delta-binary-packed`
+- String encoding: `plain`
+- Date encoding: `plain`
+- Timestamp encoding: `delta-binary-packed`
+- Max page size: `256.00 KiB`
+- Max dictionary page size: `256.00 KiB`
+- Max row group rows: `0`
+- Max row group size: `10.00 MiB`
+- Max file size: `10.00 MiB`
+
+## Schema
+
+- Columns: `105`, generated from the built-in ClickBench `hits` column list in source TSV field order.
+- Mapping: each input row is split on tabs, and field `N` is written to ClickBench column `N` with the same name.
+- All Parquet columns are required.
+- String fields are ClickHouse TSV-unescaped before writing.
+
+| ClickBench kind | Parquet column type | Physical value written |
+| --- | --- | --- |
+| `int16` | `parquet.Int(16)` | `INT32`, signed 16-bit logical type |
+| `int32` | `parquet.Int(32)` | `INT32`, signed 32-bit logical type |
+| `int64` | `parquet.Int(64)` | `INT64`, signed 64-bit logical type |
+| `date` | `parquet.Date()` | `INT32` days since Unix epoch |
+| `timestamp_millis` | `parquet.Timestamp(parquet.Millisecond)` | `INT64` milliseconds since Unix epoch |
+| `string` | `parquet.String()` | `BYTE_ARRAY` UTF-8 string |
+
+## Verification
+
+- Status: `passed`
+- Rows read and compared: `1000000`
+- Files read: `29`
+- Elapsed: `7.329s`
+- Source TSV bytes checked: `778360762` (742.30 MiB)
+
+## Columns
+
+Physical bytes are Parquet physical value payloads before page encoding: fixed-width physical sizes for ints, dates, and timestamps, and BYTE_ARRAY payload bytes after TSV unescaping for strings, excluding PLAIN length prefixes. Encoded bytes are Parquet column chunk total uncompressed sizes after Parquet encoding and before the snappy/zstd codec. Compressed bytes are Parquet column chunk total compressed sizes after the codec. Source field bytes are included only as a TSV reference and exclude delimiters and line endings.
+
+Column stats TSV: [2026-07-03_rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed_columns.tsv](../../tsvs/2026-07-03_rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed_columns.tsv)
+
+| Column | Type | Config encoding | Metadata encodings | Page encodings | Values | Physical bytes | Encoded bytes | Compressed bytes | Physical/encoded | Encoded/compressed | Physical/compressed | Source field bytes |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `WatchID` | `int64` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `8000000` (7.63 MiB) | `7989957` (7.62 MiB) | `7990372` (7.62 MiB) | `1.001x` | `1.000x` | `1.001x` | `19000000` (18.12 MiB) |
+| `JavaEnable` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `198325` (193.68 KiB) | `68128` (66.53 KiB) | `20.169x` | `2.911x` | `58.713x` | `1000000` (976.56 KiB) |
+| `Title` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:518` | `1000000` | `138409995` (132.00 MiB) | `142873483` (136.25 MiB) | `13942104` (13.30 MiB) | `0.969x` | `10.248x` | `9.927x` | `138440901` (132.03 MiB) |
+| `GoodEvent` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `43646` (42.62 KiB) | `5620` (5.49 KiB) | `91.646x` | `7.766x` | `711.744x` | `1000000` (976.56 KiB) |
+| `EventTime` | `timestamp_millis` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `8000000` (7.63 MiB) | `3370888` (3.21 MiB) | `2886843` (2.75 MiB) | `2.373x` | `1.168x` | `2.771x` | `19000000` (18.12 MiB) |
+| `EventDate` | `date` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `4000000` (3.81 MiB) | `4003532` (3.82 MiB) | `4905` (4.79 KiB) | `0.999x` | `816.214x` | `815.494x` | `10000000` (9.54 MiB) |
+| `CounterID` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `46689` (45.59 KiB) | `5870` (5.73 KiB) | `85.673x` | `7.954x` | `681.431x` | `2000000` (1.91 MiB) |
+| `ClientIP` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `3755639` (3.58 MiB) | `861813` (841.61 KiB) | `1.065x` | `4.358x` | `4.641x` | `10032124` (9.57 MiB) |
+| `RegionID` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1489085` (1.42 MiB) | `463590` (452.72 KiB) | `2.686x` | `3.212x` | `8.628x` | `2539898` (2.42 MiB) |
+| `UserID` | `int64` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `8000000` (7.63 MiB) | `4397342` (4.19 MiB) | `761392` (743.55 KiB) | `1.819x` | `5.775x` | `10.507x` | `18637316` (17.77 MiB) |
+| `CounterClass` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `43044` (42.04 KiB) | `4932` (4.82 KiB) | `92.928x` | `8.727x` | `811.030x` | `1000000` (976.56 KiB) |
+| `OS` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `847750` (827.88 KiB) | `216435` (211.36 KiB) | `4.718x` | `3.917x` | `18.481x` | `1733675` (1.65 MiB) |
+| `UserAgent` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `688708` (672.57 KiB) | `235405` (229.89 KiB) | `5.808x` | `2.926x` | `16.992x` | `1088411` (1.04 MiB) |
+| `URL` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:345` | `1000000` | `88562192` (84.46 MiB) | `92652326` (88.36 MiB) | `15298603` (14.59 MiB) | `0.956x` | `6.056x` | `5.789x` | `88563396` (84.46 MiB) |
+| `Referer` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:330` | `1000000` | `79583339` (75.90 MiB) | `83647410` (79.77 MiB) | `14214433` (13.56 MiB) | `0.951x` | `5.885x` | `5.599x` | `79585848` (75.90 MiB) |
+| `IsRefresh` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `233579` (228.10 KiB) | `98896` (96.58 KiB) | `17.125x` | `2.362x` | `40.447x` | `1000000` (976.56 KiB) |
+| `RefererCategoryID` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1866220` (1.78 MiB) | `522048` (509.81 KiB) | `2.143x` | `3.575x` | `7.662x` | `4634835` (4.42 MiB) |
+| `RefererRegionID` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1369025` (1.31 MiB) | `337196` (329.29 KiB) | `2.922x` | `4.060x` | `11.863x` | `2814059` (2.68 MiB) |
+| `URLCategoryID` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1085779` (1.04 MiB) | `202622` (197.87 KiB) | `3.684x` | `5.359x` | `19.741x` | `4525496` (4.32 MiB) |
+| `URLRegionID` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `727466` (710.42 KiB) | `100071` (97.73 KiB) | `5.499x` | `7.269x` | `39.972x` | `2981244` (2.84 MiB) |
+| `ResolutionWidth` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1286138` (1.23 MiB) | `409794` (400.19 KiB) | `3.110x` | `3.138x` | `9.761x` | `3967065` (3.78 MiB) |
+| `ResolutionHeight` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1345792` (1.28 MiB) | `358833` (350.42 KiB) | `2.972x` | `3.750x` | `11.147x` | `3407277` (3.25 MiB) |
+| `ResolutionDepth` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `554283` (541.29 KiB) | `136179` (132.99 KiB) | `7.217x` | `4.070x` | `29.373x` | `1994256` (1.90 MiB) |
+| `FlashMajor` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `400240` (390.86 KiB) | `92907` (90.73 KiB) | `9.994x` | `4.308x` | `43.054x` | `1923540` (1.83 MiB) |
+| `FlashMinor` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `524284` (512.00 KiB) | `199403` (194.73 KiB) | `7.629x` | `2.629x` | `20.060x` | `1318244` (1.26 MiB) |
+| `FlashMinor2` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `3354477` (3.20 MiB) | `7357830` (7.02 MiB) | `246535` (240.76 KiB) | `0.456x` | `29.845x` | `13.606x` | `3354477` (3.20 MiB) |
+| `NetMajor` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `159870` (156.12 KiB) | `42321` (41.33 KiB) | `25.020x` | `3.778x` | `94.516x` | `1000000` (976.56 KiB) |
+| `NetMinor` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `197079` (192.46 KiB) | `36640` (35.78 KiB) | `20.296x` | `5.379x` | `109.170x` | `1000000` (976.56 KiB) |
+| `UserAgentMajor` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `661971` (646.46 KiB) | `259336` (253.26 KiB) | `6.043x` | `2.553x` | `15.424x` | `1885645` (1.80 MiB) |
+| `UserAgentMinor` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `3767530` (3.59 MiB) | `7770878` (7.41 MiB) | `136656` (133.45 KiB) | `0.485x` | `56.865x` | `27.569x` | `3777059` (3.60 MiB) |
+| `CookieEnable` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `46548` (45.46 KiB) | `7474` (7.30 KiB) | `85.933x` | `6.228x` | `535.189x` | `1000000` (976.56 KiB) |
+| `JavascriptEnable` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `47574` (46.46 KiB) | `8167` (7.98 KiB) | `84.080x` | `5.825x` | `489.776x` | `1000000` (976.56 KiB) |
+| `IsMobile` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `114545` (111.86 KiB) | `32828` (32.06 KiB) | `34.921x` | `3.489x` | `121.847x` | `1000000` (976.56 KiB) |
+| `MobilePhone` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `144450` (141.06 KiB) | `39593` (38.67 KiB) | `27.691x` | `3.648x` | `101.028x` | `1001922` (978.44 KiB) |
+| `MobilePhoneModel` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `81583` (79.67 KiB) | `4084903` (3.90 MiB) | `22639` (22.11 KiB) | `0.020x` | `180.437x` | `3.604x` | `81583` (79.67 KiB) |
+| `Params` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `0` (0 B) | `4002160` (3.82 MiB) | `2849` (2.78 KiB) | `0.000x` | `1404.760x` | `0.000x` | `0` (0 B) |
+| `IPNetworkID` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `2662994` (2.54 MiB) | `782381` (764.04 KiB) | `1.502x` | `3.404x` | `5.113x` | `6865544` (6.55 MiB) |
+| `TraficSourceID` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `496887` (485.24 KiB) | `238522` (232.93 KiB) | `8.050x` | `2.083x` | `16.770x` | `1728158` (1.65 MiB) |
+| `SearchEngineID` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `378088` (369.23 KiB) | `150412` (146.89 KiB) | `10.580x` | `2.514x` | `26.594x` | `1006573` (982.98 KiB) |
+| `SearchPhrase` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `3528017` (3.36 MiB) | `7534870` (7.19 MiB) | `720757` (703.86 KiB) | `0.468x` | `10.454x` | `4.895x` | `3528108` (3.36 MiB) |
+| `AdvEngineID` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `202689` (197.94 KiB) | `45093` (44.04 KiB) | `19.735x` | `4.495x` | `88.706x` | `1004631` (981.08 KiB) |
+| `IsArtifical` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `196697` (192.09 KiB) | `84547` (82.57 KiB) | `20.336x` | `2.326x` | `47.311x` | `1000000` (976.56 KiB) |
+| `WindowClientWidth` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1359372` (1.30 MiB) | `574511` (561.05 KiB) | `2.943x` | `2.366x` | `6.962x` | `3825106` (3.65 MiB) |
+| `WindowClientHeight` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1252530` (1.19 MiB) | `552169` (539.23 KiB) | `3.194x` | `2.268x` | `7.244x` | `3055745` (2.91 MiB) |
+| `ClientTimeZone` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `977215` (954.31 KiB) | `211918` (206.95 KiB) | `4.093x` | `4.611x` | `18.875x` | `2989177` (2.85 MiB) |
+| `ClientEventTime` | `timestamp_millis` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `8000000` (7.63 MiB) | `3491046` (3.33 MiB) | `2898783` (2.76 MiB) | `2.292x` | `1.204x` | `2.760x` | `19000000` (18.12 MiB) |
+| `SilverlightVersion1` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `437663` (427.41 KiB) | `118915` (116.13 KiB) | `9.139x` | `3.680x` | `33.637x` | `1000017` (976.58 KiB) |
+| `SilverlightVersion2` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `207807` (202.94 KiB) | `73362` (71.64 KiB) | `19.249x` | `2.833x` | `54.524x` | `1000000` (976.56 KiB) |
+| `SilverlightVersion3` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1861624` (1.78 MiB) | `315972` (308.57 KiB) | `2.149x` | `5.892x` | `12.659x` | `2728282` (2.60 MiB) |
+| `SilverlightVersion4` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `43528` (42.51 KiB) | `5165` (5.04 KiB) | `91.895x` | `8.427x` | `774.443x` | `1000000` (976.56 KiB) |
+| `PageCharset` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:85` | `1000000` | `13587860` (12.96 MiB) | `17594818` (16.78 MiB) | `14640` (14.30 KiB) | `0.772x` | `1201.832x` | `928.133x` | `13587860` (12.96 MiB) |
+| `CodeVersion` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `96441` (94.18 KiB) | `12694` (12.40 KiB) | `41.476x` | `7.597x` | `315.110x` | `3997297` (3.81 MiB) |
+| `IsLink` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `140819` (137.52 KiB) | `44424` (43.38 KiB) | `28.405x` | `3.170x` | `90.041x` | `1000000` (976.56 KiB) |
+| `IsDownload` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `53482` (52.23 KiB) | `10030` (9.79 KiB) | `74.792x` | `5.332x` | `398.804x` | `1000000` (976.56 KiB) |
+| `IsNotBounce` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `63896` (62.40 KiB) | `16430` (16.04 KiB) | `62.602x` | `3.889x` | `243.457x` | `1000000` (976.56 KiB) |
+| `FUniqID` | `int64` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `8000000` (7.63 MiB) | `7473365` (7.13 MiB) | `1418516` (1.35 MiB) | `1.070x` | `5.268x` | `5.640x` | `18077896` (17.24 MiB) |
+| `OriginalURL` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:137` | `1000000` | `27797671` (26.51 MiB) | `31856444` (30.38 MiB) | `5315679` (5.07 MiB) | `0.873x` | `5.993x` | `5.229x` | `27797732` (26.51 MiB) |
+| `HID` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `3953100` (3.77 MiB) | `3953051` (3.77 MiB) | `1.012x` | `1.000x` | `1.012x` | `8956330` (8.54 MiB) |
+| `IsOldCounter` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `43044` (42.04 KiB) | `4932` (4.82 KiB) | `92.928x` | `8.727x` | `811.030x` | `1000000` (976.56 KiB) |
+| `IsEvent` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `43044` (42.04 KiB) | `4932` (4.82 KiB) | `92.928x` | `8.727x` | `811.030x` | `1000000` (976.56 KiB) |
+| `IsParameter` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `43044` (42.04 KiB) | `4932` (4.82 KiB) | `92.928x` | `8.727x` | `811.030x` | `1000000` (976.56 KiB) |
+| `DontCountHits` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `168497` (164.55 KiB) | `60433` (59.02 KiB) | `23.739x` | `2.788x` | `66.189x` | `1000000` (976.56 KiB) |
+| `WithHash` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `43044` (42.04 KiB) | `4932` (4.82 KiB) | `92.928x` | `8.727x` | `811.030x` | `1000000` (976.56 KiB) |
+| `HitColor` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `1000000` (976.56 KiB) | `5002899` (4.77 MiB) | `28971` (28.29 KiB) | `0.200x` | `172.686x` | `34.517x` | `1000000` (976.56 KiB) |
+| `LocalEventTime` | `timestamp_millis` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `8000000` (7.63 MiB) | `3385394` (3.23 MiB) | `2896386` (2.76 MiB) | `2.363x` | `1.169x` | `2.762x` | `19000000` (18.12 MiB) |
+| `Age` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `744909` (727.45 KiB) | `246449` (240.67 KiB) | `5.370x` | `3.023x` | `16.231x` | `1740725` (1.66 MiB) |
+| `Sex` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `254390` (248.43 KiB) | `109061` (106.50 KiB) | `15.724x` | `2.333x` | `36.677x` | `1000000` (976.56 KiB) |
+| `Income` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `329657` (321.93 KiB) | `140607` (137.31 KiB) | `12.134x` | `2.345x` | `28.448x` | `1000000` (976.56 KiB) |
+| `Interests` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1593634` (1.52 MiB) | `492020` (480.49 KiB) | `2.510x` | `3.239x` | `8.130x` | `2180312` (2.08 MiB) |
+| `Robotness` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `843873` (824.09 KiB) | `337086` (329.19 KiB) | `4.740x` | `2.503x` | `11.866x` | `1423051` (1.36 MiB) |
+| `RemoteIP` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `3801609` (3.63 MiB) | `927516` (905.78 KiB) | `1.052x` | `4.099x` | `4.313x` | `10016734` (9.55 MiB) |
+| `WindowName` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `274689` (268.25 KiB) | `121375` (118.53 KiB) | `14.562x` | `2.263x` | `32.956x` | `2197789` (2.10 MiB) |
+| `OpenerName` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `43042` (42.03 KiB) | `4987` (4.87 KiB) | `92.932x` | `8.631x` | `802.085x` | `2000000` (1.91 MiB) |
+| `HistoryLength` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `116047` (113.33 KiB) | `67192` (65.62 KiB) | `34.469x` | `1.727x` | `59.531x` | `1940175` (1.85 MiB) |
+| `BrowserLanguage` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `2001192` (1.91 MiB) | `6004440` (5.73 MiB) | `32330` (31.57 KiB) | `0.333x` | `185.723x` | `61.899x` | `2001192` (1.91 MiB) |
+| `BrowserCountry` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `3325142` (3.17 MiB) | `7328502` (6.99 MiB) | `122322` (119.46 KiB) | `0.454x` | `59.912x` | `27.184x` | `3987713` (3.80 MiB) |
+| `SocialNetwork` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `0` (0 B) | `4002160` (3.82 MiB) | `2849` (2.78 KiB) | `0.000x` | `1404.760x` | `0.000x` | `0` (0 B) |
+| `SocialAction` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `0` (0 B) | `4002160` (3.82 MiB) | `2849` (2.78 KiB) | `0.000x` | `1404.760x` | `0.000x` | `0` (0 B) |
+| `HTTPError` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `43044` (42.04 KiB) | `4932` (4.82 KiB) | `92.928x` | `8.727x` | `811.030x` | `1000000` (976.56 KiB) |
+| `SendTiming` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `173704` (169.63 KiB) | `108614` (106.07 KiB) | `23.028x` | `1.599x` | `36.828x` | `1035866` (1011.59 KiB) |
+| `DNSTiming` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `810134` (791.15 KiB) | `301919` (294.84 KiB) | `4.937x` | `2.683x` | `13.249x` | `1026953` (1002.88 KiB) |
+| `ConnectTiming` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1093846` (1.04 MiB) | `582304` (568.66 KiB) | `3.657x` | `1.878x` | `6.869x` | `1145637` (1.09 MiB) |
+| `ResponseStartTiming` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1705875` (1.63 MiB) | `1517708` (1.45 MiB) | `2.345x` | `1.124x` | `2.636x` | `2288673` (2.18 MiB) |
+| `ResponseEndTiming` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1504632` (1.43 MiB) | `1310113` (1.25 MiB) | `2.658x` | `1.148x` | `3.053x` | `1573269` (1.50 MiB) |
+| `FetchTiming` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `1551226` (1.48 MiB) | `964389` (941.79 KiB) | `2.579x` | `1.609x` | `4.148x` | `1273464` (1.21 MiB) |
+| `SocialSourceNetworkID` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `47329` (46.22 KiB) | `7049` (6.88 KiB) | `84.515x` | `6.714x` | `567.456x` | `1000056` (976.62 KiB) |
+| `SocialSourcePage` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `1024` (1.00 KiB) | `4004036` (3.82 MiB) | `4923` (4.81 KiB) | `0.000x` | `813.333x` | `0.208x` | `1024` (1.00 KiB) |
+| `ParamPrice` | `int64` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `8000000` (7.63 MiB) | `43956` (42.93 KiB) | `5844` (5.71 KiB) | `182.000x` | `7.522x` | `1368.925x` | `1000000` (976.56 KiB) |
+| `ParamOrderID` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `0` (0 B) | `4002160` (3.82 MiB) | `2849` (2.78 KiB) | `0.000x` | `1404.760x` | `0.000x` | `0` (0 B) |
+| `ParamCurrency` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `3000000` (2.86 MiB) | `7003303` (6.68 MiB) | `5263` (5.14 KiB) | `0.428x` | `1330.667x` | `570.017x` | `3000000` (2.86 MiB) |
+| `ParamCurrencyID` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `43044` (42.04 KiB) | `4932` (4.82 KiB) | `92.928x` | `8.727x` | `811.030x` | `1000000` (976.56 KiB) |
+| `OpenstatServiceName` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `58030` (56.67 KiB) | `4062530` (3.87 MiB) | `19283` (18.83 KiB) | `0.014x` | `210.679x` | `3.009x` | `58030` (56.67 KiB) |
+| `OpenstatCampaignID` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `22051` (21.53 KiB) | `4025625` (3.84 MiB) | `16550` (16.16 KiB) | `0.005x` | `243.240x` | `1.332x` | `22051` (21.53 KiB) |
+| `OpenstatAdID` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `25445` (24.85 KiB) | `4029026` (3.84 MiB) | `18989` (18.54 KiB) | `0.006x` | `212.177x` | `1.340x` | `25445` (24.85 KiB) |
+| `OpenstatSourceID` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `48191` (47.06 KiB) | `4051761` (3.86 MiB) | `13335` (13.02 KiB) | `0.012x` | `303.844x` | `3.614x` | `48191` (47.06 KiB) |
+| `UTMSource` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `49433` (48.27 KiB) | `4053226` (3.87 MiB) | `21146` (20.65 KiB) | `0.012x` | `191.678x` | `2.338x` | `49433` (48.27 KiB) |
+| `UTMMedium` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `16873` (16.48 KiB) | `4019955` (3.83 MiB) | `17202` (16.80 KiB) | `0.004x` | `233.691x` | `0.981x` | `16873` (16.48 KiB) |
+| `UTMCampaign` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `91870` (89.72 KiB) | `4097500` (3.91 MiB) | `29874` (29.17 KiB) | `0.022x` | `137.159x` | `3.075x` | `91871` (89.72 KiB) |
+| `UTMContent` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `13001` (12.70 KiB) | `4016646` (3.83 MiB) | `14056` (13.73 KiB) | `0.003x` | `285.760x` | `0.925x` | `13001` (12.70 KiB) |
+| `UTMTerm` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `28101` (27.44 KiB) | `4032787` (3.85 MiB) | `15778` (15.41 KiB) | `0.007x` | `255.596x` | `1.781x` | `28101` (27.44 KiB) |
+| `FromTag` | `string` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `45607` (44.54 KiB) | `4048283` (3.86 MiB) | `28444` (27.78 KiB) | `0.011x` | `142.325x` | `1.603x` | `45607` (44.54 KiB) |
+| `HasGCLID` | `int16` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `92192` (90.03 KiB) | `22351` (21.83 KiB) | `43.388x` | `4.125x` | `178.963x` | `1000000` (976.56 KiB) |
+| `RefererHash` | `int64` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `8000000` (7.63 MiB) | `8118666` (7.74 MiB) | `4466011` (4.26 MiB) | `0.985x` | `1.818x` | `1.791x` | `19349242` (18.45 MiB) |
+| `URLHash` | `int64` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `8000000` (7.63 MiB) | `8120169` (7.74 MiB) | `5224118` (4.98 MiB) | `0.985x` | `1.554x` | `1.531x` | `19343177` (18.45 MiB) |
+| `CLID` | `int32` | `delta-binary-packed` | `DELTA_BINARY_PACKED` | `DATA_PAGE_V2/DELTA_BINARY_PACKED:57` | `1000000` | `4000000` (3.81 MiB) | `68912` (67.30 KiB) | `8407` (8.21 KiB) | `58.045x` | `8.197x` | `475.794x` | `1000380` (976.93 KiB) |
+
+## Files
+
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00000.parquet`: `35125` rows, `3198789` file bytes (3.05 MiB), `27268925` physical bytes (26.01 MiB), `22620316` encoded bytes (21.57 MiB), `3166848` compressed data bytes (3.02 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00001.parquet`: `35158` rows, `3139585` file bytes (2.99 MiB), `27057251` physical bytes (25.80 MiB), `22325546` encoded bytes (21.29 MiB), `3107290` compressed data bytes (2.96 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00002.parquet`: `35668` rows, `3232950` file bytes (3.08 MiB), `27880127` physical bytes (26.59 MiB), `23097906` encoded bytes (22.03 MiB), `3199813` compressed data bytes (3.05 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00003.parquet`: `35486` rows, `3157765` file bytes (3.01 MiB), `27476621` physical bytes (26.20 MiB), `22675523` encoded bytes (21.63 MiB), `3125521` compressed data bytes (2.98 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00004.parquet`: `35383` rows, `3142611` file bytes (3.00 MiB), `27537091` physical bytes (26.26 MiB), `22752931` encoded bytes (21.70 MiB), `3109978` compressed data bytes (2.97 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00005.parquet`: `35488` rows, `3134071` file bytes (2.99 MiB), `27282852` physical bytes (26.02 MiB), `22511251` encoded bytes (21.47 MiB), `3101700` compressed data bytes (2.96 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00006.parquet`: `35652` rows, `3158652` file bytes (3.01 MiB), `27483157` physical bytes (26.21 MiB), `22686573` encoded bytes (21.64 MiB), `3126190` compressed data bytes (2.98 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00007.parquet`: `35954` rows, `3211495` file bytes (3.06 MiB), `27877319` physical bytes (26.59 MiB), `23037421` encoded bytes (21.97 MiB), `3178759` compressed data bytes (3.03 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00008.parquet`: `35966` rows, `3176836` file bytes (3.03 MiB), `27908448` physical bytes (26.62 MiB), `23056012` encoded bytes (21.99 MiB), `3144248` compressed data bytes (3.00 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00009.parquet`: `35794` rows, `3154259` file bytes (3.01 MiB), `27478951` physical bytes (26.21 MiB), `22644276` encoded bytes (21.60 MiB), `3122105` compressed data bytes (2.98 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00010.parquet`: `36156` rows, `3163876` file bytes (3.02 MiB), `27875216` physical bytes (26.58 MiB), `22954874` encoded bytes (21.89 MiB), `3131366` compressed data bytes (2.99 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00011.parquet`: `35654` rows, `3110172` file bytes (2.97 MiB), `27516429` physical bytes (26.24 MiB), `22689700` encoded bytes (21.64 MiB), `3077690` compressed data bytes (2.94 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00012.parquet`: `35485` rows, `3136074` file bytes (2.99 MiB), `27280057` physical bytes (26.02 MiB), `22506471` encoded bytes (21.46 MiB), `3104097` compressed data bytes (2.96 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00013.parquet`: `35911` rows, `3135918` file bytes (2.99 MiB), `27703958` physical bytes (26.42 MiB), `22818035` encoded bytes (21.76 MiB), `3103351` compressed data bytes (2.96 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00014.parquet`: `35196` rows, `3578170` file bytes (3.41 MiB), `24901536` physical bytes (23.75 MiB), `20509556` encoded bytes (19.56 MiB), `3547054` compressed data bytes (3.38 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00015.parquet`: `35181` rows, `3757567` file bytes (3.58 MiB), `24397591` physical bytes (23.27 MiB), `20066367` encoded bytes (19.14 MiB), `3727338` compressed data bytes (3.55 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00016.parquet`: `34806` rows, `3745802` file bytes (3.57 MiB), `23403288` physical bytes (22.32 MiB), `18961741` encoded bytes (18.08 MiB), `3715384` compressed data bytes (3.54 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00017.parquet`: `34599` rows, `3820862` file bytes (3.64 MiB), `22267341` physical bytes (21.24 MiB), `17637466` encoded bytes (16.82 MiB), `3790469` compressed data bytes (3.61 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00018.parquet`: `34138` rows, `3873227` file bytes (3.69 MiB), `22283936` physical bytes (21.25 MiB), `17694782` encoded bytes (16.88 MiB), `3842672` compressed data bytes (3.66 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00019.parquet`: `34780` rows, `3817323` file bytes (3.64 MiB), `22190963` physical bytes (21.16 MiB), `17535220` encoded bytes (16.72 MiB), `3786651` compressed data bytes (3.61 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00020.parquet`: `34195` rows, `3859142` file bytes (3.68 MiB), `22056508` physical bytes (21.03 MiB), `17547809` encoded bytes (16.73 MiB), `3828619` compressed data bytes (3.65 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00021.parquet`: `34588` rows, `3779583` file bytes (3.60 MiB), `22108321` physical bytes (21.08 MiB), `17513975` encoded bytes (16.70 MiB), `3748889` compressed data bytes (3.58 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00022.parquet`: `34770` rows, `3819738` file bytes (3.64 MiB), `22236456` physical bytes (21.21 MiB), `17603073` encoded bytes (16.79 MiB), `3789415` compressed data bytes (3.61 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00023.parquet`: `34279` rows, `3848819` file bytes (3.67 MiB), `22279195` physical bytes (21.25 MiB), `17693801` encoded bytes (16.87 MiB), `3818112` compressed data bytes (3.64 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00024.parquet`: `34730` rows, `3845791` file bytes (3.67 MiB), `22181562` physical bytes (21.15 MiB), `17582232` encoded bytes (16.77 MiB), `3815559` compressed data bytes (3.64 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00025.parquet`: `34674` rows, `3791957` file bytes (3.62 MiB), `22110923` physical bytes (21.09 MiB), `17513913` encoded bytes (16.70 MiB), `3761385` compressed data bytes (3.59 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00026.parquet`: `34774` rows, `3758589` file bytes (3.58 MiB), `22103211` physical bytes (21.08 MiB), `17536537` encoded bytes (16.72 MiB), `3728081` compressed data bytes (3.56 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00027.parquet`: `34813` rows, `3779641` file bytes (3.60 MiB), `22090517` physical bytes (21.07 MiB), `17484630` encoded bytes (16.67 MiB), `3749412` compressed data bytes (3.58 MiB)
+- `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/rows-1000000-comp-zstd-3-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed/part-00028.parquet`: `15597` rows, `1728723` file bytes (1.65 MiB), `10160874` physical bytes (9.69 MiB), `8037521` encoded bytes (7.67 MiB), `1711951` compressed data bytes (1.63 MiB)

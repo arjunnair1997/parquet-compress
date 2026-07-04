@@ -176,17 +176,17 @@ func parseFlags(args []string) (config, error) {
 	fs.SetOutput(os.Stderr)
 	cfg.MaxPageSize = defaultPageSize
 	cfg.MaxDictPageSize = defaultDictionaryPageSize
-	cfg.GeneratePDF = true
 	fs.Usage = func() {
 		fmt.Fprintf(fs.Output(), "Usage of %s:\n", fs.Name())
 		fs.PrintDefaults()
 		fmt.Fprintln(fs.Output())
 		fmt.Fprintln(fs.Output(), "Encoding choices by type group:")
-		fmt.Fprintln(fs.Output(), "  int/date/timestamp: plain, rle-dict")
+		fmt.Fprintln(fs.Output(), "  int/date/timestamp: plain, rle-dict, delta-binary-packed")
 		fmt.Fprintln(fs.Output(), "  string:             plain, rle-dict, delta-byte-array, delta-length-byte-array")
 		fmt.Fprintln(fs.Output())
 		fmt.Fprintln(fs.Output(), "Aliases accepted:")
 		fmt.Fprintln(fs.Output(), "  rle-dictionary, dict -> rle-dict")
+		fmt.Fprintln(fs.Output(), "  delta, dbp          -> delta-binary-packed")
 		fmt.Fprintln(fs.Output(), "  delta-bytearray      -> delta-byte-array")
 		fmt.Fprintln(fs.Output(), "  delta-length-bytearray -> delta-length-byte-array")
 	}
@@ -202,10 +202,10 @@ func parseFlags(args []string) (config, error) {
 	fs.Var(sizeFlag{&cfg.MaxRowGroupSize}, "max-row-group-size", "approximate row group byte-size threshold; 0 disables the byte-size limit")
 	fs.Var(sizeFlag{&cfg.MaxFileSize}, "max-file-size", "approximate parquet file byte-size threshold; 0 writes one file")
 	fs.StringVar(&cfg.Encoding, "encoding", "plain", "default encoding for all type groups; must be valid for every group unless overridden")
-	fs.StringVar(&cfg.IntEncoding, "int-encoding", "", "encoding for integer columns: plain, rle-dict; defaults to --encoding")
+	fs.StringVar(&cfg.IntEncoding, "int-encoding", "", "encoding for integer columns: plain, rle-dict, delta-binary-packed; defaults to --encoding")
 	fs.StringVar(&cfg.StringEncoding, "string-encoding", "", "encoding for string columns: plain, rle-dict, delta-byte-array, delta-length-byte-array; defaults to --encoding")
-	fs.StringVar(&cfg.DateEncoding, "date-encoding", "", "encoding for date columns: plain, rle-dict; defaults to --encoding")
-	fs.StringVar(&cfg.TimestampEncoding, "timestamp-encoding", "", "encoding for timestamp columns: plain, rle-dict; defaults to --encoding")
+	fs.StringVar(&cfg.DateEncoding, "date-encoding", "", "encoding for date columns: plain, rle-dict, delta-binary-packed; defaults to --encoding")
+	fs.StringVar(&cfg.TimestampEncoding, "timestamp-encoding", "", "encoding for timestamp columns: plain, rle-dict, delta-binary-packed; defaults to --encoding")
 	fs.StringVar(&cfg.Compression, "compression", "none", "compression: none, snappy, zstd")
 	fs.IntVar(&cfg.ZstdLevel, "zstd-level", 3, "zstd compression level when --compression=zstd")
 	fs.BoolVar(&cfg.Verify, "verify", false, "read generated parquet files and compare them to parsed source rows after writing")
@@ -214,7 +214,7 @@ func parseFlags(args []string) (config, error) {
 	fs.StringVar(&cfg.BaselineOutputDir, "baseline-output-dir", "", "output directory for --compare-plain-baseline; defaults to --output-dir plus -plain-uncompressed-baseline")
 	fs.StringVar(&cfg.WriterStatsPath, "writer-stats-json", "", "optional path for in-memory writer page/row-group stats JSON")
 	fs.BoolVar(&cfg.DeleteOutput, "delete-output", false, "delete --output-dir after a successful run; output dir must be inside the current workspace")
-	fs.BoolVar(&cfg.GeneratePDF, "generate-pdf", cfg.GeneratePDF, "write a sibling PDF for each generated markdown result; requires Chrome/Chromium or CHROME_PATH")
+	fs.BoolVar(&cfg.GeneratePDF, "generate-pdf", cfg.GeneratePDF, "write a sibling PDF for each generated markdown result; disabled by default")
 
 	if err := fs.Parse(args); err != nil {
 		return cfg, err
@@ -1232,7 +1232,7 @@ func validateEncodingGroups(cfg config) error {
 
 func isIntEncoding(name string) bool {
 	switch name {
-	case "plain", "rle-dict":
+	case "plain", "rle-dict", "delta-binary-packed":
 		return true
 	default:
 		return false
@@ -1254,6 +1254,8 @@ func encodingByName(name string) (encoding.Encoding, error) {
 		return &parquet.Plain, nil
 	case "rle-dict":
 		return &parquet.RLEDictionary, nil
+	case "delta-binary-packed":
+		return &parquet.DeltaBinaryPacked, nil
 	case "delta-byte-array":
 		return &parquet.DeltaByteArray, nil
 	case "delta-length-byte-array":
@@ -1270,6 +1272,8 @@ func normalizeEncodingName(name string) string {
 	switch name {
 	case "dict", "rle-dictionary", "rle-dict", "rledict":
 		return "rle-dict"
+	case "delta", "delta-binary", "delta-binary-packed", "delta-binarypacked", "dbp":
+		return "delta-binary-packed"
 	case "delta-bytearray", "delta-byte-array", "dba":
 		return "delta-byte-array"
 	case "delta-length-bytearray", "delta-length-byte-array", "dlba":
