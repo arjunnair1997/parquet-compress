@@ -1,7 +1,7 @@
 # Column Top 5 Encoding Rankings
 
 - Experiment: `page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows`
-- Source data: [2026-07-04_rows-1000000_encoding-matrix_column-results.tsv](../tsvs/2026-07-04_rows-1000000_encoding-matrix_column-results.tsv)
+- Source data: [2026-07-05_rows-1000000_encoding-matrix_column-results.tsv](../tsvs/2026-07-05_rows-1000000_encoding-matrix_column-results.tsv)
 - Rows: `1,000,000`
 - Ranking metric: per-column `compressed_bytes`, after Parquet page encoding and Snappy/ZSTD compression.
 - Each numbered item starts with the achieved compressed size for that encoding/compression choice.
@@ -253,6 +253,115 @@ The column has enough distinct numeric/timestamp values that the plain stream pr
 | `URLHash` | `int64` | Structured medium/high-cardinality numeric streams | median row-group cardinality 3292; median cardinality/rows 27.575808%; plain+zstd 3,580,060 B (3.41 MiB); rle+zstd 4,529,372 B (4.32 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 3,001 / 3,292 / 7,420 | 27.575808% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,310 B (7.64 MiB) | 3,580,060 B (3.41 MiB) | 44.750750% | 44.715481% | 4,529,372 B (4.32 MiB) | 56.617150% | 56.572528% | 26.516651% | 1,565,061 B (1.49 MiB) | 19.563263% | 19.547844% | -56.283945% | yes | 57 |
 | `ResponseStartTiming` | `int32` | Structured medium/high-cardinality numeric streams | median row-group cardinality 1112; median cardinality/rows 9.314793%; plain+zstd 1,245,745 B (1.19 MiB); rle+zstd 1,556,751 B (1.48 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 800 / 1,112 / 3,761 | 9.314793% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 1,245,745 B (1.19 MiB) | 31.143625% | 31.104356% | 1,556,751 B (1.48 MiB) | 38.918775% | 38.869702% | 24.965462% | 1,001,805 B (978.33 KiB) | 25.045125% | 25.013545% | -19.581857% | yes | 58 |
 | `RefererHash` | `int64` | Structured medium/high-cardinality numeric streams | median row-group cardinality 2729; median cardinality/rows 22.859776%; plain+zstd 2,841,886 B (2.71 MiB); rle+zstd 3,502,907 B (3.34 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 378 / 2,729 / 6,051 | 22.859776% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,316 B (7.64 MiB) | 2,841,886 B (2.71 MiB) | 35.523575% | 35.495551% | 3,502,907 B (3.34 MiB) | 43.786338% | 43.751795% | 23.259941% | 1,272,178 B (1.21 MiB) | 15.902225% | 15.889680% | -55.234728% | yes | 59 |
+
+## Snappy RLE Dict Worse Distribution By Category
+
+For columns where the best observed `snappy + plain` compressed byte count is smaller than the best observed `snappy + rle-dict` compressed byte count, each category image plots `plain + snappy` compressed bytes on the x-axis and `rle-dict + snappy` compressed bytes on the y-axis using the same log byte scale. Points above the diagonal are larger with RLE dictionary encoding. Point color is bucketed by `plain/no-compression encoded bytes / rle-dict + snappy compressed bytes`, so high-ratio colors identify columns where RLE dictionary lost the head-to-head but still compressed the baseline dramatically.
+
+The bucket tables below each image show how much worse RLE dictionary encoding was. Worse-by percentage is `(rle_dict_snappy_compressed_bytes / plain_snappy_compressed_bytes - 1) * 100`, so values can exceed 100%.
+
+The compressed bytes are Parquet column-chunk bytes, including dictionary pages and page headers. Dictionary-page byte breakdown columns are left blank when the cached Snappy result TSV does not contain those byte counts.
+
+`Plain encoded bytes before compression` is the same column's byte count from the all-plain/no-compression baseline run. The `/ plain encoded` percentage columns compare compressed column bytes against that baseline denominator.
+
+Categorization uses measured row-group cardinality and column type: `Medium-cardinality fixed-width numeric streams` means a non-timestamp numeric column has median cardinality/rows below 9%; `High-cardinality fixed-width IDs / hashes` means a non-timestamp numeric column has median cardinality/rows at least 9%; `High-cardinality timestamp streams` covers timestamp columns. Value-length distributions are included in the table for context, but these Snappy categories are driven by fixed-width type plus cardinality.
+
+- Compared columns: `105`
+- `snappy + rle-dict` worse than `snappy + plain`: `12`; better: `93`; ties: `0`; missing comparisons: `0`
+- Missing shape stats while categorizing: `0`
+
+| Category | Columns | Worse by min/median/max |
+| --- | ---: | ---: |
+| Medium-cardinality fixed-width numeric streams | 6 | 0.377184% / 7.527025% / 15.194024% |
+| High-cardinality fixed-width IDs / hashes | 3 | 2.639084% / 21.157028% / 22.749867% |
+| High-cardinality timestamp streams | 3 | 28.674248% / 28.732596% / 28.817198% |
+
+### Medium-cardinality fixed-width numeric streams
+
+Non-timestamp numeric columns with medium row-group cardinality; RLE dictionary reduced the pre-compression stream, but Snappy compressed the plain fixed-width stream to fewer bytes.
+
+![Snappy RLE dictionary worse: Medium-cardinality fixed-width numeric streams](images/snappy_rle_dict_worse_medium_cardinality_fixed_width_numeric_streams.svg)
+
+| Improvement bucket | `snappy + rle-dict` worse by |
+| --- | ---: |
+| `0-10%` | 4 |
+| `10-20%` | 2 |
+| `20-30%` | 0 |
+| `30-40%` | 0 |
+| `40-50%` | 0 |
+| `50-60%` | 0 |
+| `60-70%` | 0 |
+| `70-80%` | 0 |
+| `80-90%` | 0 |
+| `90-100%` | 0 |
+| `100-200%` | 0 |
+| `200-500%` | 0 |
+| `500%+` | 0 |
+
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Min value length (B) | Median value length (B) | Max value length (B) | Physical bytes before encoding/compression | Plain encoded bytes before compression | RLE dict encoded bytes before compression | RLE dict encoded / plain encoded | Plain + Snappy compressed bytes | Plain + Snappy / physical | Plain + Snappy / plain encoded | RLE dict + Snappy compressed bytes | RLE dict + Snappy / physical | RLE dict + Snappy / plain encoded | RLE dict + Snappy vs plain + Snappy | RLE dict + Snappy without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + Snappy | RLE + dict is better without including dict page | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| `ClientIP` | `int32` | Medium-cardinality fixed-width numeric streams | median row-group cardinality 924; median cardinality/rows 7.739990%; rle encoded 23.427048% of plain encoded | RLE dictionary reduced pre-compression bytes, but Snappy compressed the plain fixed-width stream better for this column. | 744 / 924 / 1,957 | 7.739990% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 938,265 B (916.27 KiB) | 23.427048% | 719,059 B (702.21 KiB) | 17.976475% | 17.953808% | 828,313 B (808.90 KiB) | 20.707825% | 20.681714% | 15.194024% |  |  |  |  |  | 61 |
+| `IPNetworkID` | `int32` | Medium-cardinality fixed-width numeric streams | median row-group cardinality 600; median cardinality/rows 5.025967%; rle encoded 18.662230% of plain encoded | RLE dictionary reduced pre-compression bytes, but Snappy compressed the plain fixed-width stream better for this column. | 498 / 600 / 1,095 | 5.025967% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 747,432 B (729.91 KiB) | 18.662230% | 560,148 B (547.02 KiB) | 14.003700% | 13.986036% | 636,803 B (621.88 KiB) | 15.920075% | 15.899993% | 13.684776% |  |  |  |  |  | 58 |
+| `WindowClientHeight` | `int16` | Medium-cardinality fixed-width numeric streams | median row-group cardinality 435; median cardinality/rows 3.643826%; rle encoded 18.722233% of plain encoded | RLE dictionary reduced pre-compression bytes, but Snappy compressed the plain fixed-width stream better for this column. | 318 / 435 / 575 | 3.643826% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 749,835 B (732.26 KiB) | 18.722233% | 551,321 B (538.40 KiB) | 13.783025% | 13.765642% | 601,354 B (587.26 KiB) | 15.033850% | 15.014890% | 9.075112% |  |  |  |  |  | 58 |
+| `RemoteIP` | `int32` | Medium-cardinality fixed-width numeric streams | median row-group cardinality 851; median cardinality/rows 7.128497%; rle encoded 23.165746% of plain encoded | RLE dictionary reduced pre-compression bytes, but Snappy compressed the plain fixed-width stream better for this column. | 508 / 851 / 1,951 | 7.128497% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,047 B (3.82 MiB) | 927,799 B (906.05 KiB) | 23.165746% | 706,731 B (690.17 KiB) | 17.668275% | 17.646010% | 748,986 B (731.43 KiB) | 18.724650% | 18.701054% | 5.978937% |  |  |  |  |  | 61 |
+| `UserID` | `int64` | Medium-cardinality fixed-width numeric streams | median row-group cardinality 898; median cardinality/rows 7.522198%; rle encoded 15.311738% of plain encoded | RLE dictionary reduced pre-compression bytes, but Snappy compressed the plain fixed-width stream better for this column. | 716 / 898 / 1,805 | 7.522198% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,315 B (7.64 MiB) | 1,225,906 B (1.17 MiB) | 15.311738% | 1,084,714 B (1.03 MiB) | 13.558925% | 13.548230% | 1,120,481 B (1.07 MiB) | 14.006013% | 13.994965% | 3.297367% |  |  |  |  |  | 61 |
+| `FetchTiming` | `int32` | Medium-cardinality fixed-width numeric streams | median row-group cardinality 664; median cardinality/rows 5.562071%; rle encoded 28.140701% of plain encoded | RLE dictionary reduced pre-compression bytes, but Snappy compressed the plain fixed-width stream better for this column. | 329 / 664 / 1,264 | 5.562071% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 1,127,050 B (1.07 MiB) | 28.140701% | 808,624 B (789.67 KiB) | 20.215600% | 20.190095% | 811,674 B (792.65 KiB) | 20.291850% | 20.266249% | 0.377184% |  |  |  |  |  | 59 |
+
+### High-cardinality fixed-width IDs / hashes
+
+Non-timestamp numeric ID/hash-like columns with high row-group cardinality; dictionary IDs had too little repetition to beat Snappy over plain fixed-width values.
+
+![Snappy RLE dictionary worse: High-cardinality fixed-width IDs / hashes](images/snappy_rle_dict_worse_high_cardinality_fixed_width_ids_hashes.svg)
+
+| Improvement bucket | `snappy + rle-dict` worse by |
+| --- | ---: |
+| `0-10%` | 1 |
+| `10-20%` | 0 |
+| `20-30%` | 2 |
+| `30-40%` | 0 |
+| `40-50%` | 0 |
+| `50-60%` | 0 |
+| `60-70%` | 0 |
+| `70-80%` | 0 |
+| `80-90%` | 0 |
+| `90-100%` | 0 |
+| `100-200%` | 0 |
+| `200-500%` | 0 |
+| `500%+` | 0 |
+
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Min value length (B) | Median value length (B) | Max value length (B) | Physical bytes before encoding/compression | Plain encoded bytes before compression | RLE dict encoded bytes before compression | RLE dict encoded / plain encoded | Plain + Snappy compressed bytes | Plain + Snappy / physical | Plain + Snappy / plain encoded | RLE dict + Snappy compressed bytes | RLE dict + Snappy / physical | RLE dict + Snappy / plain encoded | RLE dict + Snappy vs plain + Snappy | RLE dict + Snappy without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + Snappy | RLE + dict is better without including dict page | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| `WatchID` | `int64` | High-cardinality fixed-width IDs / hashes | median row-group cardinality 11938; median cardinality/rows 100.000000%; rle encoded 122.722135% of plain encoded | RLE dictionary was already larger than plain before Snappy; the compressed result stayed larger. | 9,315 / 11,938 / 14,202 | 100.000000% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,312 B (7.64 MiB) | 9,825,517 B (9.37 MiB) | 122.722135% | 8,005,128 B (7.63 MiB) | 100.064100% | 99.985212% | 9,826,284 B (9.37 MiB) | 122.828550% | 122.731715% | 22.749867% |  |  |  |  |  | 59 |
+| `HID` | `int32` | High-cardinality fixed-width IDs / hashes | median row-group cardinality 5965; median cardinality/rows 49.966494%; rle encoded 111.552287% of plain encoded | RLE dictionary was already larger than plain before Snappy; the compressed result stayed larger. | 5,818 / 5,965 / 13,281 | 49.966494% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 4,467,726 B (4.26 MiB) | 111.552287% | 3,688,155 B (3.52 MiB) | 92.203875% | 92.087591% | 4,468,459 B (4.26 MiB) | 111.711475% | 111.570589% | 21.157028% |  |  |  |  |  | 61 |
+| `URLHash` | `int64` | High-cardinality fixed-width IDs / hashes | median row-group cardinality 3292; median cardinality/rows 27.575808%; rle encoded 57.494464% of plain encoded | High cardinality limited dictionary benefit; Snappy over plain fixed-width values stayed smaller. | 3,001 / 3,292 / 7,420 | 27.575808% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,310 B (7.64 MiB) | 4,603,185 B (4.39 MiB) | 57.494464% | 4,382,430 B (4.18 MiB) | 54.780375% | 54.737201% | 4,498,086 B (4.29 MiB) | 56.226075% | 56.181762% | 2.639084% |  |  |  |  |  | 60 |
+
+### High-cardinality timestamp streams
+
+Timestamp columns with high row-group cardinality; RLE dictionary barely reduced the encoded stream, and Snappy did better on the plain timestamp bytes.
+
+![Snappy RLE dictionary worse: High-cardinality timestamp streams](images/snappy_rle_dict_worse_high_cardinality_timestamp_streams.svg)
+
+| Improvement bucket | `snappy + rle-dict` worse by |
+| --- | ---: |
+| `0-10%` | 0 |
+| `10-20%` | 0 |
+| `20-30%` | 3 |
+| `30-40%` | 0 |
+| `40-50%` | 0 |
+| `50-60%` | 0 |
+| `60-70%` | 0 |
+| `70-80%` | 0 |
+| `80-90%` | 0 |
+| `90-100%` | 0 |
+| `100-200%` | 0 |
+| `200-500%` | 0 |
+| `500%+` | 0 |
+
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Min value length (B) | Median value length (B) | Max value length (B) | Physical bytes before encoding/compression | Plain encoded bytes before compression | RLE dict encoded bytes before compression | RLE dict encoded / plain encoded | Plain + Snappy compressed bytes | Plain + Snappy / physical | Plain + Snappy / plain encoded | RLE dict + Snappy compressed bytes | RLE dict + Snappy / physical | RLE dict + Snappy / plain encoded | RLE dict + Snappy vs plain + Snappy | RLE dict + Snappy without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + Snappy | RLE + dict is better without including dict page | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| `EventTime` | `timestamp_millis` | High-cardinality timestamp streams | median row-group cardinality 6237; median cardinality/rows 52.244932%; rle encoded 91.735386% of plain encoded | High-cardinality timestamp values left little dictionary repetition; Snappy compressed the plain timestamp stream to fewer bytes. | 5,997 / 6,237 / 13,042 | 52.244932% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,315 B (7.64 MiB) | 7,344,624 B (7.00 MiB) | 91.735386% | 4,282,415 B (4.08 MiB) | 53.530188% | 53.487965% | 5,516,487 B (5.26 MiB) | 68.956087% | 68.901698% | 28.817198% |  |  |  |  |  | 62 |
+| `LocalEventTime` | `timestamp_millis` | High-cardinality timestamp streams | median row-group cardinality 6254; median cardinality/rows 52.387335%; rle encoded 91.671601% of plain encoded | High-cardinality timestamp values left little dictionary repetition; Snappy compressed the plain timestamp stream to fewer bytes. | 5,968 / 6,254 / 13,047 | 52.387335% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,317 B (7.64 MiB) | 7,339,519 B (7.00 MiB) | 91.671601% | 4,283,734 B (4.09 MiB) | 53.546675% | 53.504427% | 5,514,562 B (5.26 MiB) | 68.932025% | 68.877637% | 28.732596% |  |  |  |  |  | 62 |
+| `ClientEventTime` | `timestamp_millis` | High-cardinality timestamp streams | median row-group cardinality 5882; median cardinality/rows 49.271235%; rle encoded 90.150524% of plain encoded | High-cardinality timestamp values left little dictionary repetition; Snappy compressed the plain timestamp stream to fewer bytes. | 5,666 / 5,882 / 13,078 | 49.271235% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,314 B (7.64 MiB) | 7,217,734 B (6.88 MiB) | 90.150524% | 4,228,484 B (4.03 MiB) | 52.856050% | 52.814366% | 5,440,970 B (5.19 MiB) | 68.012125% | 67.958489% | 28.674248% |  |  |  |  |  | 62 |
 
 ## Delta Binary Packed Winner vs Second Best Improvement Distribution
 

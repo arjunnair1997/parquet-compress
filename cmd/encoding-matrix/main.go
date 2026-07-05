@@ -278,6 +278,50 @@ type rleDictWorseColumn struct {
 	WorseByPct                              float64
 }
 
+type snappyRLEDictWorseCategoryComparison struct {
+	Categories         []snappyRLEDictWorseCategory
+	ComparedColumns    int
+	RLEDictWorseCount  int
+	RLEDictBetterCount int
+	TieCount           int
+	MissingCount       int
+	MissingShapeStats  int
+}
+
+type snappyRLEDictWorseCategory struct {
+	Name        string
+	Slug        string
+	Description string
+	Rows        []snappyRLEDictWorseColumn
+	Buckets     []encodingImprovementBucket
+	MinPct      float64
+	MedianPct   float64
+	MaxPct      float64
+}
+
+type snappyRLEDictWorseColumn struct {
+	Column                                  string
+	Type                                    string
+	Category                                string
+	MeasuredFeature                         string
+	MeasuredReason                          string
+	RowGroupCardinality                     string
+	MedianCardinalityRatio                  float64
+	ValueLengthMin                          string
+	ValueLengthMedian                       string
+	ValueLengthMax                          string
+	HasShapeStats                           bool
+	PhysicalBytes                           int64
+	BaselineEncodedBytes                    int64
+	RLEDictEncodedBytes                     int64
+	PlainBytes                              int64
+	RLEDictBytes                            int64
+	RLEDictBytesWithoutDictionaryPages      int64
+	DictionaryPageCount                     int64
+	HasCompressedBytesWithoutDictionaryPage bool
+	WorseByPct                              float64
+}
+
 type encodingImprovementBucket struct {
 	Label string
 	Count int
@@ -1806,6 +1850,18 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	fmt.Fprintf(&b, "Categorization uses only measured byte sizes, row-group cardinality, and column type: `True dictionary bloat` means RLE dictionary encoded bytes exceeded plain encoded bytes before ZSTD; `Tiny/constant plain stream` means median row-group cardinality is at most 2 or median cardinality/rows is at most 0.0006; `Structured medium/high-cardinality numeric streams` means a numeric or temporal column has median cardinality/rows at least 0.09; the remaining losing columns fall into `Small-domain fixed-width literals`. Sortedness, page min/max, and value-length distributions are shown elsewhere in this report but are not currently used for this category assignment.\n\n")
 	writeRLEDictWorseCategoryComparison(&b, rleDictWorseCategories, reportDir)
 
+	snappyRLEDictWorseCategories := buildSnappyRLEDictWorseCategoryComparison(byColumn, shapeByColumn)
+	if err := writeSnappyRLEDictWorseCategoryImages(reportDir, &snappyRLEDictWorseCategories); err != nil {
+		return err
+	}
+	fmt.Fprintf(&b, "## Snappy RLE Dict Worse Distribution By Category\n\n")
+	fmt.Fprintf(&b, "For columns where the best observed `snappy + plain` compressed byte count is smaller than the best observed `snappy + rle-dict` compressed byte count, each category image plots `plain + snappy` compressed bytes on the x-axis and `rle-dict + snappy` compressed bytes on the y-axis using the same log byte scale. Points above the diagonal are larger with RLE dictionary encoding. Point color is bucketed by `plain/no-compression encoded bytes / rle-dict + snappy compressed bytes`, so high-ratio colors identify columns where RLE dictionary lost the head-to-head but still compressed the baseline dramatically.\n\n")
+	fmt.Fprintf(&b, "The bucket tables below each image show how much worse RLE dictionary encoding was. Worse-by percentage is `(rle_dict_snappy_compressed_bytes / plain_snappy_compressed_bytes - 1) * 100`, so values can exceed 100%%.\n\n")
+	fmt.Fprintf(&b, "The compressed bytes are Parquet column-chunk bytes, including dictionary pages and page headers. Dictionary-page byte breakdown columns are left blank when the cached Snappy result TSV does not contain those byte counts.\n\n")
+	fmt.Fprintf(&b, "`Plain encoded bytes before compression` is the same column's byte count from the all-plain/no-compression baseline run. The `/ plain encoded` percentage columns compare compressed column bytes against that baseline denominator.\n\n")
+	fmt.Fprintf(&b, "Categorization uses measured row-group cardinality and column type: `Medium-cardinality fixed-width numeric streams` means a non-timestamp numeric column has median cardinality/rows below 9%%; `High-cardinality fixed-width IDs / hashes` means a non-timestamp numeric column has median cardinality/rows at least 9%%; `High-cardinality timestamp streams` covers timestamp columns. Value-length distributions are included in the table for context, but these Snappy categories are driven by fixed-width type plus cardinality.\n\n")
+	writeSnappyRLEDictWorseCategoryComparison(&b, snappyRLEDictWorseCategories, reportDir)
+
 	deltaBinaryPackedComparison := buildDeltaBinaryPackedWinnerComparison(byColumn)
 	deltaBinaryPackedComparisonPath := filepath.Join(reportDir, "images", "delta_binary_packed_winner_vs_second_best_improvement.svg")
 	if err := writeDeltaBinaryPackedWinnerComparisonSVG(deltaBinaryPackedComparisonPath, deltaBinaryPackedComparison); err != nil {
@@ -2472,6 +2528,10 @@ func isNumericOrTemporalColumnType(columnType string) bool {
 	}
 }
 
+func isTimestampColumnType(columnType string) bool {
+	return strings.HasPrefix(columnType, "timestamp")
+}
+
 func percentLarger(larger, smaller int64) float64 {
 	if smaller <= 0 {
 		return 0
@@ -2781,6 +2841,364 @@ func writeRLEDictWorseCategoryComparison(b *strings.Builder, summary rleDictWors
 				formatOptionalBytesAsPercentOf(row.RLEDictBytesWithoutDictionaryPages, row.BaselineEncodedBytes, row.HasCompressedBytesWithoutDictionaryPage),
 				formatOptionalPercentDifference(row.RLEDictBytesWithoutDictionaryPages, row.PlainBytes, row.HasCompressedBytesWithoutDictionaryPage),
 				yesNo(row.HasCompressedBytesWithoutDictionaryPage && row.RLEDictBytesWithoutDictionaryPages < row.PlainBytes),
+				row.DictionaryPageCount,
+			)
+		}
+		fmt.Fprintf(b, "\n")
+	}
+}
+
+func buildSnappyRLEDictWorseCategoryComparison(byColumn map[string][]columnObservation, shapeByColumn map[string]columnShapeStats) snappyRLEDictWorseCategoryComparison {
+	categories := snappyRLEDictWorseCategoryDefinitions()
+	byName := make(map[string]*snappyRLEDictWorseCategory, len(categories))
+	for i := range categories {
+		byName[categories[i].Name] = &categories[i]
+	}
+
+	summary := snappyRLEDictWorseCategoryComparison{
+		Categories: categories,
+	}
+	for column, observations := range byColumn {
+		plain, plainOK := bestCompressedObservationFor(observations, "snappy", "plain")
+		rleDict, rleDictOK := bestCompressedObservationFor(observations, "snappy", "rle-dict")
+		if !plainOK || !rleDictOK {
+			summary.MissingCount++
+			continue
+		}
+		summary.ComparedColumns++
+		plainBytes := plain.Column.CompressedBytes
+		rleDictBytes := rleDict.Column.CompressedBytes
+		switch {
+		case rleDictBytes > plainBytes:
+			summary.RLEDictWorseCount++
+		case rleDictBytes < plainBytes:
+			summary.RLEDictBetterCount++
+			continue
+		default:
+			summary.TieCount++
+			continue
+		}
+
+		shape, ok := shapeByColumn[column]
+		if !ok {
+			summary.MissingShapeStats++
+		}
+		rowGroupCardinality, medianCardinalityRatio, hasShapeStats := rleDictWorseShapeSummary(shape, ok)
+		valueLengthMin, valueLengthMedian, valueLengthMax := columnValueLengthSummary(shape, ok)
+		categoryName := classifySnappyRLEDictWorseColumn(plain, shape, ok)
+		measuredFeature, measuredReason := snappyRLEDictWorseMeasuredReason(categoryName, plain, rleDict, shape, ok)
+		category := byName[categoryName]
+		if category == nil {
+			category = byName["Medium-cardinality fixed-width numeric streams"]
+		}
+		category.Rows = append(category.Rows, snappyRLEDictWorseColumn{
+			Column:                                  column,
+			Type:                                    plain.Column.Type,
+			Category:                                categoryName,
+			MeasuredFeature:                         measuredFeature,
+			MeasuredReason:                          measuredReason,
+			RowGroupCardinality:                     rowGroupCardinality,
+			MedianCardinalityRatio:                  medianCardinalityRatio,
+			ValueLengthMin:                          valueLengthMin,
+			ValueLengthMedian:                       valueLengthMedian,
+			ValueLengthMax:                          valueLengthMax,
+			HasShapeStats:                           hasShapeStats,
+			PhysicalBytes:                           plain.Column.PhysicalBytes,
+			BaselineEncodedBytes:                    plain.BaselineEncodedBytes,
+			RLEDictEncodedBytes:                     rleDict.Column.EncodedBytes,
+			PlainBytes:                              plainBytes,
+			RLEDictBytes:                            rleDictBytes,
+			RLEDictBytesWithoutDictionaryPages:      rleDict.Column.CompressedBytesWithoutDictionaryPages,
+			DictionaryPageCount:                     rleDict.Column.DictionaryPageCount,
+			HasCompressedBytesWithoutDictionaryPage: rleDict.Column.HasCompressedBytesWithoutDictionaryPage,
+			WorseByPct:                              percentLarger(rleDictBytes, plainBytes),
+		})
+	}
+
+	for i := range summary.Categories {
+		category := &summary.Categories[i]
+		sort.Slice(category.Rows, func(i, j int) bool {
+			if category.Rows[i].WorseByPct != category.Rows[j].WorseByPct {
+				return category.Rows[i].WorseByPct > category.Rows[j].WorseByPct
+			}
+			return category.Rows[i].Column < category.Rows[j].Column
+		})
+		values := make([]float64, 0, len(category.Rows))
+		for _, row := range category.Rows {
+			values = append(values, row.WorseByPct)
+		}
+		category.Buckets = buildWorseByBuckets(values)
+		category.MinPct, category.MedianPct, category.MaxPct = summarizeFloat64(values)
+	}
+	return summary
+}
+
+func snappyRLEDictWorseCategoryDefinitions() []snappyRLEDictWorseCategory {
+	return []snappyRLEDictWorseCategory{
+		{
+			Name:        "Medium-cardinality fixed-width numeric streams",
+			Slug:        "medium_cardinality_fixed_width_numeric_streams",
+			Description: "Non-timestamp numeric columns with medium row-group cardinality; RLE dictionary reduced the pre-compression stream, but Snappy compressed the plain fixed-width stream to fewer bytes.",
+		},
+		{
+			Name:        "High-cardinality fixed-width IDs / hashes",
+			Slug:        "high_cardinality_fixed_width_ids_hashes",
+			Description: "Non-timestamp numeric ID/hash-like columns with high row-group cardinality; dictionary IDs had too little repetition to beat Snappy over plain fixed-width values.",
+		},
+		{
+			Name:        "High-cardinality timestamp streams",
+			Slug:        "high_cardinality_timestamp_streams",
+			Description: "Timestamp columns with high row-group cardinality; RLE dictionary barely reduced the encoded stream, and Snappy did better on the plain timestamp bytes.",
+		},
+	}
+}
+
+func classifySnappyRLEDictWorseColumn(plain columnObservation, shape columnShapeStats, hasShape bool) string {
+	if isTimestampColumnType(plain.Column.Type) {
+		return "High-cardinality timestamp streams"
+	}
+	if hasShape {
+		medianCardinality, medianRows := medianRowGroupCardinalityAndRows(shape.RowGroups)
+		cardinalityRatio := 0.0
+		if medianRows > 0 {
+			cardinalityRatio = medianCardinality / medianRows
+		}
+		if isNumericOrTemporalColumnType(plain.Column.Type) && cardinalityRatio >= 0.09 {
+			return "High-cardinality fixed-width IDs / hashes"
+		}
+	}
+	return "Medium-cardinality fixed-width numeric streams"
+}
+
+func snappyRLEDictWorseMeasuredReason(category string, plain, rleDict columnObservation, shape columnShapeStats, hasShape bool) (string, string) {
+	cardinalityFeature := "shape stats unavailable"
+	if hasShape {
+		medianCardinality, medianRows := medianRowGroupCardinalityAndRows(shape.RowGroups)
+		ratio := 0.0
+		if medianRows > 0 {
+			ratio = medianCardinality / medianRows
+		}
+		cardinalityFeature = fmt.Sprintf("median row-group cardinality %.0f; median cardinality/rows %.6f%%", medianCardinality, ratio*100)
+	}
+	encodedPct := ratio(rleDict.Column.EncodedBytes, plain.BaselineEncodedBytes) * 100
+	encodedFeature := fmt.Sprintf("rle encoded %s of plain encoded", formatPercent(encodedPct))
+	worseFeature := fmt.Sprintf("rle+snappy %s; plain+snappy %s; rle larger by %s", formatByteCount(rleDict.Column.CompressedBytes), formatByteCount(plain.Column.CompressedBytes), formatPercent(percentLarger(rleDict.Column.CompressedBytes, plain.Column.CompressedBytes)))
+
+	switch category {
+	case "High-cardinality timestamp streams":
+		return cardinalityFeature + "; " + encodedFeature, "High-cardinality timestamp values left little dictionary repetition; Snappy compressed the plain timestamp stream to fewer bytes."
+	case "High-cardinality fixed-width IDs / hashes":
+		if rleDict.Column.EncodedBytes >= plain.BaselineEncodedBytes {
+			return cardinalityFeature + "; " + encodedFeature, "RLE dictionary was already larger than plain before Snappy; the compressed result stayed larger."
+		}
+		return cardinalityFeature + "; " + encodedFeature, "High cardinality limited dictionary benefit; Snappy over plain fixed-width values stayed smaller."
+	case "Medium-cardinality fixed-width numeric streams":
+		return cardinalityFeature + "; " + encodedFeature, "RLE dictionary reduced pre-compression bytes, but Snappy compressed the plain fixed-width stream better for this column."
+	default:
+		return cardinalityFeature + "; " + worseFeature, "Snappy+RLE-dict was larger than Snappy+plain for this measured column."
+	}
+}
+
+func writeSnappyRLEDictWorseCategoryImages(reportDir string, summary *snappyRLEDictWorseCategoryComparison) error {
+	for i := range summary.Categories {
+		category := &summary.Categories[i]
+		if len(category.Rows) == 0 {
+			continue
+		}
+		path := filepath.Join(reportDir, "images", "snappy_rle_dict_worse_"+category.Slug+".svg")
+		if err := writeSnappyRLEDictWorseCategoryScatterSVG(
+			path,
+			"Snappy RLE dictionary worse: "+category.Name,
+			category.Rows,
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeSnappyRLEDictWorseCategoryScatterSVG(path, title string, rows []snappyRLEDictWorseColumn) error {
+	if len(rows) == 0 {
+		return writeEmptySVG(path, title, "no data")
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+
+	const (
+		width        = 980
+		height       = 650
+		leftMargin   = 104
+		topMargin    = 72
+		plotSize     = 440
+		legendLeft   = 590
+		bottomMargin = 96
+	)
+
+	minBytes := math.Inf(1)
+	maxBytes := math.Inf(-1)
+	for _, row := range rows {
+		for _, value := range []int64{row.PlainBytes, row.RLEDictBytes} {
+			if value <= 0 {
+				continue
+			}
+			f := float64(value)
+			if f < minBytes {
+				minBytes = f
+			}
+			if f > maxBytes {
+				maxBytes = f
+			}
+		}
+	}
+	if math.IsInf(minBytes, 0) || math.IsInf(maxBytes, 0) {
+		return writeEmptySVG(path, title, "no positive byte counts")
+	}
+
+	axisMin := math.Pow(10, math.Floor(math.Log10(minBytes)))
+	axisMax := math.Pow(10, math.Ceil(math.Log10(maxBytes)))
+	if axisMin <= 0 {
+		axisMin = 1
+	}
+	if axisMax <= axisMin {
+		axisMax = axisMin * 10
+	}
+	logMin := math.Log10(axisMin)
+	logMax := math.Log10(axisMax)
+	scaleX := func(value int64) float64 {
+		if value <= 0 {
+			value = 1
+		}
+		return leftMargin + ((math.Log10(float64(value)) - logMin) / (logMax - logMin) * plotSize)
+	}
+	scaleY := func(value int64) float64 {
+		if value <= 0 {
+			value = 1
+		}
+		return topMargin + ((logMax - math.Log10(float64(value))) / (logMax - logMin) * plotSize)
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">`+"\n", width, height, width, height)
+	fmt.Fprintf(&b, `<rect width="100%%" height="100%%" fill="#ffffff"/>`+"\n")
+	fmt.Fprintf(&b, `<text x="%d" y="28" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">%s</text>`+"\n", leftMargin, html.EscapeString(title))
+	fmt.Fprintf(&b, `<text x="%d" y="48" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">%s</text>`+"\n", leftMargin, html.EscapeString("same log byte scale on both axes; points above the diagonal are larger with rle-dict + snappy"))
+
+	plotRight := leftMargin + plotSize
+	plotBottom := topMargin + plotSize
+	for _, tick := range logByteTicks(axisMin, axisMax) {
+		x := scaleX(int64(tick))
+		y := scaleY(int64(tick))
+		label := formatBytes(int64(math.Round(tick)))
+		fmt.Fprintf(&b, `<line x1="%.2f" y1="%d" x2="%.2f" y2="%d" stroke="#eef2f7" stroke-width="1"/>`+"\n", x, topMargin, x, plotBottom)
+		fmt.Fprintf(&b, `<line x1="%d" y1="%.2f" x2="%d" y2="%.2f" stroke="#eef2f7" stroke-width="1"/>`+"\n", leftMargin, y, plotRight, y)
+		fmt.Fprintf(&b, `<text x="%.2f" y="%d" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">%s</text>`+"\n", x, plotBottom+22, html.EscapeString(label))
+		fmt.Fprintf(&b, `<text x="%d" y="%.2f" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">%s</text>`+"\n", leftMargin-8, y+4, html.EscapeString(label))
+	}
+	fmt.Fprintf(&b, `<rect x="%d" y="%d" width="%d" height="%d" fill="none" stroke="#9ca3af" stroke-width="1"/>`+"\n", leftMargin, topMargin, plotSize, plotSize)
+	fmt.Fprintf(&b, `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#111827" stroke-width="1.4" stroke-dasharray="5 5"/>`+"\n", leftMargin, plotBottom, plotRight, topMargin)
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="10" fill="#111827">equal size</text>`+"\n", leftMargin+12, plotBottom-12)
+
+	for _, row := range rows {
+		compressionRatio := ratio(row.BaselineEncodedBytes, row.RLEDictBytes)
+		bucket := compressionRatioColor(compressionRatio)
+		x := scaleX(row.PlainBytes)
+		y := scaleY(row.RLEDictBytes)
+		tooltip := fmt.Sprintf(
+			"%s\nplain+snappy: %s\nrle-dict+snappy: %s\nworse by: %s\nplain baseline / rle-dict+snappy: %s",
+			row.Column,
+			formatByteCount(row.PlainBytes),
+			formatByteCount(row.RLEDictBytes),
+			formatPercent(row.WorseByPct),
+			formatCompactRatio(compressionRatio),
+		)
+		fmt.Fprintf(&b, `<circle cx="%.2f" cy="%.2f" r="5.5" fill="%s" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>%s</title></circle>`+"\n",
+			x,
+			y,
+			bucket.Color,
+			html.EscapeString(tooltip),
+		)
+	}
+
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#374151">%s</text>`+"\n", leftMargin+plotSize/2, height-34, html.EscapeString("plain + snappy compressed bytes"))
+	fmt.Fprintf(&b, `<text x="20" y="%d" transform="rotate(-90 20 %d)" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#374151">%s</text>`+"\n", topMargin+plotSize/2, topMargin+plotSize/2, html.EscapeString("rle-dict + snappy compressed bytes"))
+
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Color: plain baseline / rle-dict+snappy</text>`+"\n", legendLeft, topMargin+6)
+	legendY := topMargin + 28
+	for _, bucket := range compressionRatioColorBuckets() {
+		fmt.Fprintf(&b, `<rect x="%d" y="%d" width="13" height="13" rx="2" fill="%s"/>`+"\n", legendLeft, legendY-10, bucket.Color)
+		fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#374151">%s</text>`+"\n", legendLeft+20, legendY+1, html.EscapeString(bucket.Label))
+		legendY += 22
+	}
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">%s</text>`+"\n", legendLeft, legendY+12, html.EscapeString(fmt.Sprintf("points: %d losing columns", len(rows))))
+	fmt.Fprintf(&b, "</svg>\n")
+	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
+func writeSnappyRLEDictWorseCategoryComparison(b *strings.Builder, summary snappyRLEDictWorseCategoryComparison, reportDir string) {
+	fmt.Fprintf(b, "- Compared columns: `%d`\n", summary.ComparedColumns)
+	fmt.Fprintf(b, "- `snappy + rle-dict` worse than `snappy + plain`: `%d`; better: `%d`; ties: `%d`; missing comparisons: `%d`\n", summary.RLEDictWorseCount, summary.RLEDictBetterCount, summary.TieCount, summary.MissingCount)
+	fmt.Fprintf(b, "- Missing shape stats while categorizing: `%d`\n\n", summary.MissingShapeStats)
+
+	fmt.Fprintf(b, "| Category | Columns | Worse by min/median/max |\n")
+	fmt.Fprintf(b, "| --- | ---: | ---: |\n")
+	for _, category := range summary.Categories {
+		if len(category.Rows) == 0 {
+			continue
+		}
+		fmt.Fprintf(b, "| %s | %d | %s / %s / %s |\n",
+			category.Name,
+			len(category.Rows),
+			formatPercent(category.MinPct),
+			formatPercent(category.MedianPct),
+			formatPercent(category.MaxPct),
+		)
+	}
+	fmt.Fprintf(b, "\n")
+
+	for _, category := range summary.Categories {
+		if len(category.Rows) == 0 {
+			continue
+		}
+		fmt.Fprintf(b, "### %s\n\n", category.Name)
+		fmt.Fprintf(b, "%s\n\n", category.Description)
+		imagePath := filepath.Join(reportDir, "images", "snappy_rle_dict_worse_"+category.Slug+".svg")
+		writeShapeImage(b, "Snappy RLE dictionary worse: "+category.Name, imagePath, reportDir)
+		writeImprovementBucketTable(b, "`snappy + rle-dict` worse by", category.Buckets)
+		fmt.Fprintf(b, "| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Min value length (B) | Median value length (B) | Max value length (B) | Physical bytes before encoding/compression | Plain encoded bytes before compression | RLE dict encoded bytes before compression | RLE dict encoded / plain encoded | Plain + Snappy compressed bytes | Plain + Snappy / physical | Plain + Snappy / plain encoded | RLE dict + Snappy compressed bytes | RLE dict + Snappy / physical | RLE dict + Snappy / plain encoded | RLE dict + Snappy vs plain + Snappy | RLE dict + Snappy without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + Snappy | RLE + dict is better without including dict page | Dictionary pages |\n")
+		fmt.Fprintf(b, "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |\n")
+		for _, row := range category.Rows {
+			withoutDictBetter := ""
+			if row.HasCompressedBytesWithoutDictionaryPage {
+				withoutDictBetter = yesNo(row.RLEDictBytesWithoutDictionaryPages < row.PlainBytes)
+			}
+			fmt.Fprintf(b, "| `%s` | `%s` | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %d |\n",
+				row.Column,
+				row.Type,
+				row.Category,
+				row.MeasuredFeature,
+				row.MeasuredReason,
+				optionalString(row.RowGroupCardinality, row.HasShapeStats),
+				optionalPercentMarkdown(row.MedianCardinalityRatio*100, row.HasShapeStats),
+				optionalString(row.ValueLengthMin, row.HasShapeStats),
+				optionalString(row.ValueLengthMedian, row.HasShapeStats),
+				optionalString(row.ValueLengthMax, row.HasShapeStats),
+				formatByteCount(row.PhysicalBytes),
+				formatByteCount(row.BaselineEncodedBytes),
+				formatByteCount(row.RLEDictEncodedBytes),
+				formatBytesAsPercentOf(row.RLEDictEncodedBytes, row.BaselineEncodedBytes),
+				formatByteCount(row.PlainBytes),
+				formatBytesAsPercentOf(row.PlainBytes, row.PhysicalBytes),
+				formatBytesAsPercentOf(row.PlainBytes, row.BaselineEncodedBytes),
+				formatByteCount(row.RLEDictBytes),
+				formatBytesAsPercentOf(row.RLEDictBytes, row.PhysicalBytes),
+				formatBytesAsPercentOf(row.RLEDictBytes, row.BaselineEncodedBytes),
+				formatPercent(row.WorseByPct),
+				formatOptionalByteCount(row.RLEDictBytesWithoutDictionaryPages, row.HasCompressedBytesWithoutDictionaryPage),
+				formatOptionalBytesAsPercentOf(row.RLEDictBytesWithoutDictionaryPages, row.PhysicalBytes, row.HasCompressedBytesWithoutDictionaryPage),
+				formatOptionalBytesAsPercentOf(row.RLEDictBytesWithoutDictionaryPages, row.BaselineEncodedBytes, row.HasCompressedBytesWithoutDictionaryPage),
+				formatOptionalPercentDifference(row.RLEDictBytesWithoutDictionaryPages, row.PlainBytes, row.HasCompressedBytesWithoutDictionaryPage),
+				withoutDictBetter,
 				row.DictionaryPageCount,
 			)
 		}
