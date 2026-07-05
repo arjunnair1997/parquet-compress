@@ -101,21 +101,19 @@ type experimentRanking struct {
 }
 
 type columnObservation struct {
-	Experiment                            experimentResult
-	Column                                columnResult
-	BaselineEncodedBytes                  int64
-	PlainCompressedBytes                  int64
-	PlainCompressionRatio                 float64
-	PostEncodingRatio                     float64
-	PostCompressionRatio                  float64
-	CompressionRatioImprovementPct        float64
-	CodecRatio                            float64
-	TargetBytes                           int64
-	TargetMetric                          string
-	HasPostCompressionRatio               bool
-	HasCompressionRatioImprovementPercent bool
-	HasPlainCompressedBytes               bool
-	HasPlainCompressionRatio              bool
+	Experiment               experimentResult
+	Column                   columnResult
+	BaselineEncodedBytes     int64
+	PlainCompressedBytes     int64
+	PlainCompressionRatio    float64
+	PostEncodingRatio        float64
+	PostCompressionRatio     float64
+	CodecRatio               float64
+	TargetBytes              int64
+	TargetMetric             string
+	HasPostCompressionRatio  bool
+	HasPlainCompressedBytes  bool
+	HasPlainCompressionRatio bool
 }
 
 type columnWinner struct {
@@ -155,34 +153,62 @@ type columnShapeStats struct {
 }
 
 type shapeRowGroupStats struct {
-	RowGroupIndex      int64   `json:"row_group_index"`
-	NumRows            int64   `json:"num_rows"`
-	Cardinality        int64   `json:"cardinality"`
-	PageCount          int     `json:"page_count"`
-	PageCardinalityMin int64   `json:"page_cardinality_min"`
-	PageCardinalityMax int64   `json:"page_cardinality_max"`
-	MinValueLength     int     `json:"min_value_length"`
-	MedianValueLength  float64 `json:"median_value_length"`
-	MaxValueLength     int     `json:"max_value_length"`
+	RowGroupIndex                       int64   `json:"row_group_index"`
+	FirstRowIndex                       int64   `json:"first_row_index"`
+	NumRows                             int64   `json:"num_rows"`
+	Cardinality                         int64   `json:"cardinality"`
+	PageCount                           int     `json:"page_count"`
+	PageCardinalityMin                  int64   `json:"page_cardinality_min"`
+	PageCardinalityMax                  int64   `json:"page_cardinality_max"`
+	MinValueLength                      int     `json:"min_value_length"`
+	MedianValueLength                   float64 `json:"median_value_length"`
+	MaxValueLength                      int     `json:"max_value_length"`
+	EncodedDataPageBytesBeforeCodec     int64   `json:"encoded_data_page_bytes_before_codec"`
+	CompressedDataPageBytesAfterCodec   int64   `json:"compressed_data_page_bytes_after_codec"`
+	DictionaryPageCount                 int     `json:"dictionary_page_count"`
+	DictionaryEncodedBytesBeforeCodec   int64   `json:"dictionary_encoded_bytes_before_codec"`
+	DictionaryCompressedBytesAfterCodec int64   `json:"dictionary_compressed_bytes_after_codec"`
+	AmortizedDictionaryEncodedBytes     float64 `json:"amortized_dictionary_encoded_bytes_per_data_page"`
+	AmortizedDictionaryCompressedBytes  float64 `json:"amortized_dictionary_compressed_bytes_per_data_page"`
+	EncodedBytesWithDictionary          int64   `json:"encoded_bytes_with_dictionary"`
+	CompressedBytesWithDictionary       int64   `json:"compressed_bytes_with_dictionary"`
 }
 
 type shapePageStats struct {
-	RowGroupIndex int64   `json:"row_group_index"`
-	PageIndex     int     `json:"page_index"`
-	FirstRowIndex int64   `json:"first_row_index"`
-	NumRows       int64   `json:"num_rows"`
-	NumValues     int64   `json:"num_values"`
-	Cardinality   int64   `json:"cardinality"`
-	HasBounds     bool    `json:"has_bounds"`
-	MinValue      string  `json:"min_value,omitempty"`
-	MaxValue      string  `json:"max_value,omitempty"`
-	MinValueBytes string  `json:"min_value_bytes,omitempty"`
-	MaxValueBytes string  `json:"max_value_bytes,omitempty"`
-	HasNumeric    bool    `json:"has_numeric"`
-	MinNumeric    float64 `json:"min_numeric,omitempty"`
-	MaxNumeric    float64 `json:"max_numeric,omitempty"`
-	MinLength     int     `json:"min_length"`
-	MaxLength     int     `json:"max_length"`
+	RowGroupIndex                              int64   `json:"row_group_index"`
+	RowGroupFirstRowIndex                      int64   `json:"row_group_first_row_index"`
+	PageIndex                                  int     `json:"page_index"`
+	FirstRowIndex                              int64   `json:"first_row_index"`
+	AbsoluteFirstRowIndex                      int64   `json:"absolute_first_row_index"`
+	NumRows                                    int64   `json:"num_rows"`
+	NumValues                                  int64   `json:"num_values"`
+	Cardinality                                int64   `json:"cardinality"`
+	PageType                                   string  `json:"page_type"`
+	Encoding                                   string  `json:"encoding"`
+	EncodingID                                 int32   `json:"encoding_id"`
+	HeaderBytes                                int64   `json:"header_bytes"`
+	EncodedBodyBytesBeforeCodec                int64   `json:"encoded_body_bytes_before_codec"`
+	CompressedBodyBytesAfterCodec              int64   `json:"compressed_body_bytes_after_codec"`
+	EncodedPageBytesBeforeCodec                int64   `json:"encoded_page_bytes_before_codec"`
+	CompressedPageBytesAfterCodec              int64   `json:"compressed_page_bytes_after_codec"`
+	DataPageCountInColumnChunk                 int     `json:"data_page_count_in_column_chunk"`
+	DictionaryPageCount                        int     `json:"dictionary_page_count"`
+	DictionaryEncodedBytesBeforeCodec          int64   `json:"dictionary_encoded_bytes_before_codec"`
+	DictionaryCompressedBytesAfterCodec        int64   `json:"dictionary_compressed_bytes_after_codec"`
+	AmortizedDictionaryEncodedBytes            float64 `json:"amortized_dictionary_encoded_bytes"`
+	AmortizedDictionaryCompressedBytes         float64 `json:"amortized_dictionary_compressed_bytes"`
+	EncodedPageBytesWithAmortizedDictionary    float64 `json:"encoded_page_bytes_with_amortized_dictionary"`
+	CompressedPageBytesWithAmortizedDictionary float64 `json:"compressed_page_bytes_with_amortized_dictionary"`
+	HasBounds                                  bool    `json:"has_bounds"`
+	MinValue                                   string  `json:"min_value,omitempty"`
+	MaxValue                                   string  `json:"max_value,omitempty"`
+	MinValueBytes                              string  `json:"min_value_bytes,omitempty"`
+	MaxValueBytes                              string  `json:"max_value_bytes,omitempty"`
+	HasNumeric                                 bool    `json:"has_numeric"`
+	MinNumeric                                 float64 `json:"min_numeric,omitempty"`
+	MaxNumeric                                 float64 `json:"max_numeric,omitempty"`
+	MinLength                                  int     `json:"min_length"`
+	MaxLength                                  int     `json:"max_length"`
 }
 
 type columnShapePlots struct {
@@ -1203,10 +1229,6 @@ func buildColumnObservations(results []experimentResult, baseline experimentResu
 				obs.TargetMetric = "compressed_bytes"
 				obs.PostCompressionRatio = ratio(baselineCol.EncodedBytes, col.CompressedBytes)
 				obs.HasPostCompressionRatio = true
-				if obs.PlainCompressionRatio != 0 {
-					obs.CompressionRatioImprovementPct = ((obs.PostCompressionRatio / obs.PlainCompressionRatio) - 1) * 100
-					obs.HasCompressionRatioImprovementPercent = true
-				}
 			}
 			observations = append(observations, obs)
 		}
@@ -1467,7 +1489,6 @@ func writeColumnResultsTSV(path string, observations []columnObservation) error 
 		"target_bytes",
 		"post_encoding_ratio",
 		"post_compression_ratio",
-		"encoding_compression_ratio_improvement_pct",
 		"codec_ratio",
 		"experiment",
 		"result_file",
@@ -1497,7 +1518,6 @@ func writeColumnResultsTSV(path string, observations []columnObservation) error 
 				strconv.FormatInt(obs.TargetBytes, 10),
 				formatRatio(obs.PostEncodingRatio),
 				optionalRatio(obs.PostCompressionRatio, obs.HasPostCompressionRatio),
-				optionalPercent(obs.CompressionRatioImprovementPct, obs.HasCompressionRatioImprovementPercent),
 				formatRatio(obs.CodecRatio),
 				c.Slug,
 				obs.Experiment.ResultPath,
@@ -1531,7 +1551,6 @@ func writeColumnWinnersTSV(path string, winners []columnWinner) error {
 		"target_bytes",
 		"post_encoding_ratio",
 		"post_compression_ratio",
-		"encoding_compression_ratio_improvement_pct",
 		"codec_ratio",
 		"experiment",
 		"result_file",
@@ -1560,7 +1579,6 @@ func writeColumnWinnersTSV(path string, winners []columnWinner) error {
 				strconv.FormatInt(obs.TargetBytes, 10),
 				formatRatio(obs.PostEncodingRatio),
 				optionalRatio(obs.PostCompressionRatio, obs.HasPostCompressionRatio),
-				optionalPercent(obs.CompressionRatioImprovementPct, obs.HasCompressionRatioImprovementPercent),
 				formatRatio(obs.CodecRatio),
 				c.Slug,
 				obs.Experiment.ResultPath,
@@ -1602,7 +1620,6 @@ func writeBestColumnEncodingsTSV(path string, winners []columnWinner) error {
 		"post_compression_no_encoding_ratio",
 		"post_encoding_ratio",
 		"post_compression_ratio",
-		"encoding_compression_ratio_improvement_pct",
 		"codec_ratio",
 		"int_encoding",
 		"date_encoding",
@@ -1630,7 +1647,6 @@ func writeBestColumnEncodingsTSV(path string, winners []columnWinner) error {
 				optionalRatio(obs.PlainCompressionRatio, obs.HasPlainCompressionRatio),
 				formatRatio(obs.PostEncodingRatio),
 				optionalRatio(obs.PostCompressionRatio, obs.HasPostCompressionRatio),
-				optionalPercent(obs.CompressionRatioImprovementPct, obs.HasCompressionRatioImprovementPercent),
 				formatRatio(obs.CodecRatio),
 				c.IntEncoding,
 				c.DateEncoding,
@@ -1677,7 +1693,6 @@ func writeSummaryMarkdown(path string, cfg config, rankings []experimentRanking,
 	fmt.Fprintf(&b, "- Column ratios use `baseline_encoded_bytes` as their denominator: the same column's encoded bytes from the all-plain/no-compression run. `physical_bytes` is shown separately and is not used as the ratio denominator.\n")
 	fmt.Fprintf(&b, "- ZSTD compression without encoding is the all-plain ZSTD run, repeated in each Top Encoding Settings row as the zstd-only baseline.\n")
 	fmt.Fprintf(&b, "- `post_compression_no_encoding_bytes` is the same column's compressed bytes from the all-plain run with the same compression setting; `post_compression_no_encoding_ratio` is plain/uncompressed baseline encoded bytes divided by those bytes.\n")
-	fmt.Fprintf(&b, "- `encoding_compression_ratio_improvement_pct` is `((post_compression_ratio / post_compression_no_encoding_ratio) - 1) * 100`; positive means encoding improved the compression ratio versus compressing plain pages.\n")
 	fmt.Fprintf(&b, "- Codec ratio: candidate encoded bytes divided by candidate compressed bytes.\n\n")
 
 	fmt.Fprintf(&b, "## Top Encoding Settings\n\n")
@@ -1718,12 +1733,12 @@ func writeSettingTable(b *strings.Builder, settings []settingSummary, limit int,
 }
 
 func writeBestColumnEncodingsMarkdown(b *strings.Builder, winners []columnWinner, summaryDir string) {
-	fmt.Fprintf(b, "| Column | Type | Best encoding | Compression | Physical bytes | Baseline encoded bytes | Target bytes | Encoded bytes | Compressed bytes | Post-compression no encoding bytes | Post-compression no encoding | Post-encoding | Post-compression | Encoding compression-ratio improvement | Result |\n")
-	fmt.Fprintf(b, "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |\n")
+	fmt.Fprintf(b, "| Column | Type | Best encoding | Compression | Physical bytes | Baseline encoded bytes | Target bytes | Encoded bytes | Compressed bytes | Post-compression no encoding bytes | Post-compression no encoding | Post-encoding | Post-compression | Result |\n")
+	fmt.Fprintf(b, "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |\n")
 	for _, winner := range winners {
 		obs := winner.Observation
 		c := obs.Experiment.Combo
-		fmt.Fprintf(b, "| `%s` | `%s` | `%s` | `%s` | `%d` | `%d` | `%d` | `%d` | `%d` | `%s` | `%s` | `%s` | `%s` | `%s` | [%s](%s) |\n",
+		fmt.Fprintf(b, "| `%s` | `%s` | `%s` | `%s` | `%d` | `%d` | `%d` | `%d` | `%d` | `%s` | `%s` | `%s` | `%s` | [%s](%s) |\n",
 			obs.Column.Column,
 			obs.Column.Type,
 			obs.Column.ConfigEncoding,
@@ -1737,7 +1752,6 @@ func writeBestColumnEncodingsMarkdown(b *strings.Builder, winners []columnWinner
 			optionalRatio(obs.PlainCompressionRatio, obs.HasPlainCompressionRatio),
 			formatRatio(obs.PostEncodingRatio),
 			optionalRatio(obs.PostCompressionRatio, obs.HasPostCompressionRatio),
-			optionalPercentMarkdown(obs.CompressionRatioImprovementPct, obs.HasCompressionRatioImprovementPercent),
 			filepath.Base(obs.Experiment.ResultPath),
 			markdownLinkTarget(summaryDir, obs.Experiment.ResultPath),
 		)
@@ -3435,17 +3449,12 @@ func writeRankingList(b *strings.Builder, title string, observations []columnObs
 	for i, obs := range observations {
 		c := obs.Experiment.Combo
 		prefix := fmt.Sprintf("`%s` + `%s`", c.CompressionName, obs.Column.ConfigEncoding)
-		improvement := ""
-		if obs.HasCompressionRatioImprovementPercent {
-			improvement = fmt.Sprintf("; %s vs plain + %s", formatPercent(obs.CompressionRatioImprovementPct), c.CompressionName)
-		}
-		fmt.Fprintf(b, "%d. %s compressed - %s; %s encoded; %sx post-compression ratio%s; experiment `%s`\n",
+		fmt.Fprintf(b, "%d. %s compressed - %s; %s encoded; %sx post-compression ratio; experiment `%s`\n",
 			i+1,
 			formatByteCount(obs.Column.CompressedBytes),
 			prefix,
 			formatByteCount(obs.Column.EncodedBytes),
 			formatRatio(obs.PostCompressionRatio),
-			improvement,
 			c.Slug,
 		)
 	}

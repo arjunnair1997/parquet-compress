@@ -1421,8 +1421,9 @@ func (w *writer) writeRowGroup(rg *ConcurrentRowGroupWriter, rowGroupSchema *Sch
 	columnIndexIndex := len(w.columnIndexes)
 	offsetIndexIndex := len(w.offsetIndexes)
 	statsRowGroupIndex := int64(rowGroupIndex)
+	statsRowGroupFirstRowIndex := int64(0)
 	if rg.config.WriterStats != nil {
-		statsRowGroupIndex = rg.config.WriterStats.reserveRowGroup()
+		statsRowGroupIndex, statsRowGroupFirstRowIndex = rg.config.WriterStats.reserveRowGroup(numRows)
 	}
 
 	if len(w.rowGroups) == MaxRowGroups {
@@ -1687,7 +1688,7 @@ func (w *writer) writeRowGroup(rg *ConcurrentRowGroupWriter, rowGroupSchema *Sch
 
 	if rg.config.WriterStats != nil {
 		for _, c := range rg.columns {
-			c.finishWriterStatsRowGroup(statsRowGroupIndex)
+			c.finishWriterStatsRowGroup(statsRowGroupIndex, statsRowGroupFirstRowIndex)
 		}
 	}
 
@@ -2575,6 +2576,27 @@ func (c *ColumnWriter) recordPageStats(headerSize int32, header *format.PageHead
 	uncompressedSize := headerSize + header.UncompressedPageSize
 	compressedSize := headerSize + header.CompressedPageSize
 
+	pageType := header.Type
+	encoding := format.Encoding(-1)
+	switch pageType {
+	case format.DataPageV2:
+		encoding = header.DataPageHeaderV2.V.Encoding
+	case format.DataPage:
+		encoding = header.DataPageHeader.V.Encoding
+	case format.DictionaryPage:
+		encoding = header.DictionaryPageHeader.V.Encoding
+	}
+	layout := writerStatsPageLayout{
+		pageType:                      pageType.String(),
+		encoding:                      encoding.String(),
+		encodingID:                    int32(encoding),
+		headerBytes:                   int64(headerSize),
+		encodedBodyBytesBeforeCodec:   int64(header.UncompressedPageSize),
+		compressedBodyBytesAfterCodec: int64(header.CompressedPageSize),
+		encodedPageBytesBeforeCodec:   int64(uncompressedSize),
+		compressedPageBytesAfterCodec: int64(compressedSize),
+	}
+
 	if page != nil {
 		numNulls := page.NumNulls()
 		numValues := page.NumValues()
@@ -2633,7 +2655,7 @@ func (c *ColumnWriter) recordPageStats(headerSize int32, header *format.PageHead
 			FirstRowIndex:      c.numRows,
 		})
 
-		c.recordWriterStatsPage(page)
+		c.recordWriterStatsDataPage(page, layout)
 		c.numRows += page.NumRows()
 		c.totalUnencodedByteArrayBytes += computeUnencodedByteArraySize(page)
 
@@ -2657,17 +2679,8 @@ func (c *ColumnWriter) recordPageStats(headerSize int32, header *format.PageHead
 				c.maxDefinitionLevel,
 			)
 		}
-	}
-
-	pageType := header.Type
-	encoding := format.Encoding(-1)
-	switch pageType {
-	case format.DataPageV2:
-		encoding = header.DataPageHeaderV2.V.Encoding
-	case format.DataPage:
-		encoding = header.DataPageHeader.V.Encoding
-	case format.DictionaryPage:
-		encoding = header.DictionaryPageHeader.V.Encoding
+	} else if pageType == format.DictionaryPage {
+		c.recordWriterStatsDictionaryPage(layout)
 	}
 
 	c.columnChunk.MetaData.TotalUncompressedSize += int64(uncompressedSize)
@@ -2679,21 +2692,31 @@ func (c *ColumnWriter) recordPageStats(headerSize int32, header *format.PageHead
 	})
 }
 
-func (c *ColumnWriter) recordWriterStatsPage(page Page) {
+func (c *ColumnWriter) recordWriterStatsDataPage(page Page, layout writerStatsPageLayout) {
 	if c.writerStats == nil || page == nil {
 		return
 	}
 	if c.writerStatsColumn == nil {
 		c.writerStatsColumn = newWriterStatsColumnAccumulator()
 	}
-	c.writerStatsColumn.recordPage(c.columnType, c.numRows, page)
+	c.writerStatsColumn.recordDataPage(c.columnType, c.numRows, page, layout)
 }
 
-func (c *ColumnWriter) finishWriterStatsRowGroup(rowGroupIndex int64) {
+func (c *ColumnWriter) recordWriterStatsDictionaryPage(layout writerStatsPageLayout) {
+	if c.writerStats == nil {
+		return
+	}
+	if c.writerStatsColumn == nil {
+		c.writerStatsColumn = newWriterStatsColumnAccumulator()
+	}
+	c.writerStatsColumn.recordDictionaryPage(layout)
+}
+
+func (c *ColumnWriter) finishWriterStatsRowGroup(rowGroupIndex, rowGroupFirstRowIndex int64) {
 	if c.writerStats == nil || c.writerStatsColumn == nil {
 		return
 	}
-	c.writerStats.finishColumnRowGroup(int(c.bufferIndex), c.columnPath, c.columnType, rowGroupIndex, c.writerStatsColumn)
+	c.writerStats.finishColumnRowGroup(int(c.bufferIndex), c.columnPath, c.columnType, rowGroupIndex, rowGroupFirstRowIndex, c.writerStatsColumn)
 	c.writerStatsColumn = nil
 }
 

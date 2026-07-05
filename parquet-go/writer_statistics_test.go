@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"testing"
 
+	"parquet_compress/parquet-go/compress/zstd"
 	"parquet_compress/parquet-go/encoding/thrift"
 	"parquet_compress/parquet-go/format"
 )
@@ -178,6 +179,144 @@ func TestWriterStatistics(t *testing.T) {
 				t.Errorf("column %s: ColumnIndex.RepetitionLevelHistogram length = %d, want %d", pathStr, got, exp.colIndexRepLevelCount)
 			}
 		}
+	}
+}
+
+func TestWriterStatsPageLayoutDoesNotChangeFileBytes(t *testing.T) {
+	type row struct {
+		ID       int64  `parquet:"id"`
+		Category string `parquet:"category"`
+	}
+
+	rows := make([]row, 4096)
+	for i := range rows {
+		rows[i] = row{
+			ID:       int64(i),
+			Category: []string{"alpha", "beta", "gamma", "delta"}[i%4],
+		}
+	}
+
+	write := func(stats *WriterStats) []byte {
+		t.Helper()
+		options := []WriterOption{
+			PageBufferSize(256),
+			MaxRowsPerRowGroup(1024),
+			Compression(&zstd.Codec{}),
+			DefaultEncodingFor(ByteArray, &RLEDictionary),
+		}
+		if stats != nil {
+			options = append(options, CaptureWriterStats(stats))
+		}
+
+		buf := new(bytes.Buffer)
+		writer := NewGenericWriter[row](buf, options...)
+		if _, err := writer.Write(rows); err != nil {
+			t.Fatalf("writing rows: %v", err)
+		}
+		if err := writer.Close(); err != nil {
+			t.Fatalf("closing writer: %v", err)
+		}
+		return buf.Bytes()
+	}
+
+	withoutStats := write(nil)
+	stats := NewWriterStats()
+	withStats := write(stats)
+	if !bytes.Equal(withoutStats, withStats) {
+		t.Fatal("capturing writer stats changed parquet file bytes")
+	}
+
+	snapshot := stats.Snapshot()
+	if len(snapshot.Errors) != 0 {
+		t.Fatalf("unexpected writer stats errors: %v", snapshot.Errors)
+	}
+
+	var foundDictionaryColumn bool
+	for _, column := range snapshot.Columns {
+		for _, page := range column.Pages {
+			if page.PageType == "" {
+				t.Fatalf("column %s page %d missing page type", column.Name, page.PageIndex)
+			}
+			if page.Encoding == "" {
+				t.Fatalf("column %s page %d missing encoding", column.Name, page.PageIndex)
+			}
+			if page.HeaderBytes <= 0 {
+				t.Fatalf("column %s page %d has non-positive header bytes: %d", column.Name, page.PageIndex, page.HeaderBytes)
+			}
+			if page.AbsoluteFirstRowIndex != page.RowGroupFirstRowIndex+page.FirstRowIndex {
+				t.Fatalf("column %s page %d absolute first row = %d, want %d",
+					column.Name,
+					page.PageIndex,
+					page.AbsoluteFirstRowIndex,
+					page.RowGroupFirstRowIndex+page.FirstRowIndex,
+				)
+			}
+			if page.EncodedPageBytesBeforeCodec != page.HeaderBytes+page.EncodedBodyBytesBeforeCodec {
+				t.Fatalf("column %s page %d encoded page bytes do not match header+body", column.Name, page.PageIndex)
+			}
+			if page.CompressedPageBytesAfterCodec != page.HeaderBytes+page.CompressedBodyBytesAfterCodec {
+				t.Fatalf("column %s page %d compressed page bytes do not match header+body", column.Name, page.PageIndex)
+			}
+		}
+
+		if column.Name != "category" {
+			continue
+		}
+		foundDictionaryColumn = true
+		if len(column.RowGroups) == 0 {
+			t.Fatal("category column has no row-group stats")
+		}
+		if len(column.Pages) == 0 {
+			t.Fatal("category column has no page stats")
+		}
+		rowGroups := make(map[int64]WriterRowGroupStats, len(column.RowGroups))
+		for _, rowGroup := range column.RowGroups {
+			if rowGroup.FirstRowIndex < 0 {
+				t.Fatalf("category row group %d has negative first row index", rowGroup.RowGroupIndex)
+			}
+			if rowGroup.DictionaryPageCount == 0 {
+				t.Fatalf("category row group %d has no dictionary pages", rowGroup.RowGroupIndex)
+			}
+			if rowGroup.DictionaryCompressedBytesAfterCodec <= 0 {
+				t.Fatalf("category row group %d has no dictionary compressed bytes", rowGroup.RowGroupIndex)
+			}
+			if rowGroup.CompressedBytesWithDictionary != rowGroup.CompressedDataPageBytesAfterCodec+rowGroup.DictionaryCompressedBytesAfterCodec {
+				t.Fatalf("category row group %d compressed bytes with dictionary do not add up", rowGroup.RowGroupIndex)
+			}
+			rowGroups[rowGroup.RowGroupIndex] = rowGroup
+		}
+		for _, page := range column.Pages {
+			rowGroup, ok := rowGroups[page.RowGroupIndex]
+			if !ok {
+				t.Fatalf("category page %d references unknown row group %d", page.PageIndex, page.RowGroupIndex)
+			}
+			if page.DataPageCountInColumnChunk != rowGroup.PageCount {
+				t.Fatalf("category page %d data page count = %d, want %d", page.PageIndex, page.DataPageCountInColumnChunk, rowGroup.PageCount)
+			}
+			if page.RowGroupFirstRowIndex != rowGroup.FirstRowIndex {
+				t.Fatalf("category page %d row group first row = %d, want %d", page.PageIndex, page.RowGroupFirstRowIndex, rowGroup.FirstRowIndex)
+			}
+			if page.DictionaryPageCount != rowGroup.DictionaryPageCount {
+				t.Fatalf("category page %d dictionary page count = %d, want %d", page.PageIndex, page.DictionaryPageCount, rowGroup.DictionaryPageCount)
+			}
+			if page.DictionaryCompressedBytesAfterCodec != rowGroup.DictionaryCompressedBytesAfterCodec {
+				t.Fatalf("category page %d dictionary compressed bytes = %d, want %d", page.PageIndex, page.DictionaryCompressedBytesAfterCodec, rowGroup.DictionaryCompressedBytesAfterCodec)
+			}
+			if page.AmortizedDictionaryCompressedBytes <= 0 {
+				t.Fatalf("category page %d has no amortized dictionary compressed bytes", page.PageIndex)
+			}
+			wantCompressedWithDictionary := float64(page.CompressedPageBytesAfterCodec) + page.AmortizedDictionaryCompressedBytes
+			if page.CompressedPageBytesWithAmortizedDictionary != wantCompressedWithDictionary {
+				t.Fatalf("category page %d compressed bytes with amortized dictionary = %v, want %v",
+					page.PageIndex,
+					page.CompressedPageBytesWithAmortizedDictionary,
+					wantCompressedWithDictionary,
+				)
+			}
+		}
+	}
+	if !foundDictionaryColumn {
+		t.Fatal("did not find dictionary-encoded category column")
 	}
 }
 

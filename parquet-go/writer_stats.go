@@ -20,6 +20,7 @@ import (
 type WriterStats struct {
 	mu           sync.Mutex
 	nextRowGroup int64
+	nextRowIndex int64
 	columns      map[int]*writerStatsColumn
 	errors       []string
 }
@@ -48,35 +49,63 @@ type WriterColumnStats struct {
 
 // WriterRowGroupStats contains one row of stats for a column in one row group.
 type WriterRowGroupStats struct {
-	RowGroupIndex      int64   `json:"row_group_index"`
-	NumRows            int64   `json:"num_rows"`
-	Cardinality        int64   `json:"cardinality"`
-	PageCount          int     `json:"page_count"`
-	PageCardinalityMin int64   `json:"page_cardinality_min"`
-	PageCardinalityMax int64   `json:"page_cardinality_max"`
-	MinValueLength     int     `json:"min_value_length"`
-	MedianValueLength  float64 `json:"median_value_length"`
-	MaxValueLength     int     `json:"max_value_length"`
+	RowGroupIndex                       int64   `json:"row_group_index"`
+	FirstRowIndex                       int64   `json:"first_row_index"`
+	NumRows                             int64   `json:"num_rows"`
+	Cardinality                         int64   `json:"cardinality"`
+	PageCount                           int     `json:"page_count"`
+	PageCardinalityMin                  int64   `json:"page_cardinality_min"`
+	PageCardinalityMax                  int64   `json:"page_cardinality_max"`
+	MinValueLength                      int     `json:"min_value_length"`
+	MedianValueLength                   float64 `json:"median_value_length"`
+	MaxValueLength                      int     `json:"max_value_length"`
+	EncodedDataPageBytesBeforeCodec     int64   `json:"encoded_data_page_bytes_before_codec"`
+	CompressedDataPageBytesAfterCodec   int64   `json:"compressed_data_page_bytes_after_codec"`
+	DictionaryPageCount                 int     `json:"dictionary_page_count"`
+	DictionaryEncodedBytesBeforeCodec   int64   `json:"dictionary_encoded_bytes_before_codec"`
+	DictionaryCompressedBytesAfterCodec int64   `json:"dictionary_compressed_bytes_after_codec"`
+	AmortizedDictionaryEncodedBytes     float64 `json:"amortized_dictionary_encoded_bytes_per_data_page"`
+	AmortizedDictionaryCompressedBytes  float64 `json:"amortized_dictionary_compressed_bytes_per_data_page"`
+	EncodedBytesWithDictionary          int64   `json:"encoded_bytes_with_dictionary"`
+	CompressedBytesWithDictionary       int64   `json:"compressed_bytes_with_dictionary"`
 }
 
 // WriterPageStats contains one row of stats for an encoded data page.
 type WriterPageStats struct {
-	RowGroupIndex int64   `json:"row_group_index"`
-	PageIndex     int     `json:"page_index"`
-	FirstRowIndex int64   `json:"first_row_index"`
-	NumRows       int64   `json:"num_rows"`
-	NumValues     int64   `json:"num_values"`
-	Cardinality   int64   `json:"cardinality"`
-	HasBounds     bool    `json:"has_bounds"`
-	MinValue      string  `json:"min_value,omitempty"`
-	MaxValue      string  `json:"max_value,omitempty"`
-	MinValueBytes string  `json:"min_value_bytes,omitempty"`
-	MaxValueBytes string  `json:"max_value_bytes,omitempty"`
-	HasNumeric    bool    `json:"has_numeric"`
-	MinNumeric    float64 `json:"min_numeric,omitempty"`
-	MaxNumeric    float64 `json:"max_numeric,omitempty"`
-	MinLength     int     `json:"min_length"`
-	MaxLength     int     `json:"max_length"`
+	RowGroupIndex                              int64   `json:"row_group_index"`
+	RowGroupFirstRowIndex                      int64   `json:"row_group_first_row_index"`
+	PageIndex                                  int     `json:"page_index"`
+	FirstRowIndex                              int64   `json:"first_row_index"`
+	AbsoluteFirstRowIndex                      int64   `json:"absolute_first_row_index"`
+	NumRows                                    int64   `json:"num_rows"`
+	NumValues                                  int64   `json:"num_values"`
+	Cardinality                                int64   `json:"cardinality"`
+	PageType                                   string  `json:"page_type"`
+	Encoding                                   string  `json:"encoding"`
+	EncodingID                                 int32   `json:"encoding_id"`
+	HeaderBytes                                int64   `json:"header_bytes"`
+	EncodedBodyBytesBeforeCodec                int64   `json:"encoded_body_bytes_before_codec"`
+	CompressedBodyBytesAfterCodec              int64   `json:"compressed_body_bytes_after_codec"`
+	EncodedPageBytesBeforeCodec                int64   `json:"encoded_page_bytes_before_codec"`
+	CompressedPageBytesAfterCodec              int64   `json:"compressed_page_bytes_after_codec"`
+	DataPageCountInColumnChunk                 int     `json:"data_page_count_in_column_chunk"`
+	DictionaryPageCount                        int     `json:"dictionary_page_count"`
+	DictionaryEncodedBytesBeforeCodec          int64   `json:"dictionary_encoded_bytes_before_codec"`
+	DictionaryCompressedBytesAfterCodec        int64   `json:"dictionary_compressed_bytes_after_codec"`
+	AmortizedDictionaryEncodedBytes            float64 `json:"amortized_dictionary_encoded_bytes"`
+	AmortizedDictionaryCompressedBytes         float64 `json:"amortized_dictionary_compressed_bytes"`
+	EncodedPageBytesWithAmortizedDictionary    float64 `json:"encoded_page_bytes_with_amortized_dictionary"`
+	CompressedPageBytesWithAmortizedDictionary float64 `json:"compressed_page_bytes_with_amortized_dictionary"`
+	HasBounds                                  bool    `json:"has_bounds"`
+	MinValue                                   string  `json:"min_value,omitempty"`
+	MaxValue                                   string  `json:"max_value,omitempty"`
+	MinValueBytes                              string  `json:"min_value_bytes,omitempty"`
+	MaxValueBytes                              string  `json:"max_value_bytes,omitempty"`
+	HasNumeric                                 bool    `json:"has_numeric"`
+	MinNumeric                                 float64 `json:"min_numeric,omitempty"`
+	MaxNumeric                                 float64 `json:"max_numeric,omitempty"`
+	MinLength                                  int     `json:"min_length"`
+	MaxLength                                  int     `json:"max_length"`
 }
 
 type writerStatsColumn struct {
@@ -89,23 +118,39 @@ type writerStatsColumn struct {
 }
 
 type writerStatsColumnAccumulator struct {
-	numRows            int64
-	unique             map[string]struct{}
-	pages              []WriterPageStats
-	pageCardinalityMin int64
-	pageCardinalityMax int64
-	minLength          int
-	maxLength          int
-	lengthCounts       map[int]int64
-	lengthValueCount   int64
-	hasLength          bool
-	hasFirst           bool
-	first              Value
-	hasLast            bool
-	last               Value
-	sortedAscending    bool
-	sortedDescending   bool
-	errors             []string
+	numRows                             int64
+	unique                              map[string]struct{}
+	pages                               []WriterPageStats
+	pageCardinalityMin                  int64
+	pageCardinalityMax                  int64
+	minLength                           int
+	maxLength                           int
+	lengthCounts                        map[int]int64
+	lengthValueCount                    int64
+	hasLength                           bool
+	hasFirst                            bool
+	first                               Value
+	hasLast                             bool
+	last                                Value
+	sortedAscending                     bool
+	sortedDescending                    bool
+	encodedDataPageBytesBeforeCodec     int64
+	compressedDataPageBytesAfterCodec   int64
+	dictionaryPageCount                 int
+	dictionaryEncodedBytesBeforeCodec   int64
+	dictionaryCompressedBytesAfterCodec int64
+	errors                              []string
+}
+
+type writerStatsPageLayout struct {
+	pageType                      string
+	encoding                      string
+	encodingID                    int32
+	headerBytes                   int64
+	encodedBodyBytesBeforeCodec   int64
+	compressedBodyBytesAfterCodec int64
+	encodedPageBytesBeforeCodec   int64
+	compressedPageBytesAfterCodec int64
 }
 
 // NewWriterStats constructs a writer stats collector.
@@ -146,18 +191,20 @@ func (s *WriterStats) Snapshot() WriterStatsSnapshot {
 	}
 }
 
-func (s *WriterStats) reserveRowGroup() int64 {
+func (s *WriterStats) reserveRowGroup(numRows int64) (int64, int64) {
 	if s == nil {
-		return 0
+		return 0, 0
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	index := s.nextRowGroup
+	firstRowIndex := s.nextRowIndex
 	s.nextRowGroup++
-	return index
+	s.nextRowIndex += numRows
+	return index, firstRowIndex
 }
 
-func (s *WriterStats) finishColumnRowGroup(columnIndex int, path columnPath, typ Type, rowGroupIndex int64, acc *writerStatsColumnAccumulator) {
+func (s *WriterStats) finishColumnRowGroup(columnIndex int, path columnPath, typ Type, rowGroupIndex, rowGroupFirstRowIndex int64, acc *writerStatsColumnAccumulator) {
 	if s == nil || acc == nil || len(acc.pages) == 0 {
 		return
 	}
@@ -183,8 +230,24 @@ func (s *WriterStats) finishColumnRowGroup(columnIndex int, path columnPath, typ
 		s.columns[columnIndex] = col
 	}
 
+	amortizedDictionaryEncodedBytes := float64(0)
+	amortizedDictionaryCompressedBytes := float64(0)
+	if len(acc.pages) > 0 {
+		amortizedDictionaryEncodedBytes = float64(acc.dictionaryEncodedBytesBeforeCodec) / float64(len(acc.pages))
+		amortizedDictionaryCompressedBytes = float64(acc.dictionaryCompressedBytesAfterCodec) / float64(len(acc.pages))
+	}
 	for i := range acc.pages {
 		acc.pages[i].RowGroupIndex = rowGroupIndex
+		acc.pages[i].RowGroupFirstRowIndex = rowGroupFirstRowIndex
+		acc.pages[i].AbsoluteFirstRowIndex = rowGroupFirstRowIndex + acc.pages[i].FirstRowIndex
+		acc.pages[i].DataPageCountInColumnChunk = len(acc.pages)
+		acc.pages[i].DictionaryPageCount = acc.dictionaryPageCount
+		acc.pages[i].DictionaryEncodedBytesBeforeCodec = acc.dictionaryEncodedBytesBeforeCodec
+		acc.pages[i].DictionaryCompressedBytesAfterCodec = acc.dictionaryCompressedBytesAfterCodec
+		acc.pages[i].AmortizedDictionaryEncodedBytes = amortizedDictionaryEncodedBytes
+		acc.pages[i].AmortizedDictionaryCompressedBytes = amortizedDictionaryCompressedBytes
+		acc.pages[i].EncodedPageBytesWithAmortizedDictionary = float64(acc.pages[i].EncodedPageBytesBeforeCodec) + amortizedDictionaryEncodedBytes
+		acc.pages[i].CompressedPageBytesWithAmortizedDictionary = float64(acc.pages[i].CompressedPageBytesAfterCodec) + amortizedDictionaryCompressedBytes
 	}
 
 	if col.hasLast && acc.hasFirst {
@@ -223,15 +286,25 @@ func (s *WriterStats) finishColumnRowGroup(columnIndex int, path columnPath, typ
 	}
 
 	col.stats.RowGroups = append(col.stats.RowGroups, WriterRowGroupStats{
-		RowGroupIndex:      rowGroupIndex,
-		NumRows:            acc.numRows,
-		Cardinality:        int64(len(acc.unique)),
-		PageCount:          len(acc.pages),
-		PageCardinalityMin: acc.pageCardinalityMin,
-		PageCardinalityMax: acc.pageCardinalityMax,
-		MinValueLength:     acc.minLength,
-		MedianValueLength:  medianLengthFromCounts(acc.lengthCounts, acc.lengthValueCount),
-		MaxValueLength:     acc.maxLength,
+		RowGroupIndex:                       rowGroupIndex,
+		FirstRowIndex:                       rowGroupFirstRowIndex,
+		NumRows:                             acc.numRows,
+		Cardinality:                         int64(len(acc.unique)),
+		PageCount:                           len(acc.pages),
+		PageCardinalityMin:                  acc.pageCardinalityMin,
+		PageCardinalityMax:                  acc.pageCardinalityMax,
+		MinValueLength:                      acc.minLength,
+		MedianValueLength:                   medianLengthFromCounts(acc.lengthCounts, acc.lengthValueCount),
+		MaxValueLength:                      acc.maxLength,
+		EncodedDataPageBytesBeforeCodec:     acc.encodedDataPageBytesBeforeCodec,
+		CompressedDataPageBytesAfterCodec:   acc.compressedDataPageBytesAfterCodec,
+		DictionaryPageCount:                 acc.dictionaryPageCount,
+		DictionaryEncodedBytesBeforeCodec:   acc.dictionaryEncodedBytesBeforeCodec,
+		DictionaryCompressedBytesAfterCodec: acc.dictionaryCompressedBytesAfterCodec,
+		AmortizedDictionaryEncodedBytes:     amortizedDictionaryEncodedBytes,
+		AmortizedDictionaryCompressedBytes:  amortizedDictionaryCompressedBytes,
+		EncodedBytesWithDictionary:          acc.encodedDataPageBytesBeforeCodec + acc.dictionaryEncodedBytesBeforeCodec,
+		CompressedBytesWithDictionary:       acc.compressedDataPageBytesAfterCodec + acc.dictionaryCompressedBytesAfterCodec,
 	})
 	col.stats.Pages = append(col.stats.Pages, acc.pages...)
 	s.errors = append(s.errors, acc.errors...)
@@ -255,12 +328,20 @@ func newWriterStatsColumnAccumulator() *writerStatsColumnAccumulator {
 	}
 }
 
-func (a *writerStatsColumnAccumulator) recordPage(columnType Type, firstRowIndex int64, page Page) {
+func (a *writerStatsColumnAccumulator) recordDataPage(columnType Type, firstRowIndex int64, page Page, layout writerStatsPageLayout) {
 	pageStat := WriterPageStats{
-		PageIndex:     len(a.pages),
-		FirstRowIndex: firstRowIndex,
-		NumRows:       page.NumRows(),
-		NumValues:     page.NumValues(),
+		PageIndex:                     len(a.pages),
+		FirstRowIndex:                 firstRowIndex,
+		NumRows:                       page.NumRows(),
+		NumValues:                     page.NumValues(),
+		PageType:                      layout.pageType,
+		Encoding:                      layout.encoding,
+		EncodingID:                    layout.encodingID,
+		HeaderBytes:                   layout.headerBytes,
+		EncodedBodyBytesBeforeCodec:   layout.encodedBodyBytesBeforeCodec,
+		CompressedBodyBytesAfterCodec: layout.compressedBodyBytesAfterCodec,
+		EncodedPageBytesBeforeCodec:   layout.encodedPageBytesBeforeCodec,
+		CompressedPageBytesAfterCodec: layout.compressedPageBytesAfterCodec,
 	}
 	if minValue, maxValue, ok := page.Bounds(); ok {
 		pageStat.HasBounds = true
@@ -348,7 +429,15 @@ func (a *writerStatsColumnAccumulator) recordPage(columnType Type, firstRowIndex
 		a.pageCardinalityMax = pageStat.Cardinality
 	}
 	a.numRows += page.NumRows()
+	a.encodedDataPageBytesBeforeCodec += layout.encodedPageBytesBeforeCodec
+	a.compressedDataPageBytesAfterCodec += layout.compressedPageBytesAfterCodec
 	a.pages = append(a.pages, pageStat)
+}
+
+func (a *writerStatsColumnAccumulator) recordDictionaryPage(layout writerStatsPageLayout) {
+	a.dictionaryPageCount++
+	a.dictionaryEncodedBytesBeforeCodec += layout.encodedPageBytesBeforeCodec
+	a.dictionaryCompressedBytesAfterCodec += layout.compressedPageBytesAfterCodec
 }
 
 func cloneValue(v Value) Value {
