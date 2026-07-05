@@ -75,6 +75,183 @@ For each column, this compares the best observed `zstd + plain` compressed byte 
 | `40-50%` | 8 | 4 |
 | `50-60%` | 1 | 2 |
 
+## ZSTD RLE Dict Worse Distribution By Category
+
+For columns where the best observed `zstd + plain` compressed byte count is smaller than the best observed `zstd + rle-dict` compressed byte count, this buckets how much worse RLE dictionary encoding was. Worse-by percentage is `(rle_dict_compressed_bytes / plain_compressed_bytes - 1) * 100`, so values can exceed 100%.
+
+The compressed bytes are Parquet column-chunk bytes, including dictionary pages and page headers.
+
+`Plain encoded bytes before compression` is the same column's byte count from the all-plain/no-compression baseline run. The `/ plain encoded` percentage columns compare compressed column bytes against that baseline denominator.
+
+Categorization uses only measured byte sizes, row-group cardinality, and column type: `True dictionary bloat` means RLE dictionary encoded bytes exceeded plain encoded bytes before ZSTD; `Tiny/constant plain stream` means median row-group cardinality is at most 2 or median cardinality/rows is at most 0.0006; `Structured medium/high-cardinality numeric streams` means a numeric or temporal column has median cardinality/rows at least 0.09; the remaining losing columns fall into `Small-domain fixed-width literals`. Sortedness, page min/max, and value-length distributions are shown elsewhere in this report but are not currently used for this category assignment.
+
+- Compared columns: `105`
+- `zstd + rle-dict` worse than `zstd + plain`: `56`; better: `49`; ties: `0`; missing comparisons: `0`
+- Missing shape stats while categorizing: `0`
+
+| Category | Columns | Worse by min/median/max |
+| --- | ---: | ---: |
+| True dictionary bloat | 2 | 18.468449% / 20.666456% / 22.864463% |
+| Tiny/constant plain stream | 30 | 1.738241% / 34.805520% / 110.023587% |
+| Small-domain fixed-width literals | 18 | 8.762892% / 33.500720% / 97.747379% |
+| Structured medium/high-cardinality numeric streams | 6 | 23.259941% / 43.172756% / 59.989014% |
+
+### True dictionary bloat
+
+RLE dictionary encoding was already larger than plain before ZSTD, usually because the dictionary itself was too large for the column.
+
+![RLE dictionary worse: True dictionary bloat](images/zstd_rle_dict_worse_true_dictionary_bloat.svg)
+
+| Improvement bucket | `zstd + rle-dict` worse by |
+| --- | ---: |
+| `0-10%` | 0 |
+| `10-20%` | 1 |
+| `20-30%` | 1 |
+| `30-40%` | 0 |
+| `40-50%` | 0 |
+| `50-60%` | 0 |
+| `60-70%` | 0 |
+| `70-80%` | 0 |
+| `80-90%` | 0 |
+| `90-100%` | 0 |
+| `100-200%` | 0 |
+| `200-500%` | 0 |
+| `500%+` | 0 |
+
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `WatchID` | `int64` | True dictionary bloat | plain encoded 8,004,555 B (7.63 MiB); rle encoded 9,834,361 B (9.38 MiB) | RLE dictionary was larger than plain before ZSTD; the compressed result stayed larger. | 9,315 / 11,938 / 14,202 | 100.000000% | 8,000,000 B (7.63 MiB) | 8,006,312 B (7.64 MiB) | 8,005,353 B (7.63 MiB) | 100.066913% | 99.988022% | 9,835,734 B (9.38 MiB) | 122.946675% | 122.849747% | 22.864463% |  |  |  |  | 58 |
+| `HID` | `int32` | True dictionary bloat | plain encoded 4,003,775 B (3.82 MiB); rle encoded 4,491,293 B (4.28 MiB) | RLE dictionary was larger than plain before ZSTD; the compressed result stayed larger. | 5,818 / 5,965 / 13,281 | 49.966494% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 3,792,143 B (3.62 MiB) | 94.803575% | 94.684013% | 4,492,493 B (4.28 MiB) | 112.312325% | 112.170681% | 18.468449% |  |  |  |  | 60 |
+
+### Tiny/constant plain stream
+
+The column is tiny or nearly constant per row group; plain pages give ZSTD an extremely repetitive stream, while dictionary pages add overhead.
+
+![RLE dictionary worse: Tiny/constant plain stream](images/zstd_rle_dict_worse_tiny_constant_plain_stream.svg)
+
+| Improvement bucket | `zstd + rle-dict` worse by |
+| --- | ---: |
+| `0-10%` | 3 |
+| `10-20%` | 5 |
+| `20-30%` | 7 |
+| `30-40%` | 1 |
+| `40-50%` | 9 |
+| `50-60%` | 0 |
+| `60-70%` | 0 |
+| `70-80%` | 0 |
+| `80-90%` | 4 |
+| `90-100%` | 0 |
+| `100-200%` | 1 |
+| `200-500%` | 0 |
+| `500%+` | 0 |
+
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `WindowName` | `int32` | Tiny/constant plain stream | median row-group cardinality 6; median cardinality/rows 0.050260% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 6 / 3,150 | 0.050260% | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 70,803 B (69.14 KiB) | 1.770075% | 1.767842% | 148,703 B (145.22 KiB) | 3.717575% | 3.712886% | 110.023587% |  |  |  |  | 59 |
+| `ParamOrderID` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) |  | 0.071144% | 5,247 B (5.12 KiB) |  | 0.131072% | 84.234551% |  |  |  |  | 59 |
+| `Params` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) |  | 0.071144% | 5,247 B (5.12 KiB) |  | 0.131072% | 84.234551% |  |  |  |  | 59 |
+| `SocialAction` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) |  | 0.071144% | 5,247 B (5.12 KiB) |  | 0.131072% | 84.234551% |  |  |  |  | 59 |
+| `SocialNetwork` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) |  | 0.071144% | 5,247 B (5.12 KiB) |  | 0.131072% | 84.234551% |  |  |  |  | 59 |
+| `CounterClass` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% |  |  |  |  | 57 |
+| `HTTPError` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% |  |  |  |  | 57 |
+| `IsEvent` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% |  |  |  |  | 57 |
+| `IsOldCounter` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% |  |  |  |  | 57 |
+| `IsParameter` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% |  |  |  |  | 57 |
+| `ParamCurrencyID` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% |  |  |  |  | 57 |
+| `WithHash` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% |  |  |  |  | 57 |
+| `OpenerName` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,046 B (3.82 MiB) | 4,232 B (4.13 KiB) | 0.105800% | 0.105667% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.186200% |  |  |  |  | 57 |
+| `SocialSourcePage` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 5 | 0.008377% | 1,024 B (1.00 KiB) | 4,005,153 B (3.82 MiB) | 4,853 B (4.74 KiB) | 473.925781% | 0.121169% | 6,826 B (6.67 KiB) | 666.601562% | 0.170430% | 40.655265% |  |  |  |  | 59 |
+| `SilverlightVersion4` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 3 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,357 B (4.25 KiB) | 0.108925% | 0.108788% | 6,084 B (5.94 KiB) | 0.152100% | 0.151908% | 39.637365% |  |  |  |  | 57 |
+| `SocialSourceNetworkID` | `int16` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 4 | 0.016753% | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 5,318 B (5.19 KiB) | 0.132950% | 0.132782% | 6,912 B (6.75 KiB) | 0.172800% | 0.172582% | 29.973674% |  |  |  |  | 57 |
+| `ParamPrice` | `int64` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 8,000,000 B (7.63 MiB) | 8,006,318 B (7.64 MiB) | 5,675 B (5.54 KiB) | 0.070938% | 0.070882% | 7,115 B (6.95 KiB) | 0.088938% | 0.088867% | 25.374449% |  |  |  |  | 57 |
+| `SendTiming` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 989 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 61,415 B (59.98 KiB) | 1.535375% | 1.533438% | 76,243 B (74.46 KiB) | 1.906075% | 1.903670% | 24.143939% |  |  |  |  | 59 |
+| `CLID` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 2 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 5,627 B (5.50 KiB) | 0.140675% | 0.140497% | 6,908 B (6.75 KiB) | 0.172700% | 0.172482% | 22.765239% |  |  |  |  | 57 |
+| `CounterID` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 4 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 4,931 B (4.82 KiB) | 0.123275% | 0.123120% | 6,020 B (5.88 KiB) | 0.150500% | 0.150310% | 22.084770% |  |  |  |  | 57 |
+| `EventDate` | `date` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,045 B (3.82 MiB) | 4,905 B (4.79 KiB) | 0.122625% | 0.122471% | 5,976 B (5.84 KiB) | 0.149400% | 0.149212% | 21.834862% |  |  |  |  | 57 |
+| `GoodEvent` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 4,915 B (4.80 KiB) | 0.122875% | 0.122720% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 21.566633% |  |  |  |  | 57 |
+| `CookieEnable` | `int16` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 2 | 0.016753% | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 6,053 B (5.91 KiB) | 0.151325% | 0.151134% | 7,077 B (6.91 KiB) | 0.176925% | 0.176702% | 16.917231% |  |  |  |  | 57 |
+| `ParamCurrency` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 3,000,000 B (2.86 MiB) | 7,004,733 B (6.68 MiB) | 5,256 B (5.13 KiB) | 0.175200% | 0.075035% | 6,132 B (5.99 KiB) | 0.204400% | 0.087541% | 16.666667% |  |  |  |  | 59 |
+| `IsDownload` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 2 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,055 B (3.82 MiB) | 8,024 B (7.84 KiB) | 0.200600% | 0.200347% | 9,254 B (9.04 KiB) | 0.231350% | 0.231058% | 15.329013% |  |  |  |  | 57 |
+| `JavascriptEnable` | `int16` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 2 | 0.016753% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 6,485 B (6.33 KiB) | 0.162125% | 0.161921% | 7,387 B (7.21 KiB) | 0.184675% | 0.184442% | 13.909021% |  |  |  |  | 57 |
+| `CodeVersion` | `int32` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 3 | 0.016753% | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 7,031 B (6.87 KiB) | 0.175775% | 0.175553% | 7,970 B (7.78 KiB) | 0.199250% | 0.198999% | 13.355142% |  |  |  |  | 57 |
+| `UTMContent` | `string` | Tiny/constant plain stream | median row-group cardinality 3; median cardinality/rows 0.025130% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 3 / 25 | 0.025130% | 13,001 B (12.70 KiB) | 4,018,131 B (3.83 MiB) | 13,959 B (13.63 KiB) | 107.368664% | 0.347400% | 14,839 B (14.49 KiB) | 114.137374% | 0.369301% | 6.304177% |  |  |  |  | 59 |
+| `MobilePhone` | `int16` | Tiny/constant plain stream | median row-group cardinality 7; median cardinality/rows 0.058636% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 3 / 7 / 11 | 0.058636% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 22,463 B (21.94 KiB) | 0.561575% | 0.560867% | 23,572 B (23.02 KiB) | 0.589300% | 0.588557% | 4.937008% |  |  |  |  | 57 |
+| `UTMTerm` | `string` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 75 | 0.016753% | 28,101 B (27.44 KiB) | 4,034,484 B (3.85 MiB) | 15,648 B (15.28 KiB) | 55.684851% | 0.387856% | 15,920 B (15.55 KiB) | 56.652788% | 0.394598% | 1.738241% |  |  |  |  | 59 |
+
+### Small-domain fixed-width literals
+
+RLE dictionary shrank the encoded stream, but ZSTD compressed the repeated fixed-width plain literals better than dictionary IDs plus a dictionary page.
+
+![RLE dictionary worse: Small-domain fixed-width literals](images/zstd_rle_dict_worse_small_domain_fixed_width_literals.svg)
+
+| Improvement bucket | `zstd + rle-dict` worse by |
+| --- | ---: |
+| `0-10%` | 1 |
+| `10-20%` | 6 |
+| `20-30%` | 2 |
+| `30-40%` | 1 |
+| `40-50%` | 0 |
+| `50-60%` | 2 |
+| `60-70%` | 2 |
+| `70-80%` | 1 |
+| `80-90%` | 1 |
+| `90-100%` | 2 |
+| `100-200%` | 0 |
+| `200-500%` | 0 |
+| `500%+` | 0 |
+
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `ClientIP` | `int32` | Small-domain fixed-width literals | median row-group cardinality 924; median cardinality/rows 7.739990%; plain encoded 4,003,592 B (3.82 MiB); rle encoded 941,748 B (919.68 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 744 / 924 / 1,957 | 7.739990% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 408,058 B (398.49 KiB) | 10.201450% | 10.188587% | 806,924 B (788.01 KiB) | 20.173100% | 20.147664% | 97.747379% |  |  |  |  | 57 |
+| `IPNetworkID` | `int32` | Small-domain fixed-width literals | median row-group cardinality 600; median cardinality/rows 5.025967%; plain encoded 4,003,590 B (3.82 MiB); rle encoded 748,476 B (730.93 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 498 / 600 / 1,095 | 5.025967% | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 323,708 B (316.12 KiB) | 8.092700% | 8.082492% | 619,756 B (605.23 KiB) | 15.493900% | 15.474356% | 91.455262% |  |  |  |  | 57 |
+| `WindowClientHeight` | `int16` | Small-domain fixed-width literals | median row-group cardinality 435; median cardinality/rows 3.643826%; plain encoded 4,003,650 B (3.82 MiB); rle encoded 750,345 B (732.76 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 318 / 435 / 575 | 3.643826% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 319,342 B (311.86 KiB) | 7.983550% | 7.973481% | 583,325 B (569.65 KiB) | 14.583125% | 14.564733% | 82.664667% |  |  |  |  | 57 |
+| `UserID` | `int64` | Small-domain fixed-width literals | median row-group cardinality 898; median cardinality/rows 7.522198%; plain encoded 8,004,550 B (7.63 MiB); rle encoded 1,230,153 B (1.17 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 716 / 898 / 1,805 | 7.522198% | 8,000,000 B (7.63 MiB) | 8,006,315 B (7.64 MiB) | 617,840 B (603.36 KiB) | 7.723000% | 7.716908% | 1,101,572 B (1.05 MiB) | 13.769650% | 13.758789% | 78.294057% |  |  |  |  | 57 |
+| `RemoteIP` | `int32` | Small-domain fixed-width literals | median row-group cardinality 851; median cardinality/rows 7.128497%; plain encoded 4,003,606 B (3.82 MiB); rle encoded 927,182 B (905.45 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 508 / 851 / 1,951 | 7.128497% | 4,000,000 B (3.81 MiB) | 4,005,047 B (3.82 MiB) | 426,425 B (416.43 KiB) | 10.660625% | 10.647191% | 698,454 B (682.08 KiB) | 17.461350% | 17.439346% | 63.792930% |  |  |  |  | 59 |
+| `Interests` | `int16` | Small-domain fixed-width literals | median row-group cardinality 217; median cardinality/rows 1.817725%; plain encoded 4,003,589 B (3.82 MiB); rle encoded 487,582 B (476.15 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 151 / 217 / 395 | 1.817725% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 193,369 B (188.84 KiB) | 4.834225% | 4.828129% | 310,021 B (302.75 KiB) | 7.750525% | 7.740752% | 60.326112% |  |  |  |  | 60 |
+| `WindowClientWidth` | `int16` | Small-domain fixed-width literals | median row-group cardinality 306; median cardinality/rows 2.563243%; plain encoded 4,003,590 B (3.82 MiB); rle encoded 695,366 B (679.07 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 241 / 306 / 374 | 2.563243% | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 305,724 B (298.56 KiB) | 7.643100% | 7.633459% | 471,075 B (460.03 KiB) | 11.776875% | 11.762020% | 54.085057% |  |  |  |  | 57 |
+| `FUniqID` | `int64` | Small-domain fixed-width literals | median row-group cardinality 812; median cardinality/rows 6.801809%; plain encoded 8,004,554 B (7.63 MiB); rle encoded 1,186,134 B (1.13 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 628 / 812 / 1,703 | 6.801809% | 8,000,000 B (7.63 MiB) | 8,006,317 B (7.64 MiB) | 693,929 B (677.67 KiB) | 8.674112% | 8.667269% | 1,058,653 B (1.01 MiB) | 13.233163% | 13.222722% | 52.559268% |  |  |  |  | 57 |
+| `Robotness` | `int16` | Small-domain fixed-width literals | median row-group cardinality 114; median cardinality/rows 0.954934%; plain encoded 4,003,775 B (3.82 MiB); rle encoded 415,545 B (405.81 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 85 / 114 / 200 | 0.954934% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 173,390 B (169.33 KiB) | 4.334750% | 4.329280% | 240,793 B (235.15 KiB) | 6.019825% | 6.012229% | 38.873637% |  |  |  |  | 57 |
+| `RegionID` | `int32` | Small-domain fixed-width literals | median row-group cardinality 149; median cardinality/rows 1.248115%; plain encoded 4,003,584 B (3.82 MiB); rle encoded 435,033 B (424.84 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 112 / 149 / 275 | 1.248115% | 4,000,000 B (3.81 MiB) | 4,005,048 B (3.82 MiB) | 190,701 B (186.23 KiB) | 4.767525% | 4.761516% | 244,341 B (238.61 KiB) | 6.108525% | 6.100826% | 28.127802% |  |  |  |  | 57 |
+| `FetchTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 664; median cardinality/rows 5.562071%; plain encoded 4,003,625 B (3.82 MiB); rle encoded 1,131,789 B (1.08 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 329 / 664 / 1,264 | 5.562071% | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 549,819 B (536.93 KiB) | 13.745475% | 13.728133% | 685,133 B (669.08 KiB) | 17.128325% | 17.106715% | 24.610645% |  |  |  |  | 57 |
+| `DNSTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 98; median cardinality/rows 0.820908%; plain encoded 4,003,588 B (3.82 MiB); rle encoded 343,417 B (335.37 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 68 / 98 / 352 | 0.820908% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 135,085 B (131.92 KiB) | 3.377125% | 3.372866% | 156,185 B (152.52 KiB) | 3.904625% | 3.899701% | 15.619795% |  |  |  |  | 57 |
+| `UserAgentMajor` | `int16` | Small-domain fixed-width literals | median row-group cardinality 29; median cardinality/rows 0.242922%; plain encoded 4,003,585 B (3.82 MiB); rle encoded 275,570 B (269.11 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 26 / 29 / 31 | 0.242922% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 154,186 B (150.57 KiB) | 3.854650% | 3.849790% | 177,456 B (173.30 KiB) | 4.436400% | 4.430806% | 15.092161% |  |  |  |  | 57 |
+| `ConnectTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 222; median cardinality/rows 1.859608%; plain encoded 4,003,660 B (3.82 MiB); rle encoded 703,627 B (687.14 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 117 / 222 / 628 | 1.859608% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 333,011 B (325.21 KiB) | 8.325275% | 8.314776% | 377,469 B (368.62 KiB) | 9.436725% | 9.424824% | 13.350310% |  |  |  |  | 57 |
+| `OS` | `int16` | Small-domain fixed-width literals | median row-group cardinality 23; median cardinality/rows 0.192662%; plain encoded 4,003,587 B (3.82 MiB); rle encoded 229,346 B (223.97 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 16 / 23 / 31 | 0.192662% | 4,000,000 B (3.81 MiB) | 4,005,049 B (3.82 MiB) | 105,900 B (103.42 KiB) | 2.647500% | 2.644162% | 119,893 B (117.08 KiB) | 2.997325% | 2.993546% | 13.213409% |  |  |  |  | 57 |
+| `ResponseEndTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 673; median cardinality/rows 5.637460%; plain encoded 4,003,640 B (3.82 MiB); rle encoded 1,358,021 B (1.30 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 528 / 673 / 1,577 | 5.637460% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 937,781 B (915.80 KiB) | 23.444525% | 23.414958% | 1,037,700 B (1013.38 KiB) | 25.942500% | 25.909782% | 10.654833% |  |  |  |  | 57 |
+| `ResolutionHeight` | `int16` | Small-domain fixed-width literals | median row-group cardinality 70; median cardinality/rows 0.586363%; plain encoded 4,003,586 B (3.82 MiB); rle encoded 371,693 B (362.98 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 49 / 70 / 103 | 0.586363% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 186,022 B (181.66 KiB) | 4.650550% | 4.644686% | 205,409 B (200.59 KiB) | 5.135225% | 5.128750% | 10.421886% |  |  |  |  | 57 |
+| `ResolutionWidth` | `int16` | Small-domain fixed-width literals | median row-group cardinality 64; median cardinality/rows 0.536103%; plain encoded 4,003,581 B (3.82 MiB); rle encoded 368,799 B (360.16 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 48 / 64 / 84 | 0.536103% | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 187,130 B (182.74 KiB) | 4.678250% | 4.672348% | 203,528 B (198.76 KiB) | 5.088200% | 5.081780% | 8.762892% |  |  |  |  | 57 |
+
+### Structured medium/high-cardinality numeric streams
+
+The column has enough distinct numeric/timestamp values that the plain stream preserves structure ZSTD can exploit better than dictionary IDs.
+
+![RLE dictionary worse: Structured medium/high-cardinality numeric streams](images/zstd_rle_dict_worse_structured_medium_high_cardinality_numeric_streams.svg)
+
+| Improvement bucket | `zstd + rle-dict` worse by |
+| --- | ---: |
+| `0-10%` | 0 |
+| `10-20%` | 0 |
+| `20-30%` | 3 |
+| `30-40%` | 0 |
+| `40-50%` | 0 |
+| `50-60%` | 3 |
+| `60-70%` | 0 |
+| `70-80%` | 0 |
+| `80-90%` | 0 |
+| `90-100%` | 0 |
+| `100-200%` | 0 |
+| `200-500%` | 0 |
+| `500%+` | 0 |
+
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `ClientEventTime` | `timestamp_millis` | Structured medium/high-cardinality numeric streams | median row-group cardinality 5882; median cardinality/rows 49.271235%; plain+zstd 2,474,093 B (2.36 MiB); rle+zstd 3,958,277 B (3.77 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 5,666 / 5,882 / 13,078 | 49.271235% | 8,000,000 B (7.63 MiB) | 8,006,314 B (7.64 MiB) | 2,474,093 B (2.36 MiB) | 30.926162% | 30.901773% | 3,958,277 B (3.77 MiB) | 49.478462% | 49.439442% | 59.989014% |  |  |  |  | 60 |
+| `EventTime` | `timestamp_millis` | Structured medium/high-cardinality numeric streams | median row-group cardinality 6237; median cardinality/rows 52.244932%; plain+zstd 2,514,539 B (2.40 MiB); rle+zstd 4,021,616 B (3.84 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 5,997 / 6,237 / 13,042 | 52.244932% | 8,000,000 B (7.63 MiB) | 8,006,315 B (7.64 MiB) | 2,514,539 B (2.40 MiB) | 31.431738% | 31.406946% | 4,021,616 B (3.84 MiB) | 50.270200% | 50.230549% | 59.934525% |  |  |  |  | 60 |
+| `LocalEventTime` | `timestamp_millis` | Structured medium/high-cardinality numeric streams | median row-group cardinality 6254; median cardinality/rows 52.387335%; plain+zstd 2,517,265 B (2.40 MiB); rle+zstd 4,023,316 B (3.84 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 5,968 / 6,254 / 13,047 | 52.387335% | 8,000,000 B (7.63 MiB) | 8,006,317 B (7.64 MiB) | 2,517,265 B (2.40 MiB) | 31.465813% | 31.440986% | 4,023,316 B (3.84 MiB) | 50.291450% | 50.251770% | 59.828862% |  |  |  |  | 60 |
+| `URLHash` | `int64` | Structured medium/high-cardinality numeric streams | median row-group cardinality 3292; median cardinality/rows 27.575808%; plain+zstd 3,580,060 B (3.41 MiB); rle+zstd 4,529,372 B (4.32 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 3,001 / 3,292 / 7,420 | 27.575808% | 8,000,000 B (7.63 MiB) | 8,006,310 B (7.64 MiB) | 3,580,060 B (3.41 MiB) | 44.750750% | 44.715481% | 4,529,372 B (4.32 MiB) | 56.617150% | 56.572528% | 26.516651% |  |  |  |  | 57 |
+| `ResponseStartTiming` | `int32` | Structured medium/high-cardinality numeric streams | median row-group cardinality 1112; median cardinality/rows 9.314793%; plain+zstd 1,245,745 B (1.19 MiB); rle+zstd 1,556,751 B (1.48 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 800 / 1,112 / 3,761 | 9.314793% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 1,245,745 B (1.19 MiB) | 31.143625% | 31.104356% | 1,556,751 B (1.48 MiB) | 38.918775% | 38.869702% | 24.965462% |  |  |  |  | 58 |
+| `RefererHash` | `int64` | Structured medium/high-cardinality numeric streams | median row-group cardinality 2729; median cardinality/rows 22.859776%; plain+zstd 2,841,886 B (2.71 MiB); rle+zstd 3,502,907 B (3.34 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 378 / 2,729 / 6,051 | 22.859776% | 8,000,000 B (7.63 MiB) | 8,006,316 B (7.64 MiB) | 2,841,886 B (2.71 MiB) | 35.523575% | 35.495551% | 3,502,907 B (3.34 MiB) | 43.786338% | 43.751795% | 23.259941% |  |  |  |  | 59 |
+
 ## Delta Binary Packed Winner vs Second Best Improvement Distribution
 
 For each column, this looks at the `Compressed overall` ranking below. Only columns where `delta-binary-packed` is the best observed compressed result are bucketed. Improvement is `(second-best compressed bytes - delta-binary-packed compressed bytes) / second-best compressed bytes * 100`.

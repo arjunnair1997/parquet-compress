@@ -74,16 +74,20 @@ type experimentResult struct {
 }
 
 type columnResult struct {
-	Column            string
-	Type              string
-	ConfigEncoding    string
-	MetadataEncodings string
-	PageEncodings     string
-	Values            int64
-	PhysicalBytes     int64
-	EncodedBytes      int64
-	CompressedBytes   int64
-	SourceFieldBytes  int64
+	Column                                  string
+	Type                                    string
+	ConfigEncoding                          string
+	MetadataEncodings                       string
+	PageEncodings                           string
+	Values                                  int64
+	PhysicalBytes                           int64
+	EncodedBytes                            int64
+	CompressedBytes                         int64
+	DictionaryPageCount                     int64
+	DictionaryPageCompressedBytes           int64
+	CompressedBytesWithoutDictionaryPages   int64
+	HasCompressedBytesWithoutDictionaryPage bool
+	SourceFieldBytes                        int64
 }
 
 type experimentRanking struct {
@@ -224,6 +228,46 @@ type snappyPlainRLEDictComparison struct {
 	PlainBetterCount     int
 	TieCount             int
 	MissingCount         int
+}
+
+type rleDictWorseCategoryComparison struct {
+	Categories         []rleDictWorseCategory
+	ComparedColumns    int
+	RLEDictWorseCount  int
+	RLEDictBetterCount int
+	TieCount           int
+	MissingCount       int
+	MissingShapeStats  int
+}
+
+type rleDictWorseCategory struct {
+	Name        string
+	Slug        string
+	Description string
+	Rows        []rleDictWorseColumn
+	Buckets     []encodingImprovementBucket
+	MinPct      float64
+	MedianPct   float64
+	MaxPct      float64
+}
+
+type rleDictWorseColumn struct {
+	Column                                  string
+	Type                                    string
+	Category                                string
+	MeasuredFeature                         string
+	MeasuredReason                          string
+	RowGroupCardinality                     string
+	MedianCardinalityRatio                  float64
+	HasShapeStats                           bool
+	PhysicalBytes                           int64
+	BaselineEncodedBytes                    int64
+	PlainBytes                              int64
+	RLEDictBytes                            int64
+	RLEDictBytesWithoutDictionaryPages      int64
+	DictionaryPageCount                     int64
+	HasCompressedBytesWithoutDictionaryPage bool
+	WorseByPct                              float64
 }
 
 type encodingImprovementBucket struct {
@@ -771,20 +815,49 @@ func parseColumnStatsTSV(path string) ([]columnResult, error) {
 			return nil, err
 		}
 		col := columnResult{
-			Column:            field(record, index, "column"),
-			Type:              field(record, index, "type"),
-			ConfigEncoding:    field(record, index, "config_encoding"),
-			MetadataEncodings: field(record, index, "metadata_encodings"),
-			PageEncodings:     field(record, index, "page_encodings"),
-			Values:            parseInt(field(record, index, "values")),
-			PhysicalBytes:     parseInt(field(record, index, "physical_bytes")),
-			EncodedBytes:      parseInt(field(record, index, "encoded_bytes")),
-			CompressedBytes:   parseInt(field(record, index, "compressed_bytes")),
-			SourceFieldBytes:  parseInt(field(record, index, "source_field_bytes")),
+			Column:                        field(record, index, "column"),
+			Type:                          field(record, index, "type"),
+			ConfigEncoding:                field(record, index, "config_encoding"),
+			MetadataEncodings:             field(record, index, "metadata_encodings"),
+			PageEncodings:                 field(record, index, "page_encodings"),
+			Values:                        parseInt(field(record, index, "values")),
+			PhysicalBytes:                 parseInt(field(record, index, "physical_bytes")),
+			EncodedBytes:                  parseInt(field(record, index, "encoded_bytes")),
+			CompressedBytes:               parseInt(field(record, index, "compressed_bytes")),
+			DictionaryPageCount:           parseInt(field(record, index, "dictionary_page_count")),
+			DictionaryPageCompressedBytes: parseInt(field(record, index, "dictionary_page_compressed_bytes")),
+			SourceFieldBytes:              parseInt(field(record, index, "source_field_bytes")),
+		}
+		if col.DictionaryPageCount == 0 {
+			col.DictionaryPageCount = dictionaryPageCountFromPageEncodings(col.PageEncodings)
+		}
+		if value := field(record, index, "compressed_bytes_without_dictionary_pages"); value != "" {
+			col.CompressedBytesWithoutDictionaryPages = parseInt(value)
+			col.HasCompressedBytesWithoutDictionaryPage = true
+		} else if col.DictionaryPageCompressedBytes != 0 {
+			col.CompressedBytesWithoutDictionaryPages = col.CompressedBytes - col.DictionaryPageCompressedBytes
+			col.HasCompressedBytesWithoutDictionaryPage = true
+		} else {
+			col.CompressedBytesWithoutDictionaryPages = col.CompressedBytes
 		}
 		columns = append(columns, col)
 	}
 	return columns, nil
+}
+
+func dictionaryPageCountFromPageEncodings(pageEncodings string) int64 {
+	for _, part := range strings.Split(pageEncodings, ",") {
+		part = strings.TrimSpace(part)
+		if !strings.HasPrefix(part, "DICTIONARY_PAGE/") {
+			continue
+		}
+		colon := strings.LastIndex(part, ":")
+		if colon < 0 || colon == len(part)-1 {
+			continue
+		}
+		return parseInt(part[colon+1:])
+	}
+	return 0
 }
 
 func field(record []string, index map[string]int, name string) string {
@@ -1277,6 +1350,9 @@ func writeColumnResultsTSV(path string, observations []columnObservation) error 
 		"baseline_encoded_bytes",
 		"encoded_bytes",
 		"compressed_bytes",
+		"dictionary_page_count",
+		"dictionary_page_compressed_bytes",
+		"compressed_bytes_without_dictionary_pages",
 		"post_compression_no_encoding_bytes",
 		"post_compression_no_encoding_ratio",
 		"target_metric",
@@ -1304,6 +1380,9 @@ func writeColumnResultsTSV(path string, observations []columnObservation) error 
 				strconv.FormatInt(obs.BaselineEncodedBytes, 10),
 				strconv.FormatInt(obs.Column.EncodedBytes, 10),
 				strconv.FormatInt(obs.Column.CompressedBytes, 10),
+				strconv.FormatInt(obs.Column.DictionaryPageCount, 10),
+				strconv.FormatInt(obs.Column.DictionaryPageCompressedBytes, 10),
+				optionalInt(obs.Column.CompressedBytesWithoutDictionaryPages, obs.Column.HasCompressedBytesWithoutDictionaryPage),
 				optionalInt(obs.PlainCompressedBytes, obs.HasPlainCompressedBytes),
 				optionalRatio(obs.PlainCompressionRatio, obs.HasPlainCompressionRatio),
 				obs.TargetMetric,
@@ -1650,6 +1729,17 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	fmt.Fprintf(&b, "For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.\n\n")
 	writeShapeImage(&b, "ZSTD plain versus RLE dictionary improvement distribution", zstdComparisonPath, reportDir)
 	writeZstdPlainRLEDictComparisonTable(&b, zstdComparison)
+
+	rleDictWorseCategories := buildZstdRLEDictWorseCategoryComparison(byColumn, shapeByColumn)
+	if err := writeRLEDictWorseCategoryImages(reportDir, &rleDictWorseCategories); err != nil {
+		return err
+	}
+	fmt.Fprintf(&b, "## ZSTD RLE Dict Worse Distribution By Category\n\n")
+	fmt.Fprintf(&b, "For columns where the best observed `zstd + plain` compressed byte count is smaller than the best observed `zstd + rle-dict` compressed byte count, this buckets how much worse RLE dictionary encoding was. Worse-by percentage is `(rle_dict_compressed_bytes / plain_compressed_bytes - 1) * 100`, so values can exceed 100%%.\n\n")
+	fmt.Fprintf(&b, "The compressed bytes are Parquet column-chunk bytes, including dictionary pages and page headers.\n\n")
+	fmt.Fprintf(&b, "`Plain encoded bytes before compression` is the same column's byte count from the all-plain/no-compression baseline run. The `/ plain encoded` percentage columns compare compressed column bytes against that baseline denominator.\n\n")
+	fmt.Fprintf(&b, "Categorization uses only measured byte sizes, row-group cardinality, and column type: `True dictionary bloat` means RLE dictionary encoded bytes exceeded plain encoded bytes before ZSTD; `Tiny/constant plain stream` means median row-group cardinality is at most 2 or median cardinality/rows is at most 0.0006; `Structured medium/high-cardinality numeric streams` means a numeric or temporal column has median cardinality/rows at least 0.09; the remaining losing columns fall into `Small-domain fixed-width literals`. Sortedness, page min/max, and value-length distributions are shown elsewhere in this report but are not currently used for this category assignment.\n\n")
+	writeRLEDictWorseCategoryComparison(&b, rleDictWorseCategories, reportDir)
 
 	deltaBinaryPackedComparison := buildDeltaBinaryPackedWinnerComparison(byColumn)
 	deltaBinaryPackedComparisonPath := filepath.Join(reportDir, "images", "delta_binary_packed_winner_vs_second_best_improvement.svg")
@@ -2066,6 +2156,358 @@ func writeZstdPlainRLEDictComparisonSVG(path string, summary zstdPlainRLEDictCom
 		"columns",
 		summary.Buckets,
 	)
+}
+
+func buildZstdRLEDictWorseCategoryComparison(byColumn map[string][]columnObservation, shapeByColumn map[string]columnShapeStats) rleDictWorseCategoryComparison {
+	categories := rleDictWorseCategoryDefinitions()
+	byName := make(map[string]*rleDictWorseCategory, len(categories))
+	for i := range categories {
+		byName[categories[i].Name] = &categories[i]
+	}
+
+	summary := rleDictWorseCategoryComparison{
+		Categories: categories,
+	}
+	for column, observations := range byColumn {
+		plain, plainOK := bestCompressedObservationFor(observations, "zstd", "plain")
+		rleDict, rleDictOK := bestCompressedObservationFor(observations, "zstd", "rle-dict")
+		if !plainOK || !rleDictOK {
+			summary.MissingCount++
+			continue
+		}
+		summary.ComparedColumns++
+		plainBytes := plain.Column.CompressedBytes
+		rleDictBytes := rleDict.Column.CompressedBytes
+		switch {
+		case rleDictBytes > plainBytes:
+			summary.RLEDictWorseCount++
+		case rleDictBytes < plainBytes:
+			summary.RLEDictBetterCount++
+			continue
+		default:
+			summary.TieCount++
+			continue
+		}
+
+		shape, ok := shapeByColumn[column]
+		if !ok {
+			summary.MissingShapeStats++
+		}
+		rowGroupCardinality, medianCardinalityRatio, hasShapeStats := rleDictWorseShapeSummary(shape, ok)
+		categoryName := classifyRLEDictWorseColumn(plain, rleDict, shape, ok)
+		measuredFeature, measuredReason := rleDictWorseMeasuredReason(categoryName, plain, rleDict, shape, ok)
+		category := byName[categoryName]
+		if category == nil {
+			category = byName["Small-domain fixed-width literals"]
+		}
+		category.Rows = append(category.Rows, rleDictWorseColumn{
+			Column:                                  column,
+			Type:                                    plain.Column.Type,
+			Category:                                categoryName,
+			MeasuredFeature:                         measuredFeature,
+			MeasuredReason:                          measuredReason,
+			RowGroupCardinality:                     rowGroupCardinality,
+			MedianCardinalityRatio:                  medianCardinalityRatio,
+			HasShapeStats:                           hasShapeStats,
+			PhysicalBytes:                           plain.Column.PhysicalBytes,
+			BaselineEncodedBytes:                    plain.BaselineEncodedBytes,
+			PlainBytes:                              plainBytes,
+			RLEDictBytes:                            rleDictBytes,
+			RLEDictBytesWithoutDictionaryPages:      rleDict.Column.CompressedBytesWithoutDictionaryPages,
+			DictionaryPageCount:                     rleDict.Column.DictionaryPageCount,
+			HasCompressedBytesWithoutDictionaryPage: rleDict.Column.HasCompressedBytesWithoutDictionaryPage,
+			WorseByPct:                              percentLarger(rleDictBytes, plainBytes),
+		})
+	}
+
+	for i := range summary.Categories {
+		category := &summary.Categories[i]
+		sort.Slice(category.Rows, func(i, j int) bool {
+			if category.Rows[i].WorseByPct != category.Rows[j].WorseByPct {
+				return category.Rows[i].WorseByPct > category.Rows[j].WorseByPct
+			}
+			return category.Rows[i].Column < category.Rows[j].Column
+		})
+		values := make([]float64, 0, len(category.Rows))
+		for _, row := range category.Rows {
+			values = append(values, row.WorseByPct)
+		}
+		category.Buckets = buildWorseByBuckets(values)
+		category.MinPct, category.MedianPct, category.MaxPct = summarizeFloat64(values)
+	}
+	return summary
+}
+
+func rleDictWorseCategoryDefinitions() []rleDictWorseCategory {
+	return []rleDictWorseCategory{
+		{
+			Name:        "True dictionary bloat",
+			Slug:        "true_dictionary_bloat",
+			Description: "RLE dictionary encoding was already larger than plain before ZSTD, usually because the dictionary itself was too large for the column.",
+		},
+		{
+			Name:        "Tiny/constant plain stream",
+			Slug:        "tiny_constant_plain_stream",
+			Description: "The column is tiny or nearly constant per row group; plain pages give ZSTD an extremely repetitive stream, while dictionary pages add overhead.",
+		},
+		{
+			Name:        "Small-domain fixed-width literals",
+			Slug:        "small_domain_fixed_width_literals",
+			Description: "RLE dictionary shrank the encoded stream, but ZSTD compressed the repeated fixed-width plain literals better than dictionary IDs plus a dictionary page.",
+		},
+		{
+			Name:        "Structured medium/high-cardinality numeric streams",
+			Slug:        "structured_medium_high_cardinality_numeric_streams",
+			Description: "The column has enough distinct numeric/timestamp values that the plain stream preserves structure ZSTD can exploit better than dictionary IDs.",
+		},
+	}
+}
+
+func classifyRLEDictWorseColumn(plain, rleDict columnObservation, shape columnShapeStats, hasShape bool) string {
+	if rleDict.Column.EncodedBytes > plain.Column.EncodedBytes {
+		return "True dictionary bloat"
+	}
+	if hasShape {
+		medianCardinality, medianRows := medianRowGroupCardinalityAndRows(shape.RowGroups)
+		cardinalityRatio := 0.0
+		if medianRows > 0 {
+			cardinalityRatio = medianCardinality / medianRows
+		}
+		if medianCardinality <= 2 || cardinalityRatio <= 0.0006 {
+			return "Tiny/constant plain stream"
+		}
+		if isNumericOrTemporalColumnType(plain.Column.Type) && cardinalityRatio >= 0.09 {
+			return "Structured medium/high-cardinality numeric streams"
+		}
+	}
+	return "Small-domain fixed-width literals"
+}
+
+func rleDictWorseMeasuredReason(category string, plain, rleDict columnObservation, shape columnShapeStats, hasShape bool) (string, string) {
+	cardinalityFeature := "shape stats unavailable"
+	if hasShape {
+		medianCardinality, medianRows := medianRowGroupCardinalityAndRows(shape.RowGroups)
+		ratio := 0.0
+		if medianRows > 0 {
+			ratio = medianCardinality / medianRows
+		}
+		cardinalityFeature = fmt.Sprintf("median row-group cardinality %.0f; median cardinality/rows %.6f%%", medianCardinality, ratio*100)
+	}
+
+	encodedComparison := fmt.Sprintf("plain encoded %s; rle encoded %s", formatByteCount(plain.Column.EncodedBytes), formatByteCount(rleDict.Column.EncodedBytes))
+	compressedComparison := fmt.Sprintf("plain+zstd %s; rle+zstd %s", formatByteCount(plain.Column.CompressedBytes), formatByteCount(rleDict.Column.CompressedBytes))
+
+	switch category {
+	case "True dictionary bloat":
+		return encodedComparison, "RLE dictionary was larger than plain before ZSTD; the compressed result stayed larger."
+	case "Tiny/constant plain stream":
+		return cardinalityFeature, "Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead."
+	case "Small-domain fixed-width literals":
+		return cardinalityFeature + "; " + encodedComparison, "RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes."
+	case "Structured medium/high-cardinality numeric streams":
+		return cardinalityFeature + "; " + compressedComparison, "The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD."
+	default:
+		return cardinalityFeature, "RLE-dict+ZSTD was larger than plain+ZSTD for this measured column."
+	}
+}
+
+func rleDictWorseShapeSummary(shape columnShapeStats, ok bool) (string, float64, bool) {
+	if !ok || len(shape.RowGroups) == 0 {
+		return "", 0, false
+	}
+	cardinalities := make([]int64, 0, len(shape.RowGroups))
+	rows := make([]float64, 0, len(shape.RowGroups))
+	for _, rowGroup := range shape.RowGroups {
+		cardinalities = append(cardinalities, rowGroup.Cardinality)
+		rows = append(rows, float64(rowGroup.NumRows))
+	}
+	medianCardinality := medianFloat64(int64sToFloat64s(cardinalities))
+	medianRows := medianFloat64(rows)
+	ratio := 0.0
+	if medianRows > 0 {
+		ratio = medianCardinality / medianRows
+	}
+	return summarizeInt64(cardinalities), ratio, true
+}
+
+func int64sToFloat64s(values []int64) []float64 {
+	out := make([]float64, 0, len(values))
+	for _, value := range values {
+		out = append(out, float64(value))
+	}
+	return out
+}
+
+func medianRowGroupCardinalityAndRows(rowGroups []shapeRowGroupStats) (float64, float64) {
+	cardinalities := make([]float64, 0, len(rowGroups))
+	rows := make([]float64, 0, len(rowGroups))
+	for _, rowGroup := range rowGroups {
+		cardinalities = append(cardinalities, float64(rowGroup.Cardinality))
+		rows = append(rows, float64(rowGroup.NumRows))
+	}
+	return medianFloat64(cardinalities), medianFloat64(rows)
+}
+
+func isNumericOrTemporalColumnType(columnType string) bool {
+	switch {
+	case strings.HasPrefix(columnType, "int"):
+		return true
+	case strings.HasPrefix(columnType, "uint"):
+		return true
+	case strings.HasPrefix(columnType, "timestamp"):
+		return true
+	case columnType == "date":
+		return true
+	default:
+		return false
+	}
+}
+
+func percentLarger(larger, smaller int64) float64 {
+	if smaller <= 0 {
+		return 0
+	}
+	return ((float64(larger) / float64(smaller)) - 1) * 100
+}
+
+func buildWorseByBuckets(values []float64) []encodingImprovementBucket {
+	labels := []string{
+		"0-10%",
+		"10-20%",
+		"20-30%",
+		"30-40%",
+		"40-50%",
+		"50-60%",
+		"60-70%",
+		"70-80%",
+		"80-90%",
+		"90-100%",
+		"100-200%",
+		"200-500%",
+		"500%+",
+	}
+	buckets := make([]encodingImprovementBucket, len(labels))
+	for i, label := range labels {
+		buckets[i].Label = label
+	}
+	for _, value := range values {
+		index := worseByBucketIndex(value)
+		buckets[index].Count++
+	}
+	return buckets
+}
+
+func worseByBucketIndex(value float64) int {
+	if value < 0 || math.IsNaN(value) || math.IsInf(value, 0) {
+		return 0
+	}
+	if value < 100 {
+		return int(value / 10)
+	}
+	if value < 200 {
+		return 10
+	}
+	if value < 500 {
+		return 11
+	}
+	return 12
+}
+
+func summarizeFloat64(values []float64) (float64, float64, float64) {
+	if len(values) == 0 {
+		return 0, 0, 0
+	}
+	values = append([]float64(nil), values...)
+	sort.Float64s(values)
+	return values[0], medianFloat64(values), values[len(values)-1]
+}
+
+func medianFloat64(values []float64) float64 {
+	if len(values) == 0 {
+		return 0
+	}
+	values = append([]float64(nil), values...)
+	sort.Float64s(values)
+	mid := len(values) / 2
+	if len(values)%2 == 1 {
+		return values[mid]
+	}
+	return (values[mid-1] + values[mid]) / 2
+}
+
+func writeRLEDictWorseCategoryImages(reportDir string, summary *rleDictWorseCategoryComparison) error {
+	for i := range summary.Categories {
+		category := &summary.Categories[i]
+		path := filepath.Join(reportDir, "images", "zstd_rle_dict_worse_"+category.Slug+".svg")
+		if err := writeImprovementBucketChartSVG(
+			path,
+			"RLE dictionary worse: "+category.Name,
+			"columns where rle-dict is worse",
+			category.Buckets,
+			"#dc2626",
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeRLEDictWorseCategoryComparison(b *strings.Builder, summary rleDictWorseCategoryComparison, reportDir string) {
+	fmt.Fprintf(b, "- Compared columns: `%d`\n", summary.ComparedColumns)
+	fmt.Fprintf(b, "- `zstd + rle-dict` worse than `zstd + plain`: `%d`; better: `%d`; ties: `%d`; missing comparisons: `%d`\n", summary.RLEDictWorseCount, summary.RLEDictBetterCount, summary.TieCount, summary.MissingCount)
+	fmt.Fprintf(b, "- Missing shape stats while categorizing: `%d`\n\n", summary.MissingShapeStats)
+
+	fmt.Fprintf(b, "| Category | Columns | Worse by min/median/max |\n")
+	fmt.Fprintf(b, "| --- | ---: | ---: |\n")
+	for _, category := range summary.Categories {
+		fmt.Fprintf(b, "| %s | %d | %s / %s / %s |\n",
+			category.Name,
+			len(category.Rows),
+			formatPercent(category.MinPct),
+			formatPercent(category.MedianPct),
+			formatPercent(category.MaxPct),
+		)
+	}
+	fmt.Fprintf(b, "\n")
+
+	for _, category := range summary.Categories {
+		fmt.Fprintf(b, "### %s\n\n", category.Name)
+		fmt.Fprintf(b, "%s\n\n", category.Description)
+		imagePath := filepath.Join(reportDir, "images", "zstd_rle_dict_worse_"+category.Slug+".svg")
+		writeShapeImage(b, "RLE dictionary worse: "+category.Name, imagePath, reportDir)
+		writeImprovementBucketTable(b, "`zstd + rle-dict` worse by", category.Buckets)
+		if len(category.Rows) == 0 {
+			continue
+		}
+		fmt.Fprintf(b, "| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | Dictionary pages |\n")
+		fmt.Fprintf(b, "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+		for _, row := range category.Rows {
+			fmt.Fprintf(b, "| `%s` | `%s` | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %d |\n",
+				row.Column,
+				row.Type,
+				row.Category,
+				row.MeasuredFeature,
+				row.MeasuredReason,
+				optionalString(row.RowGroupCardinality, row.HasShapeStats),
+				optionalPercentMarkdown(row.MedianCardinalityRatio*100, row.HasShapeStats),
+				formatByteCount(row.PhysicalBytes),
+				formatByteCount(row.BaselineEncodedBytes),
+				formatByteCount(row.PlainBytes),
+				formatBytesAsPercentOf(row.PlainBytes, row.PhysicalBytes),
+				formatBytesAsPercentOf(row.PlainBytes, row.BaselineEncodedBytes),
+				formatByteCount(row.RLEDictBytes),
+				formatBytesAsPercentOf(row.RLEDictBytes, row.PhysicalBytes),
+				formatBytesAsPercentOf(row.RLEDictBytes, row.BaselineEncodedBytes),
+				formatPercent(row.WorseByPct),
+				formatOptionalByteCount(row.RLEDictBytesWithoutDictionaryPages, row.HasCompressedBytesWithoutDictionaryPage),
+				formatOptionalBytesAsPercentOf(row.RLEDictBytesWithoutDictionaryPages, row.PhysicalBytes, row.HasCompressedBytesWithoutDictionaryPage),
+				formatOptionalBytesAsPercentOf(row.RLEDictBytesWithoutDictionaryPages, row.BaselineEncodedBytes, row.HasCompressedBytesWithoutDictionaryPage),
+				formatOptionalPercentDifference(row.RLEDictBytesWithoutDictionaryPages, row.PlainBytes, row.HasCompressedBytesWithoutDictionaryPage),
+				row.DictionaryPageCount,
+			)
+		}
+		fmt.Fprintf(b, "\n")
+	}
 }
 
 func buildDeltaBinaryPackedWinnerComparison(byColumn map[string][]columnObservation) deltaBinaryPackedWinnerComparison {
@@ -2873,6 +3315,13 @@ func formatByteCount(n int64) string {
 	return fmt.Sprintf("%s B (%s)", formatCount(n), formatBytes(n))
 }
 
+func formatOptionalByteCount(n int64, ok bool) string {
+	if !ok {
+		return ""
+	}
+	return formatByteCount(n)
+}
+
 func formatCount(n int64) string {
 	s := strconv.FormatInt(n, 10)
 	if len(s) <= 3 {
@@ -2990,11 +3439,39 @@ func optionalPercentMarkdown(value float64, ok bool) string {
 	return fmt.Sprintf("%.6f%%", value)
 }
 
+func formatBytesAsPercentOf(bytes, total int64) string {
+	if total == 0 {
+		return ""
+	}
+	return formatPercent((float64(bytes) / float64(total)) * 100)
+}
+
+func formatOptionalBytesAsPercentOf(bytes, total int64, ok bool) string {
+	if !ok {
+		return ""
+	}
+	return formatBytesAsPercentOf(bytes, total)
+}
+
+func formatOptionalPercentDifference(candidate, baseline int64, ok bool) string {
+	if !ok {
+		return ""
+	}
+	return formatPercent(percentLarger(candidate, baseline))
+}
+
 func optionalInt(value int64, ok bool) string {
 	if !ok {
 		return ""
 	}
 	return strconv.FormatInt(value, 10)
+}
+
+func optionalString(value string, ok bool) string {
+	if !ok {
+		return ""
+	}
+	return value
 }
 
 func formatBytes(n int64) string {

@@ -1,8 +1,8 @@
 # Encoding Matrix Summary
 
-- Started: `2026-07-04T19:53:24-04:00`
-- Finished: `2026-07-04T19:53:30-04:00`
-- Elapsed: `6.644s`
+- Started: `2026-07-04T22:24:52-04:00`
+- Finished: `2026-07-04T22:24:58-04:00`
+- Elapsed: `6.543s`
 - Rows per experiment: `1000000`
 - Experiments: `324`
 - Parallelism: `1`

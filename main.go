@@ -25,6 +25,8 @@ import (
 	"parquet_compress/parquet-go/compress/snappy"
 	parquetzstd "parquet_compress/parquet-go/compress/zstd"
 	"parquet_compress/parquet-go/encoding"
+	"parquet_compress/parquet-go/encoding/thrift"
+	"parquet_compress/parquet-go/format"
 )
 
 const (
@@ -140,6 +142,8 @@ type columnStat struct {
 	PhysicalBytes      int64
 	EncodedBytes       int64
 	CompressedBytes    int64
+	DictionaryPages    int64
+	DictionaryBytes    int64
 	Values             int64
 	MetadataEncodings  map[string]struct{}
 	PageEncodingStats  map[string]int64
@@ -647,6 +651,10 @@ func collectParquetFileStats(path string, fallbackRows int64, columns []columnSt
 	if err != nil {
 		return fileStat{}, err
 	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return fileStat{}, err
+	}
 	f, err := os.Open(path)
 	if err != nil {
 		return fileStat{}, err
@@ -678,6 +686,12 @@ func collectParquetFileStats(path string, fallbackRows int64, columns []columnSt
 			column.EncodedBytes += md.TotalUncompressedSize
 			column.CompressedBytes += md.TotalCompressedSize
 			column.Values += md.NumValues
+			dictPages, dictBytes, err := collectDictionaryPageStats(data, md)
+			if err != nil {
+				return fileStat{}, err
+			}
+			column.DictionaryPages += dictPages
+			column.DictionaryBytes += dictBytes
 			for _, encoding := range md.Encoding {
 				column.MetadataEncodings[encoding.String()] = struct{}{}
 			}
@@ -691,6 +705,55 @@ func collectParquetFileStats(path string, fallbackRows int64, columns []columnSt
 		stat.Rows = metadataRows
 	}
 	return stat, nil
+}
+
+func collectDictionaryPageStats(data []byte, md format.ColumnMetaData) (int64, int64, error) {
+	if md.DictionaryPageOffset == 0 || md.TotalCompressedSize <= 0 {
+		return 0, 0, nil
+	}
+	start := md.DictionaryPageOffset
+	end := start + md.TotalCompressedSize
+	if start < 0 || end < start || end > int64(len(data)) {
+		return 0, 0, fmt.Errorf("invalid column chunk byte range for %s: offset=%d size=%d file=%d",
+			strings.Join(md.PathInSchema, "."),
+			start,
+			md.TotalCompressedSize,
+			len(data),
+		)
+	}
+
+	r := bytes.NewReader(data[start:end])
+	var protocol thrift.CompactProtocol
+	reader := protocol.NewReader(r)
+	decoder := thrift.NewDecoder(reader)
+	var dictionaryPages int64
+	var dictionaryBytes int64
+	for r.Len() > 0 {
+		headerStart := reader.BytesRead()
+		var header format.PageHeader
+		if err := decoder.Decode(&header); err != nil {
+			return 0, 0, fmt.Errorf("decode page header for %s: %w", strings.Join(md.PathInSchema, "."), err)
+		}
+		headerBytes := reader.BytesRead() - headerStart
+		if header.CompressedPageSize < 0 {
+			return 0, 0, fmt.Errorf("negative compressed page size for %s: %d", strings.Join(md.PathInSchema, "."), header.CompressedPageSize)
+		}
+		if header.Type == format.DictionaryPage {
+			dictionaryPages++
+			dictionaryBytes += int64(headerBytes) + int64(header.CompressedPageSize)
+		}
+		if int64(header.CompressedPageSize) > int64(r.Len()) {
+			return 0, 0, fmt.Errorf("page body for %s exceeds column chunk: page=%d remaining=%d",
+				strings.Join(md.PathInSchema, "."),
+				header.CompressedPageSize,
+				r.Len(),
+			)
+		}
+		if _, err := r.Seek(int64(header.CompressedPageSize), io.SeekCurrent); err != nil {
+			return 0, 0, fmt.Errorf("skip page body for %s: %w", strings.Join(md.PathInSchema, "."), err)
+		}
+	}
+	return dictionaryPages, dictionaryBytes, nil
 }
 
 func columnStatIndexByPath(columns []columnStat, path []string) int {
@@ -1715,6 +1778,9 @@ func writeColumnStatsTSV(path string, columns []columnStat) error {
 		"physical_bytes",
 		"encoded_bytes",
 		"compressed_bytes",
+		"dictionary_page_count",
+		"dictionary_page_compressed_bytes",
+		"compressed_bytes_without_dictionary_pages",
 		"physical_encoded_ratio",
 		"encoded_compressed_ratio",
 		"physical_compressed_ratio",
@@ -1733,6 +1799,9 @@ func writeColumnStatsTSV(path string, columns []columnStat) error {
 			strconv.FormatInt(c.PhysicalBytes, 10),
 			strconv.FormatInt(c.EncodedBytes, 10),
 			strconv.FormatInt(c.CompressedBytes, 10),
+			strconv.FormatInt(c.DictionaryPages, 10),
+			strconv.FormatInt(c.DictionaryBytes, 10),
+			strconv.FormatInt(c.CompressedBytes-c.DictionaryBytes, 10),
 			formatRatioDecimal(c.PhysicalBytes, c.EncodedBytes),
 			formatRatioDecimal(c.EncodedBytes, c.CompressedBytes),
 			formatRatioDecimal(c.PhysicalBytes, c.CompressedBytes),
@@ -1805,10 +1874,10 @@ func writeColumnStatsMarkdown(b *strings.Builder, columns []columnStat, resultPa
 		name := filepath.Base(columnStatsPath)
 		fmt.Fprintf(b, "Column stats TSV: [%s](%s)\n\n", name, markdownLinkTarget(filepath.Dir(resultPath), columnStatsPath))
 	}
-	fmt.Fprintf(b, "| Column | Type | Config encoding | Metadata encodings | Page encodings | Values | Physical bytes | Encoded bytes | Compressed bytes | Physical/encoded | Encoded/compressed | Physical/compressed | Source field bytes |\n")
-	fmt.Fprintf(b, "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+	fmt.Fprintf(b, "| Column | Type | Config encoding | Metadata encodings | Page encodings | Values | Physical bytes | Encoded bytes | Compressed bytes | Dict pages | Dict page bytes | Compressed bytes without dict pages | Physical/encoded | Encoded/compressed | Physical/compressed | Source field bytes |\n")
+	fmt.Fprintf(b, "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
 	for _, c := range columns {
-		fmt.Fprintf(b, "| `%s` | `%s` | `%s` | `%s` | `%s` | `%d` | `%d` (%s) | `%d` (%s) | `%d` (%s) | `%s` | `%s` | `%s` | `%d` (%s) |\n",
+		fmt.Fprintf(b, "| `%s` | `%s` | `%s` | `%s` | `%s` | `%d` | `%d` (%s) | `%d` (%s) | `%d` (%s) | `%d` | `%d` (%s) | `%d` (%s) | `%s` | `%s` | `%s` | `%d` (%s) |\n",
 			c.Name,
 			c.Kind,
 			c.ConfiguredEncoding,
@@ -1818,6 +1887,9 @@ func writeColumnStatsMarkdown(b *strings.Builder, columns []columnStat, resultPa
 			c.PhysicalBytes, formatBytes(c.PhysicalBytes),
 			c.EncodedBytes, formatBytes(c.EncodedBytes),
 			c.CompressedBytes, formatBytes(c.CompressedBytes),
+			c.DictionaryPages,
+			c.DictionaryBytes, formatBytes(c.DictionaryBytes),
+			c.CompressedBytes-c.DictionaryBytes, formatBytes(c.CompressedBytes-c.DictionaryBytes),
 			formatMultiplier(c.PhysicalBytes, c.EncodedBytes),
 			formatMultiplier(c.EncodedBytes, c.CompressedBytes),
 			formatMultiplier(c.PhysicalBytes, c.CompressedBytes),
