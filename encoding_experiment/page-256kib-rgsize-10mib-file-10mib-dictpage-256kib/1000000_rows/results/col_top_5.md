@@ -1,4 +1,5 @@
-# Column Top 5 Encoding Rankings
+<a id="column-top-5-encoding-rankings"></a>
+# Column Top 5 Encoding Rankings [#](#column-top-5-encoding-rankings)
 
 - Experiment: `page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows`
 - Source data: [2026-07-05_rows-1000000_encoding-matrix_column-results.tsv](../tsvs/2026-07-05_rows-1000000_encoding-matrix_column-results.tsv)
@@ -9,7 +10,8 @@
 - Encodings in this matrix: `plain`, `rle-dict`, `delta-binary-packed`, `delta-byte-array`, `delta-length-byte-array`.
 - Column shape stats: [column_shape_stats.json](column_shape_stats/column_shape_stats.json)
 
-## Winner Distribution
+<a id="winner-distribution"></a>
+## Winner Distribution [#](#winner-distribution)
 
 Counts are based on each column's first `Compressed overall` ranking below: one winner per column, grouped by compression algorithm and configured column encoding.
 
@@ -23,7 +25,8 @@ Counts are based on each column's first `Compressed overall` ranking below: one 
 | `zstd-3` | `delta-binary-packed` | 2 |
 | `snappy` | `plain` | 1 |
 
-## Encoding Rank Distribution
+<a id="encoding-rank-distribution"></a>
+## Encoding Rank Distribution [#](#encoding-rank-distribution)
 
 For each column and compression codec, duplicate matrix rows with the same effective column encoding are collapsed to the smallest compressed byte count. The remaining encodings are sorted by compressed bytes; counts below show how often each compression + encoding landed at rank 1, rank 2, and so on. Encodings that are not valid for a column type are not counted for that column.
 
@@ -42,7 +45,8 @@ For each column and compression codec, duplicate matrix rows with the same effec
 | `snappy` | `delta-byte-array` | 28 | 0 | 12 | 16 | 0 |
 | `snappy` | `delta-length-byte-array` | 28 | 0 | 16 | 8 | 4 |
 
-## ZSTD Plain Winner Second-Place Distribution
+<a id="zstd-plain-winner-second-place-distribution"></a>
+## ZSTD Plain Winner Second-Place Distribution [#](#zstd-plain-winner-second-place-distribution)
 
 For columns where `zstd + plain` is rank 1 in the ZSTD-only compressed-byte ranking, this counts which encoding landed at rank 2 after collapsing duplicate matrix rows to each encoding's smallest compressed byte count.
 
@@ -57,7 +61,8 @@ For columns where `zstd + plain` is rank 1 in the ZSTD-only compressed-byte rank
 | `zstd + delta-binary-packed` | 20 |
 | `zstd + delta-length-byte-array` | 6 |
 
-## ZSTD Plain vs RLE Dict Improvement Distribution
+<a id="zstd-plain-vs-rle-dict-improvement-distribution"></a>
+## ZSTD Plain vs RLE Dict Improvement Distribution [#](#zstd-plain-vs-rle-dict-improvement-distribution)
 
 For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.
 
@@ -75,7 +80,8 @@ For each column, this compares the best observed `zstd + plain` compressed byte 
 | `40-50%` | 8 | 4 |
 | `50-60%` | 1 | 2 |
 
-### Page-Level Winner Distribution
+<a id="page-level-winner-distribution"></a>
+### Page-Level Winner Distribution [#](#page-level-winner-distribution)
 
 This is the page-level version of the same `plain + zstd` vs `rle-dict + zstd` comparison. Page ranges differ between the two runs, so the distribution is computed over overlap windows from the union of page row ranges. Red chart segments are windows where RLE would win if dictionary-page bytes were excluded, but does not win when amortized dictionary-page bytes are included. Compression-ratio cells in the image are `min/median/max` values for `encoded bytes before ZSTD / compressed bytes after ZSTD`; RLE cells include amortized dictionary bytes.
 
@@ -197,7 +203,8 @@ This is the page-level version of the same `plain + zstd` vs `rle-dict + zstd` c
 | `WindowClientHeight` | `INT(16,true)` | `116` | `116` (`100.00%`) | `0` (`0.00%`) | `1` (`0.86%`) | `0` (`0.00%`) | `1,000,000` (`100.00%`) | `0` (`0.00%`) | `319,807 B (312.31 KiB)` | `591,986 B (578.11 KiB)` | `1.851073` | `0` | `57 / 60` |
 | `WindowClientWidth` | `INT(16,true)` | `116` | `116` (`100.00%`) | `0` (`0.00%`) | `2` (`1.72%`) | `0` (`0.00%`) | `1,000,000` (`100.00%`) | `0` (`0.00%`) | `305,751 B (298.58 KiB)` | `475,942 B (464.79 KiB)` | `1.556633` | `0` | `57 / 60` |
 
-## ZSTD RLE Dict Worse Distribution By Category
+<a id="zstd-rle-dict-worse-distribution-by-category"></a>
+## ZSTD RLE Dict Worse Distribution By Category [#](#zstd-rle-dict-worse-distribution-by-category)
 
 For columns where the best observed `zstd + plain` compressed byte count is smaller than the best observed `zstd + rle-dict` compressed byte count, each category image plots `plain + zstd` compressed bytes on the x-axis and `rle-dict + zstd` compressed bytes on the y-axis using the same log byte scale. Points above the diagonal are larger with RLE dictionary encoding. Point color is bucketed by `plain/no-compression encoded bytes / rle-dict + zstd compressed bytes`, so high-ratio colors identify columns where RLE dictionary lost the head-to-head but still compressed the baseline dramatically.
 
@@ -220,7 +227,8 @@ Categorization uses only measured byte sizes, row-group cardinality, and column 
 | Small-domain fixed-width literals | 18 | 8.762892% / 33.500720% / 97.747379% |
 | Structured medium/high-cardinality numeric streams | 6 | 23.259941% / 43.172756% / 59.989014% |
 
-### True dictionary bloat
+<a id="true-dictionary-bloat"></a>
+### True dictionary bloat [#](#true-dictionary-bloat)
 
 RLE dictionary encoding was already larger than plain before ZSTD, usually because the dictionary itself was too large for the column.
 
@@ -247,7 +255,8 @@ RLE dictionary encoding was already larger than plain before ZSTD, usually becau
 | `WatchID` | `int64` | True dictionary bloat | plain encoded 8,004,555 B (7.63 MiB); rle encoded 9,834,361 B (9.38 MiB) | RLE dictionary was larger than plain before ZSTD; the compressed result stayed larger. | 9,315 / 11,938 / 14,202 | 100.000000% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,312 B (7.64 MiB) | 8,005,353 B (7.63 MiB) | 100.066913% | 99.988022% | 9,835,734 B (9.38 MiB) | 122.946675% | 122.849747% | 22.864463% | 1,834,419 B (1.75 MiB) | 22.930238% | 22.912160% | -77.085095% | yes | 58 |
 | `HID` | `int32` | True dictionary bloat | plain encoded 4,003,775 B (3.82 MiB); rle encoded 4,491,293 B (4.28 MiB) | RLE dictionary was larger than plain before ZSTD; the compressed result stayed larger. | 5,818 / 5,965 / 13,281 | 49.966494% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 3,792,143 B (3.62 MiB) | 94.803575% | 94.684013% | 4,492,493 B (4.28 MiB) | 112.312325% | 112.170681% | 18.468449% | 1,752,569 B (1.67 MiB) | 43.814225% | 43.758968% | -53.784206% | yes | 60 |
 
-### Tiny/constant plain stream
+<a id="tiny-constant-plain-stream"></a>
+### Tiny/constant plain stream [#](#tiny-constant-plain-stream)
 
 The column is tiny or nearly constant per row group; plain pages give ZSTD an extremely repetitive stream, while dictionary pages add overhead.
 
@@ -302,7 +311,8 @@ The column is tiny or nearly constant per row group; plain pages give ZSTD an ex
 | `MobilePhone` | `int16` | Tiny/constant plain stream | median row-group cardinality 7; median cardinality/rows 0.058636% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 3 / 7 / 11 | 0.058636% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 22,463 B (21.94 KiB) | 0.561575% | 0.560867% | 23,572 B (23.02 KiB) | 0.589300% | 0.588557% | 4.937008% | 20,726 B (20.24 KiB) | 0.518150% | 0.517497% | -7.732716% | yes | 57 |
 | `UTMTerm` | `string` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 75 | 0.016753% | 0 | 0 | 72 | 28,101 B (27.44 KiB) | 4,034,484 B (3.85 MiB) | 15,648 B (15.28 KiB) | 55.684851% | 0.387856% | 15,920 B (15.55 KiB) | 56.652788% | 0.394598% | 1.738241% | 10,518 B (10.27 KiB) | 37.429273% | 0.260702% | -32.783742% | yes | 59 |
 
-### Small-domain fixed-width literals
+<a id="small-domain-fixed-width-literals"></a>
+### Small-domain fixed-width literals [#](#small-domain-fixed-width-literals)
 
 RLE dictionary shrank the encoded stream, but ZSTD compressed the repeated fixed-width plain literals better than dictionary IDs plus a dictionary page.
 
@@ -345,7 +355,8 @@ RLE dictionary shrank the encoded stream, but ZSTD compressed the repeated fixed
 | `ResolutionHeight` | `int16` | Small-domain fixed-width literals | median row-group cardinality 70; median cardinality/rows 0.586363%; plain encoded 4,003,586 B (3.82 MiB); rle encoded 371,693 B (362.98 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 49 / 70 / 103 | 0.586363% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 186,022 B (181.66 KiB) | 4.650550% | 4.644686% | 205,409 B (200.59 KiB) | 5.135225% | 5.128750% | 10.421886% | 184,227 B (179.91 KiB) | 4.605675% | 4.599868% | -0.964940% | yes | 57 |
 | `ResolutionWidth` | `int16` | Small-domain fixed-width literals | median row-group cardinality 64; median cardinality/rows 0.536103%; plain encoded 4,003,581 B (3.82 MiB); rle encoded 368,799 B (360.16 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 48 / 64 / 84 | 0.536103% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 187,130 B (182.74 KiB) | 4.678250% | 4.672348% | 203,528 B (198.76 KiB) | 5.088200% | 5.081780% | 8.762892% | 185,086 B (180.75 KiB) | 4.627150% | 4.621312% | -1.092289% | yes | 57 |
 
-### Structured medium/high-cardinality numeric streams
+<a id="structured-medium-high-cardinality-numeric-streams"></a>
+### Structured medium/high-cardinality numeric streams [#](#structured-medium-high-cardinality-numeric-streams)
 
 The column has enough distinct numeric/timestamp values that the plain stream preserves structure ZSTD can exploit better than dictionary IDs.
 
@@ -376,7 +387,8 @@ The column has enough distinct numeric/timestamp values that the plain stream pr
 | `ResponseStartTiming` | `int32` | Structured medium/high-cardinality numeric streams | median row-group cardinality 1112; median cardinality/rows 9.314793%; plain+zstd 1,245,745 B (1.19 MiB); rle+zstd 1,556,751 B (1.48 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 800 / 1,112 / 3,761 | 9.314793% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 1,245,745 B (1.19 MiB) | 31.143625% | 31.104356% | 1,556,751 B (1.48 MiB) | 38.918775% | 38.869702% | 24.965462% | 1,001,805 B (978.33 KiB) | 25.045125% | 25.013545% | -19.581857% | yes | 58 |
 | `RefererHash` | `int64` | Structured medium/high-cardinality numeric streams | median row-group cardinality 2729; median cardinality/rows 22.859776%; plain+zstd 2,841,886 B (2.71 MiB); rle+zstd 3,502,907 B (3.34 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 378 / 2,729 / 6,051 | 22.859776% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,316 B (7.64 MiB) | 2,841,886 B (2.71 MiB) | 35.523575% | 35.495551% | 3,502,907 B (3.34 MiB) | 43.786338% | 43.751795% | 23.259941% | 1,272,178 B (1.21 MiB) | 15.902225% | 15.889680% | -55.234728% | yes | 59 |
 
-## Snappy RLE Dict Worse Distribution By Category
+<a id="snappy-rle-dict-worse-distribution-by-category"></a>
+## Snappy RLE Dict Worse Distribution By Category [#](#snappy-rle-dict-worse-distribution-by-category)
 
 For columns where the best observed `snappy + plain` compressed byte count is smaller than the best observed `snappy + rle-dict` compressed byte count, each category image plots `plain + snappy` compressed bytes on the x-axis and `rle-dict + snappy` compressed bytes on the y-axis using the same log byte scale. Points above the diagonal are larger with RLE dictionary encoding. Point color is bucketed by `plain/no-compression encoded bytes / rle-dict + snappy compressed bytes`, so high-ratio colors identify columns where RLE dictionary lost the head-to-head but still compressed the baseline dramatically.
 
@@ -398,7 +410,8 @@ Categorization uses measured row-group cardinality and column type: `Medium-card
 | High-cardinality fixed-width IDs / hashes | 3 | 2.639084% / 21.157028% / 22.749867% |
 | High-cardinality timestamp streams | 3 | 28.674248% / 28.732596% / 28.817198% |
 
-### Medium-cardinality fixed-width numeric streams
+<a id="medium-cardinality-fixed-width-numeric-streams"></a>
+### Medium-cardinality fixed-width numeric streams [#](#medium-cardinality-fixed-width-numeric-streams)
 
 Non-timestamp numeric columns with medium row-group cardinality; RLE dictionary reduced the pre-compression stream, but Snappy compressed the plain fixed-width stream to fewer bytes.
 
@@ -429,7 +442,8 @@ Non-timestamp numeric columns with medium row-group cardinality; RLE dictionary 
 | `UserID` | `int64` | Medium-cardinality fixed-width numeric streams | median row-group cardinality 898; median cardinality/rows 7.522198%; rle encoded 15.311738% of plain encoded | RLE dictionary reduced pre-compression bytes, but Snappy compressed the plain fixed-width stream better for this column. | 716 / 898 / 1,805 | 7.522198% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,315 B (7.64 MiB) | 1,225,906 B (1.17 MiB) | 15.311738% | 1,084,714 B (1.03 MiB) | 13.558925% | 13.548230% | 1,120,481 B (1.07 MiB) | 14.006013% | 13.994965% | 3.297367% | 474,344 B (463.23 KiB) | 5.929300% | 5.924623% | -56.270132% | yes | 61 |
 | `FetchTiming` | `int32` | Medium-cardinality fixed-width numeric streams | median row-group cardinality 664; median cardinality/rows 5.562071%; rle encoded 28.140701% of plain encoded | RLE dictionary reduced pre-compression bytes, but Snappy compressed the plain fixed-width stream better for this column. | 329 / 664 / 1,264 | 5.562071% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 1,127,050 B (1.07 MiB) | 28.140701% | 808,624 B (789.67 KiB) | 20.215600% | 20.190095% | 811,674 B (792.65 KiB) | 20.291850% | 20.266249% | 0.377184% | 606,675 B (592.46 KiB) | 15.166875% | 15.147740% | -24.974401% | yes | 59 |
 
-### High-cardinality fixed-width IDs / hashes
+<a id="high-cardinality-fixed-width-ids-hashes"></a>
+### High-cardinality fixed-width IDs / hashes [#](#high-cardinality-fixed-width-ids-hashes)
 
 Non-timestamp numeric ID/hash-like columns with high row-group cardinality; dictionary IDs had too little repetition to beat Snappy over plain fixed-width values.
 
@@ -457,7 +471,8 @@ Non-timestamp numeric ID/hash-like columns with high row-group cardinality; dict
 | `HID` | `int32` | High-cardinality fixed-width IDs / hashes | median row-group cardinality 5965; median cardinality/rows 49.966494%; rle encoded 111.552287% of plain encoded | RLE dictionary was already larger than plain before Snappy; the compressed result stayed larger. | 5,818 / 5,965 / 13,281 | 49.966494% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 4,467,726 B (4.26 MiB) | 111.552287% | 3,688,155 B (3.52 MiB) | 92.203875% | 92.087591% | 4,468,459 B (4.26 MiB) | 111.711475% | 111.570589% | 21.157028% | 1,728,746 B (1.65 MiB) | 43.218650% | 43.164144% | -53.127078% | yes | 61 |
 | `URLHash` | `int64` | High-cardinality fixed-width IDs / hashes | median row-group cardinality 3292; median cardinality/rows 27.575808%; rle encoded 57.494464% of plain encoded | High cardinality limited dictionary benefit; Snappy over plain fixed-width values stayed smaller. | 3,001 / 3,292 / 7,420 | 27.575808% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,310 B (7.64 MiB) | 4,603,185 B (4.39 MiB) | 57.494464% | 4,382,430 B (4.18 MiB) | 54.780375% | 54.737201% | 4,498,086 B (4.29 MiB) | 56.226075% | 56.181762% | 2.639084% | 1,523,644 B (1.45 MiB) | 19.045550% | 19.030540% | -65.232896% | yes | 60 |
 
-### High-cardinality timestamp streams
+<a id="high-cardinality-timestamp-streams"></a>
+### High-cardinality timestamp streams [#](#high-cardinality-timestamp-streams)
 
 Timestamp columns with high row-group cardinality; RLE dictionary barely reduced the encoded stream, and Snappy did better on the plain timestamp bytes.
 
@@ -485,7 +500,8 @@ Timestamp columns with high row-group cardinality; RLE dictionary barely reduced
 | `LocalEventTime` | `timestamp_millis` | High-cardinality timestamp streams | median row-group cardinality 6254; median cardinality/rows 52.387335%; rle encoded 91.671601% of plain encoded | High-cardinality timestamp values left little dictionary repetition; Snappy compressed the plain timestamp stream to fewer bytes. | 5,968 / 6,254 / 13,047 | 52.387335% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,317 B (7.64 MiB) | 7,339,519 B (7.00 MiB) | 91.671601% | 4,283,734 B (4.09 MiB) | 53.546675% | 53.504427% | 5,514,562 B (5.26 MiB) | 68.932025% | 68.877637% | 28.732596% | 1,728,196 B (1.65 MiB) | 21.602450% | 21.585406% | -59.656785% | yes | 62 |
 | `ClientEventTime` | `timestamp_millis` | High-cardinality timestamp streams | median row-group cardinality 5882; median cardinality/rows 49.271235%; rle encoded 90.150524% of plain encoded | High-cardinality timestamp values left little dictionary repetition; Snappy compressed the plain timestamp stream to fewer bytes. | 5,666 / 5,882 / 13,078 | 49.271235% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,314 B (7.64 MiB) | 7,217,734 B (6.88 MiB) | 90.150524% | 4,228,484 B (4.03 MiB) | 52.856050% | 52.814366% | 5,440,970 B (5.19 MiB) | 68.012125% | 67.958489% | 28.674248% | 1,727,979 B (1.65 MiB) | 21.599737% | 21.582703% | -59.134787% | yes | 62 |
 
-## Delta Binary Packed Winner vs Second Best Improvement Distribution
+<a id="delta-binary-packed-winner-vs-second-best-improvement-distribution"></a>
+## Delta Binary Packed Winner vs Second Best Improvement Distribution [#](#delta-binary-packed-winner-vs-second-best-improvement-distribution)
 
 For each column, this looks at the `Compressed overall` ranking below. Only columns where `delta-binary-packed` is the best observed compressed result are bucketed. Improvement is `(second-best compressed bytes - delta-binary-packed compressed bytes) / second-best compressed bytes * 100`.
 
@@ -499,7 +515,8 @@ For each column, this looks at the `Compressed overall` ranking below. Only colu
 | `0-10%` | 2 |
 | `10-20%` | 0 |
 
-## Snappy Plain vs RLE Dict Improvement Distribution
+<a id="snappy-plain-vs-rle-dict-improvement-distribution"></a>
+## Snappy Plain vs RLE Dict Improvement Distribution [#](#snappy-plain-vs-rle-dict-improvement-distribution)
 
 For each column, this compares the best observed `snappy + plain` compressed byte count with the best observed `snappy + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.
 
@@ -533,7 +550,8 @@ For each column, this compares the best observed `snappy + plain` compressed byt
 | `10-20%` | 4 |
 | `20-30%` | 3 |
 
-## AdvEngineID (int16)
+<a id="advengineid-int16"></a>
+## AdvEngineID (int16) [#](#advengineid-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -570,7 +588,8 @@ Snappy:
 2. 53,198 B (51.95 KiB) compressed - `snappy` + `delta-binary-packed`; 202,399 B (197.66 KiB) encoded; 75.285781x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-plain`
 3. 220,197 B (215.04 KiB) compressed - `snappy` + `plain`; 4,003,714 B (3.82 MiB) encoded; 18.188499x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 
-## Age (int16)
+<a id="age-int16"></a>
+## Age (int16) [#](#age-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -607,7 +626,8 @@ Snappy:
 2. 286,272 B (279.56 KiB) compressed - `snappy` + `delta-binary-packed`; 742,356 B (724.96 KiB) encoded; 13.990373x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-rle-dict-date-rle-dict-ts-delta-binary-packed`
 3. 333,804 B (325.98 KiB) compressed - `snappy` + `plain`; 4,003,715 B (3.82 MiB) encoded; 11.998215x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 
-## BrowserCountry (string)
+<a id="browsercountry-string"></a>
+## BrowserCountry (string) [#](#browsercountry-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -646,7 +666,8 @@ Snappy:
 3. 352,235 B (343.98 KiB) compressed - `snappy` + `delta-length-byte-array`; 3,638,826 B (3.47 MiB) encoded; 20.809624x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-length-byte-array-date-plain-ts-plain`
 4. 457,031 B (446.32 KiB) compressed - `snappy` + `plain`; 7,328,708 B (6.99 MiB) encoded; 16.038032x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-delta-binary-packed-ts-plain`
 
-## BrowserLanguage (string)
+<a id="browserlanguage-string"></a>
+## BrowserLanguage (string) [#](#browserlanguage-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -685,7 +706,8 @@ Snappy:
 3. 125,242 B (122.31 KiB) compressed - `snappy` + `delta-length-byte-array`; 2,051,313 B (1.96 MiB) encoded; 47.953251x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-length-byte-array-date-plain-ts-delta-binary-packed`
 4. 321,259 B (313.73 KiB) compressed - `snappy` + `plain`; 6,004,612 B (5.73 MiB) encoded; 18.694452x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-delta-binary-packed-ts-plain`
 
-## CLID (int32)
+<a id="clid-int32"></a>
+## CLID (int32) [#](#clid-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -722,7 +744,8 @@ Snappy:
 2. 10,366 B (10.12 KiB) compressed - `snappy` + `delta-binary-packed`; 68,651 B (67.04 KiB) encoded; 386.364461x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 204,500 B (199.71 KiB) compressed - `snappy` + `plain`; 4,003,715 B (3.82 MiB) encoded; 19.584616x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 
-## ClientEventTime (timestamp_millis)
+<a id="clienteventtime-timestamp-millis"></a>
+## ClientEventTime (timestamp_millis) [#](#clienteventtime-timestamp-millis)
 
 Column shape stats:
 - Parquet type: `TIMESTAMP(isAdjustedToUTC=true,unit=MILLIS)`; physical type: `INT64`
@@ -759,7 +782,8 @@ Snappy:
 2. 4,228,484 B (4.03 MiB) compressed - `snappy` + `plain`; 8,004,794 B (7.63 MiB) encoded; 1.893424x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-rle-dict-ts-plain`
 3. 5,440,970 B (5.19 MiB) compressed - `snappy` + `rle-dict`; 7,217,734 B (6.88 MiB) encoded; 1.471487x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-rle-dict-date-rle-dict-ts-rle-dict`
 
-## ClientIP (int32)
+<a id="clientip-int32"></a>
+## ClientIP (int32) [#](#clientip-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -796,7 +820,8 @@ Snappy:
 2. 828,313 B (808.90 KiB) compressed - `snappy` + `rle-dict`; 938,265 B (916.27 KiB) encoded; 4.835189x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-delta-binary-packed-ts-rle-dict`
 3. 1,054,378 B (1.01 MiB) compressed - `snappy` + `delta-binary-packed`; 3,744,635 B (3.57 MiB) encoded; 3.798495x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 
-## ClientTimeZone (int16)
+<a id="clienttimezone-int16"></a>
+## ClientTimeZone (int16) [#](#clienttimezone-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -833,7 +858,8 @@ Snappy:
 2. 251,618 B (245.72 KiB) compressed - `snappy` + `delta-binary-packed`; 975,773 B (952.90 KiB) encoded; 15.917188x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 285,543 B (278.85 KiB) compressed - `snappy` + `plain`; 4,003,713 B (3.82 MiB) encoded; 14.026087x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 
-## CodeVersion (int32)
+<a id="codeversion-int32"></a>
+## CodeVersion (int32) [#](#codeversion-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -870,7 +896,8 @@ Snappy:
 2. 15,076 B (14.72 KiB) compressed - `snappy` + `delta-binary-packed`; 96,584 B (94.32 KiB) encoded; 265.657535x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 3. 205,059 B (200.25 KiB) compressed - `snappy` + `plain`; 4,003,714 B (3.82 MiB) encoded; 19.531223x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## ConnectTiming (int32)
+<a id="connecttiming-int32"></a>
+## ConnectTiming (int32) [#](#connecttiming-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -907,7 +934,8 @@ Snappy:
 2. 564,134 B (550.91 KiB) compressed - `snappy` + `plain`; 4,003,753 B (3.82 MiB) encoded; 7.099468x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 625,501 B (610.84 KiB) compressed - `snappy` + `delta-binary-packed`; 1,090,357 B (1.04 MiB) encoded; 6.402949x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 
-## CookieEnable (int16)
+<a id="cookieenable-int16"></a>
+## CookieEnable (int16) [#](#cookieenable-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -944,7 +972,8 @@ Snappy:
 2. 9,014 B (8.80 KiB) compressed - `snappy` + `delta-binary-packed`; 46,660 B (45.57 KiB) encoded; 444.314622x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 204,770 B (199.97 KiB) compressed - `snappy` + `plain`; 4,003,777 B (3.82 MiB) encoded; 19.558783x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-rle-dict`
 
-## CounterClass (int16)
+<a id="counterclass-int16"></a>
+## CounterClass (int16) [#](#counterclass-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -981,7 +1010,8 @@ Snappy:
 2. 6,203 B (6.06 KiB) compressed - `snappy` + `delta-binary-packed`; 43,179 B (42.17 KiB) encoded; 645.664034x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 204,060 B (199.28 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 19.626845x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## CounterID (int32)
+<a id="counterid-int32"></a>
+## CounterID (int32) [#](#counterid-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -1018,7 +1048,8 @@ Snappy:
 2. 7,269 B (7.10 KiB) compressed - `snappy` + `delta-binary-packed`; 46,534 B (45.44 KiB) encoded; 550.977026x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 3. 204,252 B (199.46 KiB) compressed - `snappy` + `plain`; 4,003,713 B (3.82 MiB) encoded; 19.608386x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## DNSTiming (int32)
+<a id="dnstiming-int32"></a>
+## DNSTiming (int32) [#](#dnstiming-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -1055,7 +1086,8 @@ Snappy:
 2. 326,903 B (319.24 KiB) compressed - `snappy` + `plain`; 4,003,713 B (3.82 MiB) encoded; 12.251497x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 341,399 B (333.40 KiB) compressed - `snappy` + `delta-binary-packed`; 805,791 B (786.91 KiB) encoded; 11.731291x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## DontCountHits (int16)
+<a id="dontcounthits-int16"></a>
+## DontCountHits (int16) [#](#dontcounthits-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1092,7 +1124,8 @@ Snappy:
 2. 82,543 B (80.61 KiB) compressed - `snappy` + `delta-binary-packed`; 168,534 B (164.58 KiB) encoded; 48.520759x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 3. 295,526 B (288.60 KiB) compressed - `snappy` + `plain`; 4,003,719 B (3.82 MiB) encoded; 13.552273x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 
-## EventDate (date)
+<a id="eventdate-date"></a>
+## EventDate (date) [#](#eventdate-date)
 
 Column shape stats:
 - Parquet type: `DATE`; physical type: `INT32`
@@ -1129,7 +1162,8 @@ Snappy:
 2. 7,838 B (7.65 KiB) compressed - `snappy` + `delta-binary-packed`; 51,405 B (50.20 KiB) encoded; 510.977928x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 204,170 B (199.38 KiB) compressed - `snappy` + `plain`; 4,003,652 B (3.82 MiB) encoded; 19.616227x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## EventTime (timestamp_millis)
+<a id="eventtime-timestamp-millis"></a>
+## EventTime (timestamp_millis) [#](#eventtime-timestamp-millis)
 
 Column shape stats:
 - Parquet type: `TIMESTAMP(isAdjustedToUTC=true,unit=MILLIS)`; physical type: `INT64`
@@ -1166,7 +1200,8 @@ Snappy:
 2. 4,282,415 B (4.08 MiB) compressed - `snappy` + `plain`; 8,004,714 B (7.63 MiB) encoded; 1.869579x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 3. 5,516,487 B (5.26 MiB) compressed - `snappy` + `rle-dict`; 7,344,624 B (7.00 MiB) encoded; 1.451343x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-rle-dict-date-rle-dict-ts-rle-dict`
 
-## FUniqID (int64)
+<a id="funiqid-int64"></a>
+## FUniqID (int64) [#](#funiqid-int64)
 
 Column shape stats:
 - Parquet type: `INT(64,true)`; physical type: `INT64`
@@ -1203,7 +1238,8 @@ Snappy:
 2. 1,151,399 B (1.10 MiB) compressed - `snappy` + `plain`; 8,004,714 B (7.63 MiB) encoded; 6.953556x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 1,778,224 B (1.70 MiB) compressed - `snappy` + `delta-binary-packed`; 7,453,850 B (7.11 MiB) encoded; 4.502423x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## FetchTiming (int32)
+<a id="fetchtiming-int32"></a>
+## FetchTiming (int32) [#](#fetchtiming-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -1240,7 +1276,8 @@ Snappy:
 2. 811,674 B (792.65 KiB) compressed - `snappy` + `rle-dict`; 1,127,050 B (1.07 MiB) encoded; 4.934312x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-rle-dict`
 3. 1,012,893 B (989.15 KiB) compressed - `snappy` + `delta-binary-packed`; 1,546,128 B (1.47 MiB) encoded; 3.954073x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## FlashMajor (int16)
+<a id="flashmajor-int16"></a>
+## FlashMajor (int16) [#](#flashmajor-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1277,7 +1314,8 @@ Snappy:
 2. 113,209 B (110.56 KiB) compressed - `snappy` + `delta-binary-packed`; 398,480 B (389.14 KiB) encoded; 35.377514x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 245,188 B (239.44 KiB) compressed - `snappy` + `plain`; 4,003,711 B (3.82 MiB) encoded; 16.334621x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## FlashMinor (int16)
+<a id="flashminor-int16"></a>
+## FlashMinor (int16) [#](#flashminor-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1314,7 +1352,8 @@ Snappy:
 2. 234,096 B (228.61 KiB) compressed - `snappy` + `delta-binary-packed`; 523,422 B (511.15 KiB) encoded; 17.108571x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 3. 328,315 B (320.62 KiB) compressed - `snappy` + `plain`; 4,003,715 B (3.82 MiB) encoded; 12.198797x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 
-## FlashMinor2 (string)
+<a id="flashminor2-string"></a>
+## FlashMinor2 (string) [#](#flashminor2-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -1353,7 +1392,8 @@ Snappy:
 3. 432,351 B (422.22 KiB) compressed - `snappy` + `delta-length-byte-array`; 3,707,874 B (3.54 MiB) encoded; 17.021365x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-length-byte-array-date-rle-dict-ts-plain`
 4. 536,601 B (524.02 KiB) compressed - `snappy` + `plain`; 7,358,039 B (7.02 MiB) encoded; 13.714481x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-plain`
 
-## FromTag (string)
+<a id="fromtag-string"></a>
+## FromTag (string) [#](#fromtag-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -1392,7 +1432,8 @@ Snappy:
 3. 49,905 B (48.74 KiB) compressed - `snappy` + `delta-byte-array`; 260,742 B (254.63 KiB) encoded; 81.142611x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 4. 221,650 B (216.46 KiB) compressed - `snappy` + `plain`; 4,048,459 B (3.86 MiB) encoded; 18.269443x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-delta-binary-packed-ts-delta-binary-packed`
 
-## GoodEvent (int16)
+<a id="goodevent-int16"></a>
+## GoodEvent (int16) [#](#goodevent-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1429,7 +1470,8 @@ Snappy:
 2. 6,932 B (6.77 KiB) compressed - `snappy` + `delta-binary-packed`; 43,746 B (42.72 KiB) encoded; 577.762983x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 204,227 B (199.44 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 19.610791x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## HID (int32)
+<a id="hid-int32"></a>
+## HID (int32) [#](#hid-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -1466,7 +1508,8 @@ Snappy:
 2. 3,759,716 B (3.59 MiB) compressed - `snappy` + `delta-binary-packed`; 3,953,327 B (3.77 MiB) encoded; 1.065254x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-rle-dict-date-rle-dict-ts-delta-binary-packed`
 3. 4,468,459 B (4.26 MiB) compressed - `snappy` + `rle-dict`; 4,467,726 B (4.26 MiB) encoded; 0.896294x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-rle-dict-date-delta-binary-packed-ts-rle-dict`
 
-## HTTPError (int16)
+<a id="httperror-int16"></a>
+## HTTPError (int16) [#](#httperror-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1503,7 +1546,8 @@ Snappy:
 2. 6,203 B (6.06 KiB) compressed - `snappy` + `delta-binary-packed`; 43,179 B (42.17 KiB) encoded; 645.664034x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 204,060 B (199.28 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 19.626845x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## HasGCLID (int16)
+<a id="hasgclid-int16"></a>
+## HasGCLID (int16) [#](#hasgclid-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1540,7 +1584,8 @@ Snappy:
 2. 28,367 B (27.70 KiB) compressed - `snappy` + `delta-binary-packed`; 92,303 B (90.14 KiB) encoded; 141.187013x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 213,439 B (208.44 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 18.764387x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 
-## HistoryLength (int16)
+<a id="historylength-int16"></a>
+## HistoryLength (int16) [#](#historylength-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1577,7 +1622,8 @@ Snappy:
 2. 68,715 B (67.10 KiB) compressed - `snappy` + `delta-binary-packed`; 116,370 B (113.64 KiB) encoded; 58.285003x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 258,233 B (252.18 KiB) compressed - `snappy` + `plain`; 4,003,717 B (3.82 MiB) encoded; 15.509459x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## HitColor (string)
+<a id="hitcolor-string"></a>
+## HitColor (string) [#](#hitcolor-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -1616,7 +1662,8 @@ Snappy:
 3. 76,943 B (75.14 KiB) compressed - `snappy` + `delta-length-byte-array`; 1,043,282 B (1018.83 KiB) encoded; 65.036534x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-length-byte-array-date-plain-ts-plain`
 4. 294,288 B (287.39 KiB) compressed - `snappy` + `plain`; 5,003,058 B (4.77 MiB) encoded; 17.004112x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-plain`
 
-## IPNetworkID (int32)
+<a id="ipnetworkid-int32"></a>
+## IPNetworkID (int32) [#](#ipnetworkid-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -1653,7 +1700,8 @@ Snappy:
 2. 636,803 B (621.88 KiB) compressed - `snappy` + `rle-dict`; 747,432 B (729.91 KiB) encoded; 6.289311x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 3. 928,063 B (906.31 KiB) compressed - `snappy` + `delta-binary-packed`; 2,654,814 B (2.53 MiB) encoded; 4.315496x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 
-## Income (int16)
+<a id="income-int16"></a>
+## Income (int16) [#](#income-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1690,7 +1738,8 @@ Snappy:
 2. 167,792 B (163.86 KiB) compressed - `snappy` + `delta-binary-packed`; 328,482 B (320.78 KiB) encoded; 23.869159x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 3. 318,144 B (310.69 KiB) compressed - `snappy` + `plain`; 4,003,714 B (3.82 MiB) encoded; 12.588809x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## Interests (int16)
+<a id="interests-int16"></a>
+## Interests (int16) [#](#interests-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1727,7 +1776,8 @@ Snappy:
 2. 385,284 B (376.25 KiB) compressed - `snappy` + `plain`; 4,003,716 B (3.82 MiB) encoded; 10.395059x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 3. 582,331 B (568.68 KiB) compressed - `snappy` + `delta-binary-packed`; 1,585,376 B (1.51 MiB) encoded; 6.877618x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 
-## IsArtifical (int16)
+<a id="isartifical-int16"></a>
+## IsArtifical (int16) [#](#isartifical-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1764,7 +1814,8 @@ Snappy:
 2. 118,508 B (115.73 KiB) compressed - `snappy` + `delta-binary-packed`; 196,750 B (192.14 KiB) encoded; 33.795592x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-plain`
 3. 505,682 B (493.83 KiB) compressed - `snappy` + `plain`; 4,003,749 B (3.82 MiB) encoded; 7.920092x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## IsDownload (int16)
+<a id="isdownload-int16"></a>
+## IsDownload (int16) [#](#isdownload-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1801,7 +1852,8 @@ Snappy:
 2. 12,157 B (11.87 KiB) compressed - `snappy` + `delta-binary-packed`; 53,537 B (52.28 KiB) encoded; 329.444353x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 3. 206,523 B (201.68 KiB) compressed - `snappy` + `plain`; 4,003,711 B (3.82 MiB) encoded; 19.392779x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## IsEvent (int16)
+<a id="isevent-int16"></a>
+## IsEvent (int16) [#](#isevent-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1838,7 +1890,8 @@ Snappy:
 2. 6,203 B (6.06 KiB) compressed - `snappy` + `delta-binary-packed`; 43,179 B (42.17 KiB) encoded; 645.664034x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 204,060 B (199.28 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 19.626845x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## IsLink (int16)
+<a id="islink-int16"></a>
+## IsLink (int16) [#](#islink-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1875,7 +1928,8 @@ Snappy:
 2. 59,460 B (58.07 KiB) compressed - `snappy` + `delta-binary-packed`; 140,796 B (137.50 KiB) encoded; 67.357097x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 3. 256,364 B (250.36 KiB) compressed - `snappy` + `plain`; 4,003,714 B (3.82 MiB) encoded; 15.622525x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## IsMobile (int16)
+<a id="ismobile-int16"></a>
+## IsMobile (int16) [#](#ismobile-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1912,7 +1966,8 @@ Snappy:
 2. 42,223 B (41.23 KiB) compressed - `snappy` + `delta-binary-packed`; 114,480 B (111.80 KiB) encoded; 94.854629x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 218,332 B (213.21 KiB) compressed - `snappy` + `plain`; 4,003,711 B (3.82 MiB) encoded; 18.343839x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## IsNotBounce (int16)
+<a id="isnotbounce-int16"></a>
+## IsNotBounce (int16) [#](#isnotbounce-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1949,7 +2004,8 @@ Snappy:
 2. 23,116 B (22.57 KiB) compressed - `snappy` + `delta-binary-packed`; 64,017 B (62.52 KiB) encoded; 173.258955x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 235,269 B (229.75 KiB) compressed - `snappy` + `plain`; 4,003,720 B (3.82 MiB) encoded; 17.023297x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 
-## IsOldCounter (int16)
+<a id="isoldcounter-int16"></a>
+## IsOldCounter (int16) [#](#isoldcounter-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -1986,7 +2042,8 @@ Snappy:
 2. 6,203 B (6.06 KiB) compressed - `snappy` + `delta-binary-packed`; 43,179 B (42.17 KiB) encoded; 645.664034x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 204,060 B (199.28 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 19.626845x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## IsParameter (int16)
+<a id="isparameter-int16"></a>
+## IsParameter (int16) [#](#isparameter-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -2023,7 +2080,8 @@ Snappy:
 2. 6,203 B (6.06 KiB) compressed - `snappy` + `delta-binary-packed`; 43,179 B (42.17 KiB) encoded; 645.664034x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 204,060 B (199.28 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 19.626845x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## IsRefresh (int16)
+<a id="isrefresh-int16"></a>
+## IsRefresh (int16) [#](#isrefresh-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -2060,7 +2118,8 @@ Snappy:
 2. 137,630 B (134.40 KiB) compressed - `snappy` + `delta-binary-packed`; 233,923 B (228.44 KiB) encoded; 29.100131x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 491,817 B (480.29 KiB) compressed - `snappy` + `plain`; 4,003,743 B (3.82 MiB) encoded; 8.143376x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 
-## JavaEnable (int16)
+<a id="javaenable-int16"></a>
+## JavaEnable (int16) [#](#javaenable-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -2097,7 +2156,8 @@ Snappy:
 2. 90,773 B (88.65 KiB) compressed - `snappy` + `delta-binary-packed`; 198,065 B (193.42 KiB) encoded; 44.121600x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 261,945 B (255.81 KiB) compressed - `snappy` + `plain`; 4,003,714 B (3.82 MiB) encoded; 15.289660x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 
-## JavascriptEnable (int16)
+<a id="javascriptenable-int16"></a>
+## JavascriptEnable (int16) [#](#javascriptenable-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -2134,7 +2194,8 @@ Snappy:
 2. 9,810 B (9.58 KiB) compressed - `snappy` + `delta-binary-packed`; 47,724 B (46.61 KiB) encoded; 408.262080x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 3. 204,912 B (200.11 KiB) compressed - `snappy` + `plain`; 4,003,774 B (3.82 MiB) encoded; 19.545224x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-rle-dict`
 
-## LocalEventTime (timestamp_millis)
+<a id="localeventtime-timestamp-millis"></a>
+## LocalEventTime (timestamp_millis) [#](#localeventtime-timestamp-millis)
 
 Column shape stats:
 - Parquet type: `TIMESTAMP(isAdjustedToUTC=true,unit=MILLIS)`; physical type: `INT64`
@@ -2171,7 +2232,8 @@ Snappy:
 2. 4,283,734 B (4.09 MiB) compressed - `snappy` + `plain`; 8,004,716 B (7.63 MiB) encoded; 1.869004x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 5,514,562 B (5.26 MiB) compressed - `snappy` + `rle-dict`; 7,339,519 B (7.00 MiB) encoded; 1.451850x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-rle-dict-date-rle-dict-ts-rle-dict`
 
-## MobilePhone (int16)
+<a id="mobilephone-int16"></a>
+## MobilePhone (int16) [#](#mobilephone-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -2208,7 +2270,8 @@ Snappy:
 2. 47,928 B (46.80 KiB) compressed - `snappy` + `delta-binary-packed`; 144,874 B (141.48 KiB) encoded; 83.563887x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-plain`
 3. 215,287 B (210.24 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 18.603306x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 
-## MobilePhoneModel (string)
+<a id="mobilephonemodel-string"></a>
+## MobilePhoneModel (string) [#](#mobilephonemodel-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2247,7 +2310,8 @@ Snappy:
 3. 56,742 B (55.41 KiB) compressed - `snappy` + `delta-byte-array`; 281,770 B (275.17 KiB) encoded; 72.014081x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 4. 219,863 B (214.71 KiB) compressed - `snappy` + `plain`; 4,085,062 B (3.90 MiB) encoded; 18.585314x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-delta-binary-packed`
 
-## NetMajor (int16)
+<a id="netmajor-int16"></a>
+## NetMajor (int16) [#](#netmajor-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -2284,7 +2348,8 @@ Snappy:
 2. 51,618 B (50.41 KiB) compressed - `snappy` + `delta-binary-packed`; 160,393 B (156.63 KiB) encoded; 77.590220x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 219,057 B (213.92 KiB) compressed - `snappy` + `plain`; 4,003,711 B (3.82 MiB) encoded; 18.283150x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## NetMinor (int16)
+<a id="netminor-int16"></a>
+## NetMinor (int16) [#](#netminor-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -2321,7 +2386,8 @@ Snappy:
 2. 47,620 B (46.50 KiB) compressed - `snappy` + `delta-binary-packed`; 197,804 B (193.17 KiB) encoded; 84.104284x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 217,211 B (212.12 KiB) compressed - `snappy` + `plain`; 4,003,713 B (3.82 MiB) encoded; 18.438504x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## OS (int16)
+<a id="os-int16"></a>
+## OS (int16) [#](#os-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -2358,7 +2424,8 @@ Snappy:
 2. 263,942 B (257.76 KiB) compressed - `snappy` + `delta-binary-packed`; 845,066 B (825.26 KiB) encoded; 15.173974x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 317,972 B (310.52 KiB) compressed - `snappy` + `plain`; 4,003,710 B (3.82 MiB) encoded; 12.595603x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 
-## OpenerName (int32)
+<a id="openername-int32"></a>
+## OpenerName (int32) [#](#openername-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -2395,7 +2462,8 @@ Snappy:
 2. 6,253 B (6.11 KiB) compressed - `snappy` + `delta-binary-packed`; 43,182 B (42.17 KiB) encoded; 640.499920x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-plain`
 3. 204,061 B (199.28 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 19.626710x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 
-## OpenstatAdID (string)
+<a id="openstatadid-string"></a>
+## OpenstatAdID (string) [#](#openstatadid-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2434,7 +2502,8 @@ Snappy:
 3. 44,359 B (43.32 KiB) compressed - `snappy` + `delta-byte-array`; 210,052 B (205.13 KiB) encoded; 90.860389x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-rle-dict`
 4. 218,877 B (213.75 KiB) compressed - `snappy` + `plain`; 4,029,158 B (3.84 MiB) encoded; 18.414342x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-rle-dict-ts-delta-binary-packed`
 
-## OpenstatCampaignID (string)
+<a id="openstatcampaignid-string"></a>
+## OpenstatCampaignID (string) [#](#openstatcampaignid-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2473,7 +2542,8 @@ Snappy:
 3. 38,441 B (37.54 KiB) compressed - `snappy` + `delta-byte-array`; 198,099 B (193.46 KiB) encoded; 104.759970x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-rle-dict`
 4. 214,606 B (209.58 KiB) compressed - `snappy` + `plain`; 4,025,810 B (3.84 MiB) encoded; 18.764983x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-rle-dict-ts-delta-binary-packed`
 
-## OpenstatServiceName (string)
+<a id="openstatservicename-string"></a>
+## OpenstatServiceName (string) [#](#openstatservicename-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2512,7 +2582,8 @@ Snappy:
 3. 47,779 B (46.66 KiB) compressed - `snappy` + `delta-byte-array`; 301,351 B (294.29 KiB) encoded; 85.064715x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 4. 218,413 B (213.29 KiB) compressed - `snappy` + `plain`; 4,062,767 B (3.87 MiB) encoded; 18.608357x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-plain`
 
-## OpenstatSourceID (string)
+<a id="openstatsourceid-string"></a>
+## OpenstatSourceID (string) [#](#openstatsourceid-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2551,7 +2622,8 @@ Snappy:
 3. 33,748 B (32.96 KiB) compressed - `snappy` + `delta-byte-array`; 232,759 B (227.30 KiB) encoded; 120.107503x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-rle-dict`
 4. 214,290 B (209.27 KiB) compressed - `snappy` + `plain`; 4,051,956 B (3.86 MiB) encoded; 18.915432x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-delta-binary-packed-ts-delta-binary-packed`
 
-## OriginalURL (string)
+<a id="originalurl-string"></a>
+## OriginalURL (string) [#](#originalurl-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2590,7 +2662,8 @@ Snappy:
 3. 7,036,093 B (6.71 MiB) compressed - `snappy` + `plain`; 31,860,219 B (30.38 MiB) encoded; 4.528931x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-delta-binary-packed-ts-rle-dict`
 4. 7,041,489 B (6.72 MiB) compressed - `snappy` + `delta-length-byte-array`; 28,790,269 B (27.46 MiB) encoded; 4.525461x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-length-byte-array-date-plain-ts-delta-binary-packed`
 
-## PageCharset (string)
+<a id="pagecharset-string"></a>
+## PageCharset (string) [#](#pagecharset-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2629,7 +2702,8 @@ Snappy:
 3. 699,096 B (682.71 KiB) compressed - `snappy` + `delta-length-byte-array`; 13,657,540 B (13.02 MiB) encoded; 25.173882x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-length-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 4. 913,453 B (892.04 KiB) compressed - `snappy` + `plain`; 17,595,554 B (16.78 MiB) encoded; 19.266410x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-plain-date-rle-dict-ts-delta-binary-packed`
 
-## ParamCurrency (string)
+<a id="paramcurrency-string"></a>
+## ParamCurrency (string) [#](#paramcurrency-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2668,7 +2742,8 @@ Snappy:
 3. 157,287 B (153.60 KiB) compressed - `snappy` + `delta-length-byte-array`; 3,044,410 B (2.90 MiB) encoded; 44.534723x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-length-byte-array-date-plain-ts-plain`
 4. 354,236 B (345.93 KiB) compressed - `snappy` + `plain`; 7,003,535 B (6.68 MiB) encoded; 19.774199x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-rle-dict-ts-plain`
 
-## ParamCurrencyID (int16)
+<a id="paramcurrencyid-int16"></a>
+## ParamCurrencyID (int16) [#](#paramcurrencyid-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -2705,7 +2780,8 @@ Snappy:
 2. 6,203 B (6.06 KiB) compressed - `snappy` + `delta-binary-packed`; 43,179 B (42.17 KiB) encoded; 645.664034x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 204,060 B (199.28 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 19.626845x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## ParamOrderID (string)
+<a id="paramorderid-string"></a>
+## ParamOrderID (string) [#](#paramorderid-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2744,7 +2820,8 @@ Snappy:
 3. 6,836 B (6.68 KiB) compressed - `snappy` + `delta-byte-array`; 81,353 B (79.45 KiB) encoded; 585.599473x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 4. 202,701 B (197.95 KiB) compressed - `snappy` + `plain`; 4,002,334 B (3.82 MiB) encoded; 19.749079x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-delta-binary-packed`
 
-## ParamPrice (int64)
+<a id="paramprice-int64"></a>
+## ParamPrice (int64) [#](#paramprice-int64)
 
 Column shape stats:
 - Parquet type: `INT(64,true)`; physical type: `INT64`
@@ -2781,7 +2858,8 @@ Snappy:
 2. 7,147 B (6.98 KiB) compressed - `snappy` + `delta-binary-packed`; 44,123 B (43.09 KiB) encoded; 1120.234784x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 405,010 B (395.52 KiB) compressed - `snappy` + `plain`; 8,004,654 B (7.63 MiB) encoded; 19.768198x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 
-## Params (string)
+<a id="params-string"></a>
+## Params (string) [#](#params-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2820,7 +2898,8 @@ Snappy:
 3. 6,836 B (6.68 KiB) compressed - `snappy` + `delta-byte-array`; 81,353 B (79.45 KiB) encoded; 585.599473x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 4. 202,701 B (197.95 KiB) compressed - `snappy` + `plain`; 4,002,334 B (3.82 MiB) encoded; 19.749079x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-delta-binary-packed`
 
-## Referer (string)
+<a id="referer-string"></a>
+## Referer (string) [#](#referer-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -2859,7 +2938,8 @@ Snappy:
 3. 19,041,603 B (18.16 MiB) compressed - `snappy` + `plain`; 83,646,065 B (79.77 MiB) encoded; 4.392863x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-plain`
 4. 19,455,042 B (18.55 MiB) compressed - `snappy` + `delta-length-byte-array`; 80,832,992 B (77.09 MiB) encoded; 4.299510x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-length-byte-array-date-delta-binary-packed-ts-plain`
 
-## RefererCategoryID (int16)
+<a id="referercategoryid-int16"></a>
+## RefererCategoryID (int16) [#](#referercategoryid-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -2896,7 +2976,8 @@ Snappy:
 2. 508,782 B (496.86 KiB) compressed - `snappy` + `plain`; 4,003,746 B (3.82 MiB) encoded; 7.871845x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 589,994 B (576.17 KiB) compressed - `snappy` + `delta-binary-packed`; 1,862,388 B (1.78 MiB) encoded; 6.788294x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-plain`
 
-## RefererHash (int64)
+<a id="refererhash-int64"></a>
+## RefererHash (int64) [#](#refererhash-int64)
 
 Column shape stats:
 - Parquet type: `INT(64,true)`; physical type: `INT64`
@@ -2933,7 +3014,8 @@ Snappy:
 2. 3,637,773 B (3.47 MiB) compressed - `snappy` + `plain`; 8,004,877 B (7.63 MiB) encoded; 2.200884x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-rle-dict-date-delta-binary-packed-ts-plain`
 3. 5,094,999 B (4.86 MiB) compressed - `snappy` + `delta-binary-packed`; 8,118,138 B (7.74 MiB) encoded; 1.571407x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 
-## RefererRegionID (int32)
+<a id="refererregionid-int32"></a>
+## RefererRegionID (int32) [#](#refererregionid-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -2970,7 +3052,8 @@ Snappy:
 2. 392,279 B (383.08 KiB) compressed - `snappy` + `delta-binary-packed`; 1,366,147 B (1.30 MiB) encoded; 10.209698x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 457,896 B (447.16 KiB) compressed - `snappy` + `plain`; 4,003,737 B (3.82 MiB) encoded; 8.746637x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 
-## RegionID (int32)
+<a id="regionid-int32"></a>
+## RegionID (int32) [#](#regionid-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -3007,7 +3090,8 @@ Snappy:
 2. 396,306 B (387.02 KiB) compressed - `snappy` + `plain`; 4,003,714 B (3.82 MiB) encoded; 10.105948x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 545,447 B (532.66 KiB) compressed - `snappy` + `delta-binary-packed`; 1,484,217 B (1.42 MiB) encoded; 7.342690x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## RemoteIP (int32)
+<a id="remoteip-int32"></a>
+## RemoteIP (int32) [#](#remoteip-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -3044,7 +3128,8 @@ Snappy:
 2. 748,986 B (731.43 KiB) compressed - `snappy` + `rle-dict`; 927,799 B (906.05 KiB) encoded; 5.347292x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-delta-binary-packed-ts-rle-dict`
 3. 1,109,977 B (1.06 MiB) compressed - `snappy` + `delta-binary-packed`; 3,800,823 B (3.62 MiB) encoded; 3.608225x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 
-## ResolutionDepth (int16)
+<a id="resolutiondepth-int16"></a>
+## ResolutionDepth (int16) [#](#resolutiondepth-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3081,7 +3166,8 @@ Snappy:
 2. 162,742 B (158.93 KiB) compressed - `snappy` + `delta-binary-packed`; 552,414 B (539.47 KiB) encoded; 24.609818x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 3. 282,833 B (276.20 KiB) compressed - `snappy` + `plain`; 4,003,714 B (3.82 MiB) encoded; 14.160480x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 
-## ResolutionHeight (int16)
+<a id="resolutionheight-int16"></a>
+## ResolutionHeight (int16) [#](#resolutionheight-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3118,7 +3204,8 @@ Snappy:
 2. 372,941 B (364.20 KiB) compressed - `snappy` + `plain`; 4,003,717 B (3.82 MiB) encoded; 10.739098x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 3. 422,347 B (412.45 KiB) compressed - `snappy` + `delta-binary-packed`; 1,341,881 B (1.28 MiB) encoded; 9.482842x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-plain`
 
-## ResolutionWidth (int16)
+<a id="resolutionwidth-int16"></a>
+## ResolutionWidth (int16) [#](#resolutionwidth-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3155,7 +3242,8 @@ Snappy:
 2. 373,198 B (364.45 KiB) compressed - `snappy` + `plain`; 4,003,715 B (3.82 MiB) encoded; 10.731711x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 3. 477,429 B (466.24 KiB) compressed - `snappy` + `delta-binary-packed`; 1,284,851 B (1.23 MiB) encoded; 8.388793x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-rle-dict`
 
-## ResponseEndTiming (int32)
+<a id="responseendtiming-int32"></a>
+## ResponseEndTiming (int32) [#](#responseendtiming-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -3192,7 +3280,8 @@ Snappy:
 2. 1,280,646 B (1.22 MiB) compressed - `snappy` + `plain`; 4,003,770 B (3.82 MiB) encoded; 3.127368x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 3. 1,305,051 B (1.24 MiB) compressed - `snappy` + `delta-binary-packed`; 1,503,555 B (1.43 MiB) encoded; 3.068885x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-plain-date-plain-ts-plain`
 
-## ResponseStartTiming (int32)
+<a id="responsestarttiming-int32"></a>
+## ResponseStartTiming (int32) [#](#responsestarttiming-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -3229,7 +3318,8 @@ Snappy:
 2. 1,714,995 B (1.64 MiB) compressed - `snappy` + `rle-dict`; 1,810,426 B (1.73 MiB) encoded; 2.335313x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-length-byte-array-date-plain-ts-delta-binary-packed`
 3. 1,721,098 B (1.64 MiB) compressed - `snappy` + `plain`; 4,003,772 B (3.82 MiB) encoded; 2.327032x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 
-## Robotness (int16)
+<a id="robotness-int16"></a>
+## Robotness (int16) [#](#robotness-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3266,7 +3356,8 @@ Snappy:
 2. 381,443 B (372.50 KiB) compressed - `snappy` + `plain`; 4,003,719 B (3.82 MiB) encoded; 10.499744x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 3. 384,989 B (375.97 KiB) compressed - `snappy` + `delta-binary-packed`; 838,567 B (818.91 KiB) encoded; 10.403035x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## SearchEngineID (int16)
+<a id="searchengineid-int16"></a>
+## SearchEngineID (int16) [#](#searchengineid-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3303,7 +3394,8 @@ Snappy:
 2. 168,281 B (164.34 KiB) compressed - `snappy` + `delta-binary-packed`; 377,704 B (368.85 KiB) encoded; 23.799775x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-plain`
 3. 292,991 B (286.12 KiB) compressed - `snappy` + `plain`; 4,003,715 B (3.82 MiB) encoded; 13.669533x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## SearchPhrase (string)
+<a id="searchphrase-string"></a>
+## SearchPhrase (string) [#](#searchphrase-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -3342,7 +3434,8 @@ Snappy:
 3. 1,012,183 B (988.46 KiB) compressed - `snappy` + `delta-length-byte-array`; 4,223,215 B (4.03 MiB) encoded; 7.447182x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-length-byte-array-date-plain-ts-delta-binary-packed`
 4. 1,096,608 B (1.05 MiB) compressed - `snappy` + `plain`; 7,535,343 B (7.19 MiB) encoded; 6.873843x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-delta-binary-packed-ts-delta-binary-packed`
 
-## SendTiming (int32)
+<a id="sendtiming-int32"></a>
+## SendTiming (int32) [#](#sendtiming-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -3379,7 +3472,8 @@ Snappy:
 2. 111,631 B (109.01 KiB) compressed - `snappy` + `delta-binary-packed`; 173,175 B (169.12 KiB) encoded; 35.877615x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 3. 268,732 B (262.43 KiB) compressed - `snappy` + `plain`; 4,003,775 B (3.82 MiB) encoded; 14.903525x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-rle-dict`
 
-## Sex (int16)
+<a id="sex-int16"></a>
+## Sex (int16) [#](#sex-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3416,7 +3510,8 @@ Snappy:
 2. 135,239 B (132.07 KiB) compressed - `snappy` + `delta-binary-packed`; 252,677 B (246.75 KiB) encoded; 29.614623x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 302,471 B (295.38 KiB) compressed - `snappy` + `plain`; 4,003,713 B (3.82 MiB) encoded; 13.241111x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## SilverlightVersion1 (int16)
+<a id="silverlightversion1-int16"></a>
+## SilverlightVersion1 (int16) [#](#silverlightversion1-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3453,7 +3548,8 @@ Snappy:
 2. 151,472 B (147.92 KiB) compressed - `snappy` + `delta-binary-packed`; 437,094 B (426.85 KiB) encoded; 26.440860x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 287,124 B (280.39 KiB) compressed - `snappy` + `plain`; 4,003,713 B (3.82 MiB) encoded; 13.948851x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 
-## SilverlightVersion2 (int16)
+<a id="silverlightversion2-int16"></a>
+## SilverlightVersion2 (int16) [#](#silverlightversion2-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3490,7 +3586,8 @@ Snappy:
 2. 98,397 B (96.09 KiB) compressed - `snappy` + `delta-binary-packed`; 208,063 B (203.19 KiB) encoded; 40.703019x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-plain`
 3. 269,618 B (263.30 KiB) compressed - `snappy` + `plain`; 4,003,713 B (3.82 MiB) encoded; 14.854553x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 
-## SilverlightVersion3 (int32)
+<a id="silverlightversion3-int32"></a>
+## SilverlightVersion3 (int32) [#](#silverlightversion3-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -3527,7 +3624,8 @@ Snappy:
 2. 304,661 B (297.52 KiB) compressed - `snappy` + `plain`; 4,003,715 B (3.82 MiB) encoded; 13.145926x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 3. 390,759 B (381.60 KiB) compressed - `snappy` + `delta-binary-packed`; 1,859,939 B (1.77 MiB) encoded; 10.249415x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 
-## SilverlightVersion4 (int16)
+<a id="silverlightversion4-int16"></a>
+## SilverlightVersion4 (int16) [#](#silverlightversion4-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3564,7 +3662,8 @@ Snappy:
 2. 6,432 B (6.28 KiB) compressed - `snappy` + `delta-binary-packed`; 43,669 B (42.65 KiB) encoded; 622.676306x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 204,099 B (199.32 KiB) compressed - `snappy` + `plain`; 4,003,711 B (3.82 MiB) encoded; 19.623095x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## SocialAction (string)
+<a id="socialaction-string"></a>
+## SocialAction (string) [#](#socialaction-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -3603,7 +3702,8 @@ Snappy:
 3. 6,836 B (6.68 KiB) compressed - `snappy` + `delta-byte-array`; 81,353 B (79.45 KiB) encoded; 585.599473x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 4. 202,701 B (197.95 KiB) compressed - `snappy` + `plain`; 4,002,334 B (3.82 MiB) encoded; 19.749079x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-delta-binary-packed`
 
-## SocialNetwork (string)
+<a id="socialnetwork-string"></a>
+## SocialNetwork (string) [#](#socialnetwork-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -3642,7 +3742,8 @@ Snappy:
 3. 6,836 B (6.68 KiB) compressed - `snappy` + `delta-byte-array`; 81,353 B (79.45 KiB) encoded; 585.599473x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 4. 202,701 B (197.95 KiB) compressed - `snappy` + `plain`; 4,002,334 B (3.82 MiB) encoded; 19.749079x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-delta-binary-packed`
 
-## SocialSourceNetworkID (int16)
+<a id="socialsourcenetworkid-int16"></a>
+## SocialSourceNetworkID (int16) [#](#socialsourcenetworkid-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3679,7 +3780,8 @@ Snappy:
 2. 8,282 B (8.09 KiB) compressed - `snappy` + `delta-binary-packed`; 47,482 B (46.37 KiB) encoded; 483.585245x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 204,453 B (199.66 KiB) compressed - `snappy` + `plain`; 4,003,714 B (3.82 MiB) encoded; 19.589113x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## SocialSourcePage (string)
+<a id="socialsourcepage-string"></a>
+## SocialSourcePage (string) [#](#socialsourcepage-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -3718,7 +3820,8 @@ Snappy:
 3. 9,337 B (9.12 KiB) compressed - `snappy` + `delta-byte-array`; 86,546 B (84.52 KiB) encoded; 428.955018x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 4. 204,255 B (199.47 KiB) compressed - `snappy` + `plain`; 4,004,109 B (3.82 MiB) encoded; 19.608592x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-plain-date-delta-binary-packed-ts-delta-binary-packed`
 
-## Title (string)
+<a id="title-string"></a>
+## Title (string) [#](#title-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -3757,7 +3860,8 @@ Snappy:
 3. 20,886,114 B (19.92 MiB) compressed - `snappy` + `plain`; 142,865,534 B (136.25 MiB) encoded; 6.841170x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-plain-date-plain-ts-delta-binary-packed`
 4. 21,320,746 B (20.33 MiB) compressed - `snappy` + `delta-length-byte-array`; 140,024,907 B (133.54 MiB) encoded; 6.701710x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-length-byte-array-date-plain-ts-plain`
 
-## TraficSourceID (int16)
+<a id="traficsourceid-int16"></a>
+## TraficSourceID (int16) [#](#traficsourceid-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3794,7 +3898,8 @@ Snappy:
 2. 292,167 B (285.32 KiB) compressed - `snappy` + `delta-binary-packed`; 496,760 B (485.12 KiB) encoded; 13.708088x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-delta-binary-packed`
 3. 526,610 B (514.27 KiB) compressed - `snappy` + `plain`; 4,003,754 B (3.82 MiB) encoded; 7.605346x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 
-## URL (string)
+<a id="url-string"></a>
+## URL (string) [#](#url-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -3833,7 +3938,8 @@ Snappy:
 3. 20,458,616 B (19.51 MiB) compressed - `snappy` + `plain`; 92,651,231 B (88.36 MiB) encoded; 4.528810x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-delta-binary-packed`
 4. 20,776,321 B (19.81 MiB) compressed - `snappy` + `delta-length-byte-array`; 89,784,720 B (85.63 MiB) encoded; 4.459557x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-length-byte-array-date-rle-dict-ts-delta-binary-packed`
 
-## URLCategoryID (int16)
+<a id="urlcategoryid-int16"></a>
+## URLCategoryID (int16) [#](#urlcategoryid-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -3870,7 +3976,8 @@ Snappy:
 2. 241,518 B (235.86 KiB) compressed - `snappy` + `delta-binary-packed`; 1,082,023 B (1.03 MiB) encoded; 16.582814x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 271,779 B (265.41 KiB) compressed - `snappy` + `plain`; 4,003,714 B (3.82 MiB) encoded; 14.736415x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 
-## URLHash (int64)
+<a id="urlhash-int64"></a>
+## URLHash (int64) [#](#urlhash-int64)
 
 Column shape stats:
 - Parquet type: `INT(64,true)`; physical type: `INT64`
@@ -3907,7 +4014,8 @@ Snappy:
 2. 4,498,086 B (4.29 MiB) compressed - `snappy` + `rle-dict`; 4,603,185 B (4.39 MiB) encoded; 1.779937x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-delta-binary-packed`
 3. 5,945,541 B (5.67 MiB) compressed - `snappy` + `delta-binary-packed`; 8,119,600 B (7.74 MiB) encoded; 1.346607x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 
-## URLRegionID (int32)
+<a id="urlregionid-int32"></a>
+## URLRegionID (int32) [#](#urlregionid-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -3944,7 +4052,8 @@ Snappy:
 2. 126,255 B (123.30 KiB) compressed - `snappy` + `delta-binary-packed`; 716,541 B (699.75 KiB) encoded; 31.721904x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 232,132 B (226.69 KiB) compressed - `snappy` + `plain`; 4,003,712 B (3.82 MiB) encoded; 17.253326x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 
-## UTMCampaign (string)
+<a id="utmcampaign-string"></a>
+## UTMCampaign (string) [#](#utmcampaign-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -3983,7 +4092,8 @@ Snappy:
 3. 67,966 B (66.37 KiB) compressed - `snappy` + `delta-byte-array`; 328,459 B (320.76 KiB) encoded; 60.321337x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 4. 230,205 B (224.81 KiB) compressed - `snappy` + `plain`; 4,097,894 B (3.91 MiB) encoded; 17.809344x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-plain-date-rle-dict-ts-delta-binary-packed`
 
-## UTMContent (string)
+<a id="utmcontent-string"></a>
+## UTMContent (string) [#](#utmcontent-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -4022,7 +4132,8 @@ Snappy:
 3. 27,353 B (26.71 KiB) compressed - `snappy` + `delta-byte-array`; 149,463 B (145.96 KiB) encoded; 146.899097x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 4. 212,173 B (207.20 KiB) compressed - `snappy` + `plain`; 4,016,717 B (3.83 MiB) encoded; 18.937994x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-delta-binary-packed`
 
-## UTMMedium (string)
+<a id="utmmedium-string"></a>
+## UTMMedium (string) [#](#utmmedium-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -4061,7 +4172,8 @@ Snappy:
 3. 38,746 B (37.84 KiB) compressed - `snappy` + `delta-byte-array`; 213,611 B (208.60 KiB) encoded; 103.783823x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-rle-dict`
 4. 214,350 B (209.33 KiB) compressed - `snappy` + `plain`; 4,020,123 B (3.83 MiB) encoded; 18.760009x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-plain`
 
-## UTMSource (string)
+<a id="utmsource-string"></a>
+## UTMSource (string) [#](#utmsource-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -4100,7 +4212,8 @@ Snappy:
 3. 51,686 B (50.47 KiB) compressed - `snappy` + `delta-byte-array`; 267,959 B (261.68 KiB) encoded; 78.449116x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-plain-ts-plain`
 4. 219,066 B (213.93 KiB) compressed - `snappy` + `plain`; 4,053,439 B (3.87 MiB) encoded; 18.509130x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-plain-date-rle-dict-ts-delta-binary-packed`
 
-## UTMTerm (string)
+<a id="utmterm-string"></a>
+## UTMTerm (string) [#](#utmterm-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -4139,7 +4252,8 @@ Snappy:
 3. 30,896 B (30.17 KiB) compressed - `snappy` + `delta-byte-array`; 189,246 B (184.81 KiB) encoded; 130.582729x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-plain-ts-plain`
 4. 214,528 B (209.50 KiB) compressed - `snappy` + `plain`; 4,032,992 B (3.85 MiB) encoded; 18.806328x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-plain-date-rle-dict-ts-delta-binary-packed`
 
-## UserAgent (int16)
+<a id="useragent-int16"></a>
+## UserAgent (int16) [#](#useragent-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -4176,7 +4290,8 @@ Snappy:
 2. 281,367 B (274.77 KiB) compressed - `snappy` + `delta-binary-packed`; 685,977 B (669.90 KiB) encoded; 14.234267x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-delta-binary-packed-ts-plain`
 3. 342,015 B (334.00 KiB) compressed - `snappy` + `plain`; 4,003,715 B (3.82 MiB) encoded; 11.710168x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 
-## UserAgentMajor (int16)
+<a id="useragentmajor-int16"></a>
+## UserAgentMajor (int16) [#](#useragentmajor-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -4213,7 +4328,8 @@ Snappy:
 2. 301,197 B (294.14 KiB) compressed - `snappy` + `delta-binary-packed`; 661,130 B (645.63 KiB) encoded; 13.297111x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-plain-ts-plain`
 3. 364,837 B (356.29 KiB) compressed - `snappy` + `plain`; 4,003,717 B (3.82 MiB) encoded; 10.977642x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-rle-dict-ts-plain`
 
-## UserAgentMinor (string)
+<a id="useragentminor-string"></a>
+## UserAgentMinor (string) [#](#useragentminor-string)
 
 Column shape stats:
 - Parquet type: `STRING`; physical type: `BYTE_ARRAY`
@@ -4252,7 +4368,8 @@ Snappy:
 3. 327,938 B (320.25 KiB) compressed - `snappy` + `delta-length-byte-array`; 4,017,088 B (3.83 MiB) encoded; 23.700367x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-length-byte-array-date-plain-ts-plain`
 4. 467,072 B (456.12 KiB) compressed - `snappy` + `plain`; 7,771,080 B (7.41 MiB) encoded; 16.640370x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-plain`
 
-## UserID (int64)
+<a id="userid-int64"></a>
+## UserID (int64) [#](#userid-int64)
 
 Column shape stats:
 - Parquet type: `INT(64,true)`; physical type: `INT64`
@@ -4289,7 +4406,8 @@ Snappy:
 2. 1,084,714 B (1.03 MiB) compressed - `snappy` + `plain`; 8,004,715 B (7.63 MiB) encoded; 7.381038x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 1,120,481 B (1.07 MiB) compressed - `snappy` + `rle-dict`; 1,225,906 B (1.17 MiB) encoded; 7.145427x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-plain-date-plain-ts-rle-dict`
 
-## WatchID (int64)
+<a id="watchid-int64"></a>
+## WatchID (int64) [#](#watchid-int64)
 
 Column shape stats:
 - Parquet type: `INT(64,true)`; physical type: `INT64`
@@ -4326,7 +4444,8 @@ Snappy:
 2. 8,005,128 B (7.63 MiB) compressed - `snappy` + `plain`; 8,004,715 B (7.63 MiB) encoded; 1.000148x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 9,826,284 B (9.37 MiB) compressed - `snappy` + `rle-dict`; 9,825,517 B (9.37 MiB) encoded; 0.814785x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-plain-ts-rle-dict`
 
-## WindowClientHeight (int16)
+<a id="windowclientheight-int16"></a>
+## WindowClientHeight (int16) [#](#windowclientheight-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -4363,7 +4482,8 @@ Snappy:
 2. 601,354 B (587.26 KiB) compressed - `snappy` + `rle-dict`; 749,835 B (732.26 KiB) encoded; 6.660055x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 3. 616,032 B (601.59 KiB) compressed - `snappy` + `delta-binary-packed`; 1,249,759 B (1.19 MiB) encoded; 6.501368x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-delta-byte-array-date-rle-dict-ts-plain`
 
-## WindowClientWidth (int16)
+<a id="windowclientwidth-int16"></a>
+## WindowClientWidth (int16) [#](#windowclientwidth-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`
@@ -4400,7 +4520,8 @@ Snappy:
 2. 516,116 B (504.02 KiB) compressed - `snappy` + `plain`; 4,003,747 B (3.82 MiB) encoded; 7.759984x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-plain-ts-delta-binary-packed`
 3. 646,095 B (630.95 KiB) compressed - `snappy` + `delta-binary-packed`; 1,354,763 B (1.29 MiB) encoded; 6.198859x post-compression ratio; experiment `rows-1000000-comp-snappy-int-delta-binary-packed-str-plain-date-delta-binary-packed-ts-delta-binary-packed`
 
-## WindowName (int32)
+<a id="windowname-int32"></a>
+## WindowName (int32) [#](#windowname-int32)
 
 Column shape stats:
 - Parquet type: `INT(32,true)`; physical type: `INT32`
@@ -4437,7 +4558,8 @@ Snappy:
 2. 150,771 B (147.24 KiB) compressed - `snappy` + `rle-dict`; 171,344 B (167.33 KiB) encoded; 26.563809x post-compression ratio; experiment `rows-1000000-comp-snappy-int-rle-dict-str-rle-dict-date-delta-binary-packed-ts-plain`
 3. 295,106 B (288.19 KiB) compressed - `snappy` + `plain`; 4,003,718 B (3.82 MiB) encoded; 13.571571x post-compression ratio; experiment `rows-1000000-comp-snappy-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-delta-binary-packed`
 
-## WithHash (int16)
+<a id="withhash-int16"></a>
+## WithHash (int16) [#](#withhash-int16)
 
 Column shape stats:
 - Parquet type: `INT(16,true)`; physical type: `INT32`

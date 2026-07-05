@@ -1,4 +1,5 @@
-# Encoding Matrix Summary
+<a id="encoding-matrix-summary"></a>
+# Encoding Matrix Summary [#](#encoding-matrix-summary)
 
 - Started: `2026-07-05T00:25:29-04:00`
 - Finished: `2026-07-05T00:25:33-04:00`
@@ -12,7 +13,8 @@
 - Fixed max file size: `10MiB`
 - Plain/uncompressed baseline: [`2026-07-03_rows-1000000-comp-none-int-plain-str-plain-date-plain-ts-plain.md`](configs/2026-07-03_rows-1000000-comp-none-int-plain-str-plain-date-plain-ts-plain.md)
 
-## Outputs
+<a id="outputs"></a>
+## Outputs [#](#outputs)
 
 - All experiments: [2026-07-05_rows-1000000_encoding-matrix_experiments.tsv](../tsvs/2026-07-05_rows-1000000_encoding-matrix_experiments.tsv)
 - Settings with pre/post compression side by side: [2026-07-05_rows-1000000_encoding-matrix_settings.tsv](../tsvs/2026-07-05_rows-1000000_encoding-matrix_settings.tsv)
@@ -21,7 +23,8 @@
 - Best encoding per column: [2026-07-05_rows-1000000_encoding-matrix_best-column-encodings.tsv](../tsvs/2026-07-05_rows-1000000_encoding-matrix_best-column-encodings.tsv)
 - Column top 5 rankings with shape stats: [col_top_5.md](col_top_5.md)
 
-## Ranking Definitions
+<a id="ranking-definitions"></a>
+## Ranking Definitions [#](#ranking-definitions)
 
 - Pre-compression uses the `none` run for the same encoding setting: plain/uncompressed baseline encoded bytes divided by that setting's encoded bytes.
 - Snappy and ZSTD compression use the compressed bytes for the same encoding setting: plain/uncompressed baseline encoded bytes divided by compressed bytes.
@@ -30,7 +33,8 @@
 - `post_compression_no_encoding_bytes` is the same column's compressed bytes from the all-plain run with the same compression setting; `post_compression_no_encoding_ratio` is plain/uncompressed baseline encoded bytes divided by those bytes.
 - Codec ratio: candidate encoded bytes divided by candidate compressed bytes.
 
-## Top Encoding Settings
+<a id="top-encoding-settings"></a>
+## Top Encoding Settings [#](#top-encoding-settings)
 
 | Rank | Int | Date | Timestamp | String | Pre-compression | Snappy compression | ZSTD compression | ZSTD compression (no encoding) | Result |
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -55,7 +59,8 @@
 | 19 | `rle-dict` | `plain` | `rle-dict` | `rle-dict` | `199057141` bytes, `4.147663x` | `102683434` bytes, `8.040459x` | `86376239` bytes, `9.558438x` | `86812277` bytes, `9.510428x` | [2026-07-04_rows-1000000-comp-zstd-3-int-rle-dict-str-rle-dict-date-plain-ts-rle-dict.md](configs/2026-07-04_rows-1000000-comp-zstd-3-int-rle-dict-str-rle-dict-date-plain-ts-rle-dict.md) |
 | 20 | `rle-dict` | `delta-binary-packed` | `rle-dict` | `rle-dict` | `195111272` bytes, `4.231544x` | `102487237` bytes, `8.055851x` | `86381015` bytes, `9.557910x` | `86812277` bytes, `9.510428x` | [2026-07-04_rows-1000000-comp-zstd-3-int-rle-dict-str-rle-dict-date-delta-binary-packed-ts-rle-dict.md](configs/2026-07-04_rows-1000000-comp-zstd-3-int-rle-dict-str-rle-dict-date-delta-binary-packed-ts-rle-dict.md) |
 
-## Column Winners
+<a id="column-winners"></a>
+## Column Winners [#](#column-winners)
 
 Best means smallest target bytes across all 96 runs for that column. For `none`, target bytes are encoded bytes; for Snappy/ZSTD, target bytes are compressed bytes.
 
@@ -166,4 +171,3 @@ Best means smallest target bytes across all 96 runs for that column. For `none`,
 | `WindowClientWidth` | `int16` | `plain` | `zstd-3` | `4000000` | `4005052` | `305724` | `4003590` | `305724` | `305751` | `13.099064` | `1.000365` | `13.100221` | [2026-07-03_rows-1000000-comp-zstd-3-int-plain-str-delta-length-byte-array-date-delta-binary-packed-ts-delta-binary-packed.md](configs/2026-07-03_rows-1000000-comp-zstd-3-int-plain-str-delta-length-byte-array-date-delta-binary-packed-ts-delta-binary-packed.md) |
 | `WindowName` | `int32` | `plain` | `zstd-3` | `4000000` | `4005052` | `70803` | `4003577` | `70803` | `70817` | `56.554951` | `1.000368` | `56.566134` | [2026-07-04_rows-1000000-comp-zstd-3-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-rle-dict.md](configs/2026-07-04_rows-1000000-comp-zstd-3-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-rle-dict.md) |
 | `WithHash` | `int16` | `plain` | `zstd-3` | `4000000` | `4005054` | `4228` | `4003527` | `4228` | `4240` | `944.588208` | `1.000381` | `947.269158` | [2026-07-03_rows-1000000-comp-zstd-3-int-plain-str-delta-length-byte-array-date-delta-binary-packed-ts-plain.md](configs/2026-07-03_rows-1000000-comp-zstd-3-int-plain-str-delta-length-byte-array-date-delta-binary-packed-ts-plain.md) |
-

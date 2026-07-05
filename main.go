@@ -1508,13 +1508,69 @@ func sanitizeFilename(s string) string {
 	return strings.Trim(b.String(), "-")
 }
 
+type markdownDoc struct {
+	b            *strings.Builder
+	anchorCounts map[string]int
+}
+
+func newMarkdownDoc(b *strings.Builder) *markdownDoc {
+	return &markdownDoc{
+		b:            b,
+		anchorCounts: make(map[string]int),
+	}
+}
+
+func (d *markdownDoc) Heading(level int, title string) {
+	if level < 1 {
+		level = 1
+	}
+	if level > 6 {
+		level = 6
+	}
+	id := d.nextAnchorID(title)
+	fmt.Fprintf(d.b, "<a id=\"%s\"></a>\n%s %s [#](#%s)\n\n", id, strings.Repeat("#", level), title, id)
+}
+
+func (d *markdownDoc) nextAnchorID(title string) string {
+	base := markdownAnchorSlug(title)
+	d.anchorCounts[base]++
+	if d.anchorCounts[base] == 1 {
+		return base
+	}
+	return fmt.Sprintf("%s-%d", base, d.anchorCounts[base])
+}
+
+func markdownAnchorSlug(title string) string {
+	title = strings.ToLower(strings.TrimSpace(title))
+	var b strings.Builder
+	lastDash := false
+	for _, r := range title {
+		ok := (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')
+		if ok {
+			b.WriteRune(r)
+			lastDash = false
+			continue
+		}
+		if !lastDash {
+			b.WriteByte('-')
+			lastDash = true
+		}
+	}
+	slug := strings.Trim(b.String(), "-")
+	if slug == "" {
+		return "section"
+	}
+	return slug
+}
+
 func writeMarkdownSummary(b *strings.Builder, cfg config, stats runStats) {
+	md := newMarkdownDoc(b)
 	parquetBytes := totalParquetBytes(stats.Files)
 	physicalBytes := totalPhysicalBytes(stats.Files)
 	encodedBytes := totalEncodedBytes(stats.Files)
 	compressedDataBytes := totalCompressedDataBytes(stats.Files)
 	elapsed := stats.FinishedAt.Sub(stats.StartedAt)
-	fmt.Fprintf(b, "# ClickBench Parquet Experiment\n\n")
+	md.Heading(1, "ClickBench Parquet Experiment")
 	fmt.Fprintf(b, "- Started: `%s`\n", stats.StartedAt.Format(time.RFC3339))
 	fmt.Fprintf(b, "- Write elapsed: `%s`\n", elapsed.Round(time.Millisecond))
 	fmt.Fprintf(b, "- Input: `%s`\n", cfg.Input)
@@ -1533,7 +1589,7 @@ func writeMarkdownSummary(b *strings.Builder, cfg config, stats runStats) {
 	fmt.Fprintf(b, "- Physical/compressed-data ratio: `%s`\n", formatMultiplier(physicalBytes, compressedDataBytes))
 	fmt.Fprintf(b, "- Physical/parquet-file ratio: `%s`\n", formatMultiplier(physicalBytes, parquetBytes))
 	fmt.Fprintf(b, "- Files: `%d`\n\n", len(stats.Files))
-	fmt.Fprintf(b, "## Settings\n\n")
+	md.Heading(2, "Settings")
 	fmt.Fprintf(b, "- Compression: `%s`\n", stats.CompressionName)
 	fmt.Fprintf(b, "- Int encoding: `%s`\n", cfg.IntEncoding)
 	fmt.Fprintf(b, "- String encoding: `%s`\n", cfg.StringEncoding)
@@ -1544,17 +1600,17 @@ func writeMarkdownSummary(b *strings.Builder, cfg config, stats runStats) {
 	fmt.Fprintf(b, "- Max row group rows: `%d`\n", cfg.MaxRowGroupRows)
 	fmt.Fprintf(b, "- Max row group size: `%s`\n", formatBytes(cfg.MaxRowGroupSize))
 	fmt.Fprintf(b, "- Max file size: `%s`\n\n", formatBytes(cfg.MaxFileSize))
-	writeSchemaMarkdown(b)
+	writeSchemaMarkdown(md)
 	if stats.Verification != nil {
-		fmt.Fprintf(b, "## Verification\n\n")
+		md.Heading(2, "Verification")
 		fmt.Fprintf(b, "- Status: `passed`\n")
 		fmt.Fprintf(b, "- Rows read and compared: `%d`\n", stats.Verification.Rows)
 		fmt.Fprintf(b, "- Files read: `%d`\n", stats.Verification.Files)
 		fmt.Fprintf(b, "- Elapsed: `%s`\n", stats.Verification.Elapsed.Round(time.Millisecond))
 		fmt.Fprintf(b, "- Source TSV bytes checked: `%d` (%s)\n\n", stats.Verification.SourceBytes, formatBytes(stats.Verification.SourceBytes))
 	}
-	writeColumnStatsMarkdown(b, stats.Columns, stats.ResultPath, stats.ColumnStatsPath)
-	fmt.Fprintf(b, "## Files\n\n")
+	writeColumnStatsMarkdown(md, stats.Columns, stats.ResultPath, stats.ColumnStatsPath)
+	md.Heading(2, "Files")
 	for _, f := range stats.Files {
 		fmt.Fprintf(b, "- `%s`: `%d` rows, `%d` file bytes (%s), `%d` physical bytes (%s), `%d` encoded bytes (%s), `%d` compressed data bytes (%s)\n",
 			f.Path, f.Rows,
@@ -1647,6 +1703,7 @@ func printComparisonSummary(candidate, baseline runStats, path string, generated
 }
 
 func writeComparisonMarkdown(b *strings.Builder, candidateCfg config, candidate runStats, baselineCfg config, baseline runStats, comparisonPath, columnComparisonPath string) {
+	md := newMarkdownDoc(b)
 	baselinePhysical := totalPhysicalBytes(baseline.Files)
 	candidatePhysical := totalPhysicalBytes(candidate.Files)
 	baselineEncoded := totalEncodedBytes(baseline.Files)
@@ -1656,7 +1713,7 @@ func writeComparisonMarkdown(b *strings.Builder, candidateCfg config, candidate 
 	baselineParquet := totalParquetBytes(baseline.Files)
 	candidateParquet := totalParquetBytes(candidate.Files)
 
-	fmt.Fprintf(b, "# ClickBench Plain-Uncompressed Baseline Comparison\n\n")
+	md.Heading(1, "ClickBench Plain-Uncompressed Baseline Comparison")
 	fmt.Fprintf(b, "- Candidate result: `%s`\n", candidate.ResultPath)
 	fmt.Fprintf(b, "- Plain baseline result: `%s`\n", baseline.ResultPath)
 	fmt.Fprintf(b, "- Candidate output directory: `%s`\n", candidate.OutputDir)
@@ -1665,9 +1722,9 @@ func writeComparisonMarkdown(b *strings.Builder, candidateCfg config, candidate 
 	fmt.Fprintf(b, "- Candidate write elapsed: `%s`\n", candidate.FinishedAt.Sub(candidate.StartedAt).Round(time.Millisecond))
 	fmt.Fprintf(b, "- Plain baseline write elapsed: `%s`\n", baseline.FinishedAt.Sub(baseline.StartedAt).Round(time.Millisecond))
 	fmt.Fprintf(b, "- Plain baseline definition: same rows/page/row-group/file settings, all encodings `plain`, compression `none`\n\n")
-	writeSchemaMarkdown(b)
+	writeSchemaMarkdown(md)
 
-	fmt.Fprintf(b, "## Settings\n\n")
+	md.Heading(2, "Settings")
 	fmt.Fprintf(b, "| Setting | Candidate | Plain baseline |\n")
 	fmt.Fprintf(b, "| --- | --- | --- |\n")
 	fmt.Fprintf(b, "| Compression | `%s` | `%s` |\n", candidate.CompressionName, baseline.CompressionName)
@@ -1681,7 +1738,7 @@ func writeComparisonMarkdown(b *strings.Builder, candidateCfg config, candidate 
 	fmt.Fprintf(b, "| Max row group size | `%s` | `%s` |\n", formatBytes(candidateCfg.MaxRowGroupSize), formatBytes(baselineCfg.MaxRowGroupSize))
 	fmt.Fprintf(b, "| Max file size | `%s` | `%s` |\n\n", formatBytes(candidateCfg.MaxFileSize), formatBytes(baselineCfg.MaxFileSize))
 
-	fmt.Fprintf(b, "## Totals\n\n")
+	md.Heading(2, "Totals")
 	fmt.Fprintf(b, "| Metric | Plain baseline | Candidate | Baseline/candidate |\n")
 	fmt.Fprintf(b, "| --- | ---: | ---: | ---: |\n")
 	fmt.Fprintf(b, "| Physical bytes | `%d` (%s) | `%d` (%s) | `%s` |\n",
@@ -1705,7 +1762,7 @@ func writeComparisonMarkdown(b *strings.Builder, candidateCfg config, candidate 
 		formatMultiplier(baselineParquet, candidateParquet),
 	)
 
-	fmt.Fprintf(b, "## Columns\n\n")
+	md.Heading(2, "Columns")
 	fmt.Fprintf(b, "Encoding ratio compares plain-uncompressed baseline encoded bytes to candidate encoded bytes. Total ratio compares plain-uncompressed baseline encoded bytes to candidate compressed bytes.\n\n")
 	if columnComparisonPath != "" {
 		name := filepath.Base(columnComparisonPath)
@@ -1743,8 +1800,9 @@ func columnStatsByName(columns []columnStat) map[string]columnStat {
 	return byName
 }
 
-func writeSchemaMarkdown(b *strings.Builder) {
-	fmt.Fprintf(b, "## Schema\n\n")
+func writeSchemaMarkdown(md *markdownDoc) {
+	b := md.b
+	md.Heading(2, "Schema")
 	fmt.Fprintf(b, "- Columns: `%d`, generated from the built-in ClickBench `hits` column list in source TSV field order.\n", len(clickBenchColumns))
 	fmt.Fprintf(b, "- Mapping: each input row is split on tabs, and field `N` is written to ClickBench column `N` with the same name.\n")
 	fmt.Fprintf(b, "- All Parquet columns are required.\n")
@@ -1867,8 +1925,9 @@ func writeColumnComparisonTSV(path string, candidateColumns, baselineColumns []c
 	return w.Error()
 }
 
-func writeColumnStatsMarkdown(b *strings.Builder, columns []columnStat, resultPath, columnStatsPath string) {
-	fmt.Fprintf(b, "## Columns\n\n")
+func writeColumnStatsMarkdown(md *markdownDoc, columns []columnStat, resultPath, columnStatsPath string) {
+	b := md.b
+	md.Heading(2, "Columns")
 	fmt.Fprintf(b, "Physical bytes are Parquet physical value payloads before page encoding: fixed-width physical sizes for ints, dates, and timestamps, and BYTE_ARRAY payload bytes after TSV unescaping for strings, excluding PLAIN length prefixes. Encoded bytes are Parquet column chunk total uncompressed sizes after Parquet encoding and before the snappy/zstd codec. Compressed bytes are Parquet column chunk total compressed sizes after the codec. Source field bytes are included only as a TSV reference and exclude delimiters and line endings.\n\n")
 	if columnStatsPath != "" {
 		name := filepath.Base(columnStatsPath)

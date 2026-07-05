@@ -1725,9 +1725,65 @@ func writeBestColumnEncodingsTSV(path string, winners []columnWinner) error {
 	})
 }
 
+type markdownDoc struct {
+	b            *strings.Builder
+	anchorCounts map[string]int
+}
+
+func newMarkdownDoc(b *strings.Builder) *markdownDoc {
+	return &markdownDoc{
+		b:            b,
+		anchorCounts: make(map[string]int),
+	}
+}
+
+func (d *markdownDoc) Heading(level int, title string) {
+	if level < 1 {
+		level = 1
+	}
+	if level > 6 {
+		level = 6
+	}
+	id := d.nextAnchorID(title)
+	fmt.Fprintf(d.b, "<a id=\"%s\"></a>\n%s %s [#](#%s)\n\n", id, strings.Repeat("#", level), title, id)
+}
+
+func (d *markdownDoc) nextAnchorID(title string) string {
+	base := markdownAnchorSlug(title)
+	d.anchorCounts[base]++
+	if d.anchorCounts[base] == 1 {
+		return base
+	}
+	return fmt.Sprintf("%s-%d", base, d.anchorCounts[base])
+}
+
+func markdownAnchorSlug(title string) string {
+	title = strings.ToLower(strings.TrimSpace(title))
+	var b strings.Builder
+	lastDash := false
+	for _, r := range title {
+		ok := (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')
+		if ok {
+			b.WriteRune(r)
+			lastDash = false
+			continue
+		}
+		if !lastDash {
+			b.WriteByte('-')
+			lastDash = true
+		}
+	}
+	slug := strings.Trim(b.String(), "-")
+	if slug == "" {
+		return "section"
+	}
+	return slug
+}
+
 func writeSummaryMarkdown(path string, cfg config, rankings []experimentRanking, settings []settingSummary, winners []columnWinner, bestColumnWinners []columnWinner, baseline experimentResult, started, finished time.Time, allExperimentsPath, settingsPath, columnResultsPath, columnWinnersPath, bestColumnEncodingsPath, columnTop5Path string) error {
 	var b strings.Builder
-	fmt.Fprintf(&b, "# Encoding Matrix Summary\n\n")
+	md := newMarkdownDoc(&b)
+	md.Heading(1, "Encoding Matrix Summary")
 	fmt.Fprintf(&b, "- Started: `%s`\n", started.Format(time.RFC3339))
 	fmt.Fprintf(&b, "- Finished: `%s`\n", finished.Format(time.RFC3339))
 	fmt.Fprintf(&b, "- Elapsed: `%s`\n", finished.Sub(started).Round(time.Millisecond))
@@ -1741,7 +1797,7 @@ func writeSummaryMarkdown(path string, cfg config, rankings []experimentRanking,
 	summaryDir := filepath.Dir(path)
 	fmt.Fprintf(&b, "- Plain/uncompressed baseline: [`%s`](%s)\n\n", filepath.Base(baseline.ResultPath), markdownLinkTarget(summaryDir, baseline.ResultPath))
 
-	fmt.Fprintf(&b, "## Outputs\n\n")
+	md.Heading(2, "Outputs")
 	fmt.Fprintf(&b, "- All experiments: [%s](%s)\n", filepath.Base(allExperimentsPath), markdownLinkTarget(summaryDir, allExperimentsPath))
 	fmt.Fprintf(&b, "- Settings with pre/post compression side by side: [%s](%s)\n", filepath.Base(settingsPath), markdownLinkTarget(summaryDir, settingsPath))
 	fmt.Fprintf(&b, "- All per-column observations: [%s](%s)\n", filepath.Base(columnResultsPath), markdownLinkTarget(summaryDir, columnResultsPath))
@@ -1749,7 +1805,7 @@ func writeSummaryMarkdown(path string, cfg config, rankings []experimentRanking,
 	fmt.Fprintf(&b, "- Best encoding per column: [%s](%s)\n", filepath.Base(bestColumnEncodingsPath), markdownLinkTarget(summaryDir, bestColumnEncodingsPath))
 	fmt.Fprintf(&b, "- Column top 5 rankings with shape stats: [%s](%s)\n\n", filepath.Base(columnTop5Path), markdownLinkTarget(summaryDir, columnTop5Path))
 
-	fmt.Fprintf(&b, "## Ranking Definitions\n\n")
+	md.Heading(2, "Ranking Definitions")
 	fmt.Fprintf(&b, "- Pre-compression uses the `none` run for the same encoding setting: plain/uncompressed baseline encoded bytes divided by that setting's encoded bytes.\n")
 	fmt.Fprintf(&b, "- Snappy and ZSTD compression use the compressed bytes for the same encoding setting: plain/uncompressed baseline encoded bytes divided by compressed bytes.\n")
 	fmt.Fprintf(&b, "- Column ratios use `baseline_encoded_bytes` as their denominator: the same column's encoded bytes from the all-plain/no-compression run. `physical_bytes` is shown separately and is not used as the ratio denominator.\n")
@@ -1757,10 +1813,10 @@ func writeSummaryMarkdown(path string, cfg config, rankings []experimentRanking,
 	fmt.Fprintf(&b, "- `post_compression_no_encoding_bytes` is the same column's compressed bytes from the all-plain run with the same compression setting; `post_compression_no_encoding_ratio` is plain/uncompressed baseline encoded bytes divided by those bytes.\n")
 	fmt.Fprintf(&b, "- Codec ratio: candidate encoded bytes divided by candidate compressed bytes.\n\n")
 
-	fmt.Fprintf(&b, "## Top Encoding Settings\n\n")
+	md.Heading(2, "Top Encoding Settings")
 	writeSettingTable(&b, settings, 20, summaryDir)
 
-	fmt.Fprintf(&b, "## Column Winners\n\n")
+	md.Heading(2, "Column Winners")
 	fmt.Fprintf(&b, "Best means smallest target bytes across all 96 runs for that column. For `none`, target bytes are encoded bytes; for Snappy/ZSTD, target bytes are compressed bytes.\n\n")
 	writeBestColumnEncodingsMarkdown(&b, bestColumnWinners, summaryDir)
 	if cfg.GeneratePDF {
@@ -1858,7 +1914,8 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	sort.Strings(columns)
 
 	var b strings.Builder
-	fmt.Fprintf(&b, "# Column Top 5 Encoding Rankings\n\n")
+	md := newMarkdownDoc(&b)
+	md.Heading(1, "Column Top 5 Encoding Rankings")
 	fmt.Fprintf(&b, "- Experiment: `%s/%s`\n", filepath.Base(cfg.ExperimentDir), filepath.Base(cfg.ResultDir))
 	fmt.Fprintf(&b, "- Source data: [%s](%s)\n", filepath.Base(columnResultsPath), markdownLinkTarget(reportDir, columnResultsPath))
 	fmt.Fprintf(&b, "- Rows: `%s`\n", formatCount(cfg.Rows))
@@ -1879,7 +1936,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	if err := writeWinnerDistributionSVG(winnerDistributionPath, winnerDistribution); err != nil {
 		return err
 	}
-	fmt.Fprintf(&b, "## Winner Distribution\n\n")
+	md.Heading(2, "Winner Distribution")
 	fmt.Fprintf(&b, "Counts are based on each column's first `Compressed overall` ranking below: one winner per column, grouped by compression algorithm and configured column encoding.\n\n")
 	writeShapeImage(&b, "Column winner distribution", winnerDistributionPath, reportDir)
 	writeWinnerDistributionTable(&b, winnerDistribution)
@@ -1889,7 +1946,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	if err := writeEncodingRankDistributionSVG(rankDistributionPath, rankDistribution); err != nil {
 		return err
 	}
-	fmt.Fprintf(&b, "## Encoding Rank Distribution\n\n")
+	md.Heading(2, "Encoding Rank Distribution")
 	fmt.Fprintf(&b, "For each column and compression codec, duplicate matrix rows with the same effective column encoding are collapsed to the smallest compressed byte count. The remaining encodings are sorted by compressed bytes; counts below show how often each compression + encoding landed at rank 1, rank 2, and so on. Encodings that are not valid for a column type are not counted for that column.\n\n")
 	writeShapeImage(&b, "Encoding rank distribution by compression", rankDistributionPath, reportDir)
 	writeEncodingRankDistributionTable(&b, rankDistribution)
@@ -1899,7 +1956,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	if err := writeZstdPlainWinnerSecondPlaceDistributionSVG(zstdPlainSecondPlacePath, zstdPlainSecondPlace); err != nil {
 		return err
 	}
-	fmt.Fprintf(&b, "## ZSTD Plain Winner Second-Place Distribution\n\n")
+	md.Heading(2, "ZSTD Plain Winner Second-Place Distribution")
 	fmt.Fprintf(&b, "For columns where `zstd + plain` is rank 1 in the ZSTD-only compressed-byte ranking, this counts which encoding landed at rank 2 after collapsing duplicate matrix rows to each encoding's smallest compressed byte count.\n\n")
 	writeShapeImage(&b, "ZSTD plain winner second-place distribution", zstdPlainSecondPlacePath, reportDir)
 	writeSecondPlaceDistributionTable(&b, zstdPlainSecondPlace)
@@ -1909,7 +1966,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	if err := writeZstdPlainRLEDictComparisonSVG(zstdComparisonPath, zstdComparison); err != nil {
 		return err
 	}
-	fmt.Fprintf(&b, "## ZSTD Plain vs RLE Dict Improvement Distribution\n\n")
+	md.Heading(2, "ZSTD Plain vs RLE Dict Improvement Distribution")
 	fmt.Fprintf(&b, "For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.\n\n")
 	writeShapeImage(&b, "ZSTD plain versus RLE dictionary improvement distribution", zstdComparisonPath, reportDir)
 	writeZstdPlainRLEDictComparisonTable(&b, zstdComparison)
@@ -1918,39 +1975,39 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 		return err
 	}
 	if pageDistribution != nil {
-		writePageEncodingDistributionMarkdown(&b, *pageDistribution, reportDir)
+		writePageEncodingDistributionMarkdown(md, *pageDistribution, reportDir)
 	}
 
 	rleDictWorseCategories := buildZstdRLEDictWorseCategoryComparison(byColumn, shapeByColumn)
 	if err := writeRLEDictWorseCategoryImages(reportDir, &rleDictWorseCategories); err != nil {
 		return err
 	}
-	fmt.Fprintf(&b, "## ZSTD RLE Dict Worse Distribution By Category\n\n")
+	md.Heading(2, "ZSTD RLE Dict Worse Distribution By Category")
 	fmt.Fprintf(&b, "For columns where the best observed `zstd + plain` compressed byte count is smaller than the best observed `zstd + rle-dict` compressed byte count, each category image plots `plain + zstd` compressed bytes on the x-axis and `rle-dict + zstd` compressed bytes on the y-axis using the same log byte scale. Points above the diagonal are larger with RLE dictionary encoding. Point color is bucketed by `plain/no-compression encoded bytes / rle-dict + zstd compressed bytes`, so high-ratio colors identify columns where RLE dictionary lost the head-to-head but still compressed the baseline dramatically.\n\n")
 	fmt.Fprintf(&b, "The bucket tables below each image still show how much worse RLE dictionary encoding was. Worse-by percentage is `(rle_dict_compressed_bytes / plain_compressed_bytes - 1) * 100`, so values can exceed 100%%.\n\n")
 	fmt.Fprintf(&b, "The compressed bytes are Parquet column-chunk bytes, including dictionary pages and page headers.\n\n")
 	fmt.Fprintf(&b, "`Plain encoded bytes before compression` is the same column's byte count from the all-plain/no-compression baseline run. The `/ plain encoded` percentage columns compare compressed column bytes against that baseline denominator.\n\n")
 	fmt.Fprintf(&b, "Categorization uses only measured byte sizes, row-group cardinality, and column type: `True dictionary bloat` means RLE dictionary encoded bytes exceeded plain encoded bytes before ZSTD; `Tiny/constant plain stream` means median row-group cardinality is at most 2 or median cardinality/rows is at most 0.0006; `Structured medium/high-cardinality numeric streams` means a numeric or temporal column has median cardinality/rows at least 0.09; the remaining losing columns fall into `Small-domain fixed-width literals`. Sortedness, page min/max, and value-length distributions are shown elsewhere in this report but are not currently used for this category assignment.\n\n")
-	writeRLEDictWorseCategoryComparison(&b, rleDictWorseCategories, reportDir)
+	writeRLEDictWorseCategoryComparison(md, rleDictWorseCategories, reportDir)
 
 	snappyRLEDictWorseCategories := buildSnappyRLEDictWorseCategoryComparison(byColumn, shapeByColumn)
 	if err := writeSnappyRLEDictWorseCategoryImages(reportDir, &snappyRLEDictWorseCategories); err != nil {
 		return err
 	}
-	fmt.Fprintf(&b, "## Snappy RLE Dict Worse Distribution By Category\n\n")
+	md.Heading(2, "Snappy RLE Dict Worse Distribution By Category")
 	fmt.Fprintf(&b, "For columns where the best observed `snappy + plain` compressed byte count is smaller than the best observed `snappy + rle-dict` compressed byte count, each category image plots `plain + snappy` compressed bytes on the x-axis and `rle-dict + snappy` compressed bytes on the y-axis using the same log byte scale. Points above the diagonal are larger with RLE dictionary encoding. Point color is bucketed by `plain/no-compression encoded bytes / rle-dict + snappy compressed bytes`, so high-ratio colors identify columns where RLE dictionary lost the head-to-head but still compressed the baseline dramatically.\n\n")
 	fmt.Fprintf(&b, "The bucket tables below each image show how much worse RLE dictionary encoding was. Worse-by percentage is `(rle_dict_snappy_compressed_bytes / plain_snappy_compressed_bytes - 1) * 100`, so values can exceed 100%%.\n\n")
 	fmt.Fprintf(&b, "The compressed bytes are Parquet column-chunk bytes, including dictionary pages and page headers. Dictionary-page byte breakdown columns are left blank when the cached Snappy result TSV does not contain those byte counts.\n\n")
 	fmt.Fprintf(&b, "`Plain encoded bytes before compression` is the same column's byte count from the all-plain/no-compression baseline run. The `/ plain encoded` percentage columns compare compressed column bytes against that baseline denominator.\n\n")
 	fmt.Fprintf(&b, "Categorization uses measured row-group cardinality and column type: `Medium-cardinality fixed-width numeric streams` means a non-timestamp numeric column has median cardinality/rows below 9%%; `High-cardinality fixed-width IDs / hashes` means a non-timestamp numeric column has median cardinality/rows at least 9%%; `High-cardinality timestamp streams` covers timestamp columns. Value-length distributions are included in the table for context, but these Snappy categories are driven by fixed-width type plus cardinality.\n\n")
-	writeSnappyRLEDictWorseCategoryComparison(&b, snappyRLEDictWorseCategories, reportDir)
+	writeSnappyRLEDictWorseCategoryComparison(md, snappyRLEDictWorseCategories, reportDir)
 
 	deltaBinaryPackedComparison := buildDeltaBinaryPackedWinnerComparison(byColumn)
 	deltaBinaryPackedComparisonPath := filepath.Join(reportDir, "images", "delta_binary_packed_winner_vs_second_best_improvement.svg")
 	if err := writeDeltaBinaryPackedWinnerComparisonSVG(deltaBinaryPackedComparisonPath, deltaBinaryPackedComparison); err != nil {
 		return err
 	}
-	fmt.Fprintf(&b, "## Delta Binary Packed Winner vs Second Best Improvement Distribution\n\n")
+	md.Heading(2, "Delta Binary Packed Winner vs Second Best Improvement Distribution")
 	fmt.Fprintf(&b, "For each column, this looks at the `Compressed overall` ranking below. Only columns where `delta-binary-packed` is the best observed compressed result are bucketed. Improvement is `(second-best compressed bytes - delta-binary-packed compressed bytes) / second-best compressed bytes * 100`.\n\n")
 	writeShapeImage(&b, "Delta binary packed winner improvement over second best", deltaBinaryPackedComparisonPath, reportDir)
 	writeDeltaBinaryPackedWinnerComparisonTable(&b, deltaBinaryPackedComparison)
@@ -1964,7 +2021,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	if err := writeSnappyPlainBetterComparisonSVG(snappyPlainBetterPath, snappyComparison); err != nil {
 		return err
 	}
-	fmt.Fprintf(&b, "## Snappy Plain vs RLE Dict Improvement Distribution\n\n")
+	md.Heading(2, "Snappy Plain vs RLE Dict Improvement Distribution")
 	fmt.Fprintf(&b, "For each column, this compares the best observed `snappy + plain` compressed byte count with the best observed `snappy + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.\n\n")
 	fmt.Fprintf(&b, "- Compared columns: `%d`\n", snappyComparison.ComparedColumns)
 	fmt.Fprintf(&b, "- `snappy + rle-dict` smaller: `%d`; `snappy + plain` smaller: `%d`; ties: `%d`; missing comparisons: `%d`\n\n",
@@ -1981,7 +2038,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	for _, column := range columns {
 		observations := byColumn[column]
 		columnType := observations[0].Column.Type
-		fmt.Fprintf(&b, "## %s (%s)\n\n", column, columnType)
+		md.Heading(2, fmt.Sprintf("%s (%s)", column, columnType))
 		if shape, ok := shapeByColumn[column]; ok {
 			writeColumnShapeStatsMarkdown(&b, shape, shapePlots[column], reportDir)
 		}
@@ -2493,8 +2550,9 @@ func parsePageEncodingDistributionTSV(path string) (pageEncodingDistribution, er
 	return distribution, nil
 }
 
-func writePageEncodingDistributionMarkdown(b *strings.Builder, distribution pageEncodingDistribution, reportDir string) {
-	fmt.Fprintf(b, "### Page-Level Winner Distribution\n\n")
+func writePageEncodingDistributionMarkdown(md *markdownDoc, distribution pageEncodingDistribution, reportDir string) {
+	b := md.b
+	md.Heading(3, "Page-Level Winner Distribution")
 	fmt.Fprintf(b, "This is the page-level version of the same `plain + zstd` vs `rle-dict + zstd` comparison. Page ranges differ between the two runs, so the distribution is computed over overlap windows from the union of page row ranges. Red chart segments are windows where RLE would win if dictionary-page bytes were excluded, but does not win when amortized dictionary-page bytes are included. Compression-ratio cells in the image are `min/median/max` values for `encoded bytes before ZSTD / compressed bytes after ZSTD`; RLE cells include amortized dictionary bytes.\n\n")
 	if distribution.TSVPath != "" {
 		fmt.Fprintf(b, "- Source TSV: [%s](%s)\n", filepath.Base(distribution.TSVPath), markdownLinkTarget(reportDir, distribution.TSVPath))
@@ -3070,7 +3128,8 @@ func formatCompactRatio(value float64) string {
 	return fmt.Sprintf("%.2fx", value)
 }
 
-func writeRLEDictWorseCategoryComparison(b *strings.Builder, summary rleDictWorseCategoryComparison, reportDir string) {
+func writeRLEDictWorseCategoryComparison(md *markdownDoc, summary rleDictWorseCategoryComparison, reportDir string) {
+	b := md.b
 	fmt.Fprintf(b, "- Compared columns: `%d`\n", summary.ComparedColumns)
 	fmt.Fprintf(b, "- `zstd + rle-dict` worse than `zstd + plain`: `%d`; better: `%d`; ties: `%d`; missing comparisons: `%d`\n", summary.RLEDictWorseCount, summary.RLEDictBetterCount, summary.TieCount, summary.MissingCount)
 	fmt.Fprintf(b, "- Missing shape stats while categorizing: `%d`\n\n", summary.MissingShapeStats)
@@ -3089,7 +3148,7 @@ func writeRLEDictWorseCategoryComparison(b *strings.Builder, summary rleDictWors
 	fmt.Fprintf(b, "\n")
 
 	for _, category := range summary.Categories {
-		fmt.Fprintf(b, "### %s\n\n", category.Name)
+		md.Heading(3, category.Name)
 		fmt.Fprintf(b, "%s\n\n", category.Description)
 		imagePath := filepath.Join(reportDir, "images", "zstd_rle_dict_worse_"+category.Slug+".svg")
 		writeShapeImage(b, "RLE dictionary worse: "+category.Name, imagePath, reportDir)
@@ -3419,7 +3478,8 @@ func writeSnappyRLEDictWorseCategoryScatterSVG(path, title string, rows []snappy
 	return os.WriteFile(path, []byte(b.String()), 0o644)
 }
 
-func writeSnappyRLEDictWorseCategoryComparison(b *strings.Builder, summary snappyRLEDictWorseCategoryComparison, reportDir string) {
+func writeSnappyRLEDictWorseCategoryComparison(md *markdownDoc, summary snappyRLEDictWorseCategoryComparison, reportDir string) {
+	b := md.b
 	fmt.Fprintf(b, "- Compared columns: `%d`\n", summary.ComparedColumns)
 	fmt.Fprintf(b, "- `snappy + rle-dict` worse than `snappy + plain`: `%d`; better: `%d`; ties: `%d`; missing comparisons: `%d`\n", summary.RLEDictWorseCount, summary.RLEDictBetterCount, summary.TieCount, summary.MissingCount)
 	fmt.Fprintf(b, "- Missing shape stats while categorizing: `%d`\n\n", summary.MissingShapeStats)
@@ -3444,7 +3504,7 @@ func writeSnappyRLEDictWorseCategoryComparison(b *strings.Builder, summary snapp
 		if len(category.Rows) == 0 {
 			continue
 		}
-		fmt.Fprintf(b, "### %s\n\n", category.Name)
+		md.Heading(3, category.Name)
 		fmt.Fprintf(b, "%s\n\n", category.Description)
 		imagePath := filepath.Join(reportDir, "images", "snappy_rle_dict_worse_"+category.Slug+".svg")
 		writeShapeImage(b, "Snappy RLE dictionary worse: "+category.Name, imagePath, reportDir)

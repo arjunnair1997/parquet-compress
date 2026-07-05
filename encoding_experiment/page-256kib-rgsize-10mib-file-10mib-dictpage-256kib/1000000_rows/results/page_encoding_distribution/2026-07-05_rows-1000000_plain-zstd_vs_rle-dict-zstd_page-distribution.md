@@ -1,4 +1,5 @@
-# Page-Level Encoding Distribution
+<a id="page-level-encoding-distribution"></a>
+# Page-Level Encoding Distribution [#](#page-level-encoding-distribution)
 
 - Started: `2026-07-05T19:28:05-04:00`
 - Elapsed: `256ms`
@@ -14,7 +15,8 @@
 - Plain stats JSON: [plain-zstd_writer-stats.json](stats/plain-zstd_writer-stats.json)
 - RLE dict stats JSON: [rle-dict-zstd_writer-stats.json](stats/rle-dict-zstd_writer-stats.json)
 
-## Method
+<a id="method"></a>
+## Method [#](#method)
 
 The primary distribution uses overlap windows from the union of page row ranges for each column. For each overlapping row span, the page compressed byte cost is allocated in proportion to row overlap. The RLE dictionary cost uses `compressed_page_bytes_with_amortized_dictionary`, meaning the compressed dictionary page bytes for a column chunk are divided evenly across that chunk's data pages before comparison.
 
@@ -24,11 +26,13 @@ Compression-ratio cells are `min/median/max` values of `encoded bytes before ZST
 
 `exact_matched_pages` counts only pages where both runs produced the same absolute row range. Exact matches are useful as a sanity check, but the overlap-window distribution is the full comparison when page boundaries differ.
 
-## Distribution Chart
+<a id="distribution-chart"></a>
+## Distribution Chart [#](#distribution-chart)
 
 ![Page-window winner distribution by column](images/2026-07-05_rows-1000000_plain-zstd_vs_rle-dict-zstd_page-distribution.svg)
 
-## Column Distribution
+<a id="column-distribution"></a>
+## Column Distribution [#](#column-distribution)
 
 | Column | Type | Windows | Plain wins | RLE dict wins | Red overhead flips | Ties | Rows compared | Row-weighted plain | Row-weighted RLE dict | Allocated plain bytes | Allocated RLE dict bytes | RLE+zstd / plain+zstd | Plain CR all pages | RLE dict CR all pages | Plain-won plain CR | Plain-won RLE CR | RLE-won RLE CR | RLE-won plain CR | Exact matches | Unmatched plain | Unmatched RLE dict |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

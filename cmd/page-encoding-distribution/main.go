@@ -914,8 +914,9 @@ func appendRatioSummaryRecord(record []string, summary ratioSummary) []string {
 
 func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, rows []columnDistribution, tsvPath, svgPath string, started, finished time.Time) error {
 	var b strings.Builder
+	md := newMarkdownDoc(&b)
 	reportDir := filepath.Dir(path)
-	fmt.Fprintf(&b, "# Page-Level Encoding Distribution\n\n")
+	md.Heading(1, "Page-Level Encoding Distribution")
 	fmt.Fprintf(&b, "- Started: `%s`\n", started.Format(time.RFC3339))
 	fmt.Fprintf(&b, "- Elapsed: `%s`\n", finished.Sub(started).Round(time.Millisecond))
 	fmt.Fprintf(&b, "- Rows: `%d`\n", cfg.Rows)
@@ -937,16 +938,16 @@ func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, rows []c
 	}
 	fmt.Fprintf(&b, "\n")
 
-	fmt.Fprintf(&b, "## Method\n\n")
+	md.Heading(2, "Method")
 	fmt.Fprintf(&b, "The primary distribution uses overlap windows from the union of page row ranges for each column. For each overlapping row span, the page compressed byte cost is allocated in proportion to row overlap. The RLE dictionary cost uses `compressed_page_bytes_with_amortized_dictionary`, meaning the compressed dictionary page bytes for a column chunk are divided evenly across that chunk's data pages before comparison.\n\n")
 	fmt.Fprintf(&b, "Red chart segments are windows where `rle-dict + zstd` does not win with amortized dictionary-page bytes included, but would win if dictionary-page bytes were excluded. The direct size metric is `rle-dict + zstd allocated bytes / plain + zstd allocated bytes`.\n\n")
 	fmt.Fprintf(&b, "Compression-ratio cells are `min/median/max` values of `encoded bytes before ZSTD / compressed bytes after ZSTD`. RLE dictionary cells include amortized dictionary bytes in both the encoded and compressed side of the ratio.\n\n")
 	fmt.Fprintf(&b, "`exact_matched_pages` counts only pages where both runs produced the same absolute row range. Exact matches are useful as a sanity check, but the overlap-window distribution is the full comparison when page boundaries differ.\n\n")
 
-	fmt.Fprintf(&b, "## Distribution Chart\n\n")
+	md.Heading(2, "Distribution Chart")
 	writeImage(&b, "Page-window winner distribution by column", svgPath, reportDir)
 
-	fmt.Fprintf(&b, "## Column Distribution\n\n")
+	md.Heading(2, "Column Distribution")
 	fmt.Fprintf(&b, "| Column | Type | Windows | Plain wins | RLE dict wins | Red overhead flips | Ties | Rows compared | Row-weighted plain | Row-weighted RLE dict | Allocated plain bytes | Allocated RLE dict bytes | RLE+zstd / plain+zstd | Plain CR all pages | RLE dict CR all pages | Plain-won plain CR | Plain-won RLE CR | RLE-won RLE CR | RLE-won plain CR | Exact matches | Unmatched plain | Unmatched RLE dict |\n")
 	fmt.Fprintf(&b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
 	for _, row := range rows {
@@ -1251,6 +1252,61 @@ func formatCompactRatio(v float64) string {
 		return fmt.Sprintf("%.1f", v)
 	}
 	return fmt.Sprintf("%.2f", v)
+}
+
+type markdownDoc struct {
+	b            *strings.Builder
+	anchorCounts map[string]int
+}
+
+func newMarkdownDoc(b *strings.Builder) *markdownDoc {
+	return &markdownDoc{
+		b:            b,
+		anchorCounts: make(map[string]int),
+	}
+}
+
+func (d *markdownDoc) Heading(level int, title string) {
+	if level < 1 {
+		level = 1
+	}
+	if level > 6 {
+		level = 6
+	}
+	id := d.nextAnchorID(title)
+	fmt.Fprintf(d.b, "<a id=\"%s\"></a>\n%s %s [#](#%s)\n\n", id, strings.Repeat("#", level), title, id)
+}
+
+func (d *markdownDoc) nextAnchorID(title string) string {
+	base := markdownAnchorSlug(title)
+	d.anchorCounts[base]++
+	if d.anchorCounts[base] == 1 {
+		return base
+	}
+	return fmt.Sprintf("%s-%d", base, d.anchorCounts[base])
+}
+
+func markdownAnchorSlug(title string) string {
+	title = strings.ToLower(strings.TrimSpace(title))
+	var b strings.Builder
+	lastDash := false
+	for _, r := range title {
+		ok := (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')
+		if ok {
+			b.WriteRune(r)
+			lastDash = false
+			continue
+		}
+		if !lastDash {
+			b.WriteByte('-')
+			lastDash = true
+		}
+	}
+	slug := strings.Trim(b.String(), "-")
+	if slug == "" {
+		return "section"
+	}
+	return slug
 }
 
 func formatBytesFloat(v float64) string {
