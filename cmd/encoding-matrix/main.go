@@ -2495,7 +2495,7 @@ func parsePageEncodingDistributionTSV(path string) (pageEncodingDistribution, er
 
 func writePageEncodingDistributionMarkdown(b *strings.Builder, distribution pageEncodingDistribution, reportDir string) {
 	fmt.Fprintf(b, "### Page-Level Winner Distribution\n\n")
-	fmt.Fprintf(b, "This is the page-level version of the same `plain + zstd` vs `rle-dict + zstd` comparison. Page ranges differ between the two runs, so the distribution is computed over overlap windows from the union of page row ranges. Red chart segments are windows where RLE would win if dictionary-page bytes were excluded, but does not win when amortized dictionary-page bytes are included.\n\n")
+	fmt.Fprintf(b, "This is the page-level version of the same `plain + zstd` vs `rle-dict + zstd` comparison. Page ranges differ between the two runs, so the distribution is computed over overlap windows from the union of page row ranges. Red chart segments are windows where RLE would win if dictionary-page bytes were excluded, but does not win when amortized dictionary-page bytes are included. Compression-ratio cells in the image are `min/median/max` values for `encoded bytes before ZSTD / compressed bytes after ZSTD`; RLE cells include amortized dictionary bytes.\n\n")
 	if distribution.TSVPath != "" {
 		fmt.Fprintf(b, "- Source TSV: [%s](%s)\n", filepath.Base(distribution.TSVPath), markdownLinkTarget(reportDir, distribution.TSVPath))
 	}
