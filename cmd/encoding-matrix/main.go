@@ -283,6 +283,13 @@ type encodingImprovementBucket struct {
 	Count int
 }
 
+type compressionRatioColorBucket struct {
+	Label string
+	Min   float64
+	Max   float64
+	Color string
+}
+
 type encodingRankDistribution struct {
 	Rows    []encodingRankDistributionRow
 	MaxRank int
@@ -1792,7 +1799,8 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 		return err
 	}
 	fmt.Fprintf(&b, "## ZSTD RLE Dict Worse Distribution By Category\n\n")
-	fmt.Fprintf(&b, "For columns where the best observed `zstd + plain` compressed byte count is smaller than the best observed `zstd + rle-dict` compressed byte count, this buckets how much worse RLE dictionary encoding was. Worse-by percentage is `(rle_dict_compressed_bytes / plain_compressed_bytes - 1) * 100`, so values can exceed 100%%.\n\n")
+	fmt.Fprintf(&b, "For columns where the best observed `zstd + plain` compressed byte count is smaller than the best observed `zstd + rle-dict` compressed byte count, each category image plots `plain + zstd` compressed bytes on the x-axis and `rle-dict + zstd` compressed bytes on the y-axis using the same log byte scale. Points above the diagonal are larger with RLE dictionary encoding. Point color is bucketed by `plain/no-compression encoded bytes / rle-dict + zstd compressed bytes`, so high-ratio colors identify columns where RLE dictionary lost the head-to-head but still compressed the baseline dramatically.\n\n")
+	fmt.Fprintf(&b, "The bucket tables below each image still show how much worse RLE dictionary encoding was. Worse-by percentage is `(rle_dict_compressed_bytes / plain_compressed_bytes - 1) * 100`, so values can exceed 100%%.\n\n")
 	fmt.Fprintf(&b, "The compressed bytes are Parquet column-chunk bytes, including dictionary pages and page headers.\n\n")
 	fmt.Fprintf(&b, "`Plain encoded bytes before compression` is the same column's byte count from the all-plain/no-compression baseline run. The `/ plain encoded` percentage columns compare compressed column bytes against that baseline denominator.\n\n")
 	fmt.Fprintf(&b, "Categorization uses only measured byte sizes, row-group cardinality, and column type: `True dictionary bloat` means RLE dictionary encoded bytes exceeded plain encoded bytes before ZSTD; `Tiny/constant plain stream` means median row-group cardinality is at most 2 or median cardinality/rows is at most 0.0006; `Structured medium/high-cardinality numeric streams` means a numeric or temporal column has median cardinality/rows at least 0.09; the remaining losing columns fall into `Small-domain fixed-width literals`. Sortedness, page min/max, and value-length distributions are shown elsewhere in this report but are not currently used for this category assignment.\n\n")
@@ -2540,17 +2548,182 @@ func writeRLEDictWorseCategoryImages(reportDir string, summary *rleDictWorseCate
 	for i := range summary.Categories {
 		category := &summary.Categories[i]
 		path := filepath.Join(reportDir, "images", "zstd_rle_dict_worse_"+category.Slug+".svg")
-		if err := writeImprovementBucketChartSVG(
+		if err := writeRLEDictWorseCategoryScatterSVG(
 			path,
 			"RLE dictionary worse: "+category.Name,
-			"columns where rle-dict is worse",
-			category.Buckets,
-			"#dc2626",
+			category.Rows,
 		); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func writeRLEDictWorseCategoryScatterSVG(path, title string, rows []rleDictWorseColumn) error {
+	if len(rows) == 0 {
+		return writeEmptySVG(path, title, "no data")
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+
+	const (
+		width        = 980
+		height       = 650
+		leftMargin   = 104
+		topMargin    = 72
+		plotSize     = 440
+		legendLeft   = 590
+		bottomMargin = 96
+	)
+
+	minBytes := math.Inf(1)
+	maxBytes := math.Inf(-1)
+	for _, row := range rows {
+		for _, value := range []int64{row.PlainBytes, row.RLEDictBytes} {
+			if value <= 0 {
+				continue
+			}
+			f := float64(value)
+			if f < minBytes {
+				minBytes = f
+			}
+			if f > maxBytes {
+				maxBytes = f
+			}
+		}
+	}
+	if math.IsInf(minBytes, 0) || math.IsInf(maxBytes, 0) {
+		return writeEmptySVG(path, title, "no positive byte counts")
+	}
+
+	axisMin := math.Pow(10, math.Floor(math.Log10(minBytes)))
+	axisMax := math.Pow(10, math.Ceil(math.Log10(maxBytes)))
+	if axisMin <= 0 {
+		axisMin = 1
+	}
+	if axisMax <= axisMin {
+		axisMax = axisMin * 10
+	}
+	logMin := math.Log10(axisMin)
+	logMax := math.Log10(axisMax)
+	scaleX := func(value int64) float64 {
+		if value <= 0 {
+			value = 1
+		}
+		return leftMargin + ((math.Log10(float64(value)) - logMin) / (logMax - logMin) * plotSize)
+	}
+	scaleY := func(value int64) float64 {
+		if value <= 0 {
+			value = 1
+		}
+		return topMargin + ((logMax - math.Log10(float64(value))) / (logMax - logMin) * plotSize)
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">`+"\n", width, height, width, height)
+	fmt.Fprintf(&b, `<rect width="100%%" height="100%%" fill="#ffffff"/>`+"\n")
+	fmt.Fprintf(&b, `<text x="%d" y="28" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">%s</text>`+"\n", leftMargin, html.EscapeString(title))
+	fmt.Fprintf(&b, `<text x="%d" y="48" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">%s</text>`+"\n", leftMargin, html.EscapeString("same log byte scale on both axes; points above the diagonal are larger with rle-dict + zstd"))
+
+	plotRight := leftMargin + plotSize
+	plotBottom := topMargin + plotSize
+	for _, tick := range logByteTicks(axisMin, axisMax) {
+		x := scaleX(int64(tick))
+		y := scaleY(int64(tick))
+		label := formatBytes(int64(math.Round(tick)))
+		fmt.Fprintf(&b, `<line x1="%.2f" y1="%d" x2="%.2f" y2="%d" stroke="#eef2f7" stroke-width="1"/>`+"\n", x, topMargin, x, plotBottom)
+		fmt.Fprintf(&b, `<line x1="%d" y1="%.2f" x2="%d" y2="%.2f" stroke="#eef2f7" stroke-width="1"/>`+"\n", leftMargin, y, plotRight, y)
+		fmt.Fprintf(&b, `<text x="%.2f" y="%d" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">%s</text>`+"\n", x, plotBottom+22, html.EscapeString(label))
+		fmt.Fprintf(&b, `<text x="%d" y="%.2f" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">%s</text>`+"\n", leftMargin-8, y+4, html.EscapeString(label))
+	}
+	fmt.Fprintf(&b, `<rect x="%d" y="%d" width="%d" height="%d" fill="none" stroke="#9ca3af" stroke-width="1"/>`+"\n", leftMargin, topMargin, plotSize, plotSize)
+	fmt.Fprintf(&b, `<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#111827" stroke-width="1.4" stroke-dasharray="5 5"/>`+"\n", leftMargin, plotBottom, plotRight, topMargin)
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="10" fill="#111827">equal size</text>`+"\n", leftMargin+12, plotBottom-12)
+
+	for _, row := range rows {
+		compressionRatio := ratio(row.BaselineEncodedBytes, row.RLEDictBytes)
+		bucket := compressionRatioColor(compressionRatio)
+		x := scaleX(row.PlainBytes)
+		y := scaleY(row.RLEDictBytes)
+		tooltip := fmt.Sprintf(
+			"%s\nplain+zstd: %s\nrle-dict+zstd: %s\nworse by: %s\nplain baseline / rle-dict+zstd: %s",
+			row.Column,
+			formatByteCount(row.PlainBytes),
+			formatByteCount(row.RLEDictBytes),
+			formatPercent(row.WorseByPct),
+			formatCompactRatio(compressionRatio),
+		)
+		fmt.Fprintf(&b, `<circle cx="%.2f" cy="%.2f" r="5.5" fill="%s" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>%s</title></circle>`+"\n",
+			x,
+			y,
+			bucket.Color,
+			html.EscapeString(tooltip),
+		)
+	}
+
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#374151">%s</text>`+"\n", leftMargin+plotSize/2, height-34, html.EscapeString("plain + zstd compressed bytes"))
+	fmt.Fprintf(&b, `<text x="20" y="%d" transform="rotate(-90 20 %d)" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#374151">%s</text>`+"\n", topMargin+plotSize/2, topMargin+plotSize/2, html.EscapeString("rle-dict + zstd compressed bytes"))
+
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Color: plain baseline / rle-dict+zstd</text>`+"\n", legendLeft, topMargin+6)
+	legendY := topMargin + 28
+	for _, bucket := range compressionRatioColorBuckets() {
+		fmt.Fprintf(&b, `<rect x="%d" y="%d" width="13" height="13" rx="2" fill="%s"/>`+"\n", legendLeft, legendY-10, bucket.Color)
+		fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#374151">%s</text>`+"\n", legendLeft+20, legendY+1, html.EscapeString(bucket.Label))
+		legendY += 22
+	}
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">%s</text>`+"\n", legendLeft, legendY+12, html.EscapeString(fmt.Sprintf("points: %d losing columns", len(rows))))
+	fmt.Fprintf(&b, "</svg>\n")
+	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
+func logByteTicks(minValue, maxValue float64) []float64 {
+	if minValue <= 0 || maxValue <= minValue {
+		return nil
+	}
+	ticks := make([]float64, 0, 6)
+	logMin := math.Log10(minValue)
+	logMax := math.Log10(maxValue)
+	for i := 0; i <= 4; i++ {
+		ticks = append(ticks, math.Pow(10, logMin+(float64(i)*(logMax-logMin)/4)))
+	}
+	return ticks
+}
+
+func compressionRatioColor(value float64) compressionRatioColorBucket {
+	buckets := compressionRatioColorBuckets()
+	for _, bucket := range buckets {
+		if value >= bucket.Min && value < bucket.Max {
+			return bucket
+		}
+	}
+	return buckets[len(buckets)-1]
+}
+
+func compressionRatioColorBuckets() []compressionRatioColorBucket {
+	return []compressionRatioColorBucket{
+		{Label: "<1x", Min: math.Inf(-1), Max: 1, Color: "#991b1b"},
+		{Label: "1-2x", Min: 1, Max: 2, Color: "#dc2626"},
+		{Label: "2-5x", Min: 2, Max: 5, Color: "#f97316"},
+		{Label: "5-10x", Min: 5, Max: 10, Color: "#f59e0b"},
+		{Label: "10-25x", Min: 10, Max: 25, Color: "#84cc16"},
+		{Label: "25-50x", Min: 25, Max: 50, Color: "#22c55e"},
+		{Label: "50-100x", Min: 50, Max: 100, Color: "#14b8a6"},
+		{Label: "100x+", Min: 100, Max: math.Inf(1), Color: "#2563eb"},
+	}
+}
+
+func formatCompactRatio(value float64) string {
+	if value <= 0 || math.IsNaN(value) || math.IsInf(value, 0) {
+		return "n/a"
+	}
+	if value >= 100 {
+		return fmt.Sprintf("%.0fx", value)
+	}
+	if value >= 10 {
+		return fmt.Sprintf("%.1fx", value)
+	}
+	return fmt.Sprintf("%.2fx", value)
 }
 
 func writeRLEDictWorseCategoryComparison(b *strings.Builder, summary rleDictWorseCategoryComparison, reportDir string) {

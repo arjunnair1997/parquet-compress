@@ -1,55 +1,198 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="920" height="542" viewBox="0 0 920 542">
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="650" viewBox="0 0 980 650">
 <rect width="100%" height="100%" fill="#ffffff"/>
-<text x="260" y="26" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">RLE dictionary worse: Tiny/constant plain stream</text>
-<text x="260" y="528" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">columns where rle-dict is worse</text>
-<line x1="260.00" y1="42" x2="260.00" y2="494" stroke="#eef2f7" stroke-width="1"/>
-<text x="260.00" y="510" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">0</text>
-<line x1="402.00" y1="42" x2="402.00" y2="494" stroke="#eef2f7" stroke-width="1"/>
-<text x="402.00" y="510" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">2.25</text>
-<line x1="544.00" y1="42" x2="544.00" y2="494" stroke="#eef2f7" stroke-width="1"/>
-<text x="544.00" y="510" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">4.50</text>
-<line x1="686.00" y1="42" x2="686.00" y2="494" stroke="#eef2f7" stroke-width="1"/>
-<text x="686.00" y="510" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">6.75</text>
-<line x1="828.00" y1="42" x2="828.00" y2="494" stroke="#eef2f7" stroke-width="1"/>
-<text x="828.00" y="510" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">9</text>
-<line x1="260" y1="494" x2="828" y2="494" stroke="#9ca3af" stroke-width="1"/>
-<text x="248" y="67" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">0-10%</text>
-<rect x="260" y="52" width="189.33" height="18" rx="3" fill="#dc2626"/>
-<text x="457.33" y="66" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">3</text>
-<text x="248" y="101" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">10-20%</text>
-<rect x="260" y="86" width="315.56" height="18" rx="3" fill="#dc2626"/>
-<text x="583.56" y="100" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">5</text>
-<text x="248" y="135" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">20-30%</text>
-<rect x="260" y="120" width="441.78" height="18" rx="3" fill="#dc2626"/>
-<text x="709.78" y="134" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">7</text>
-<text x="248" y="169" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">30-40%</text>
-<rect x="260" y="154" width="63.11" height="18" rx="3" fill="#dc2626"/>
-<text x="331.11" y="168" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">1</text>
-<text x="248" y="203" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">40-50%</text>
-<rect x="260" y="188" width="568.00" height="18" rx="3" fill="#dc2626"/>
-<text x="836.00" y="202" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">9</text>
-<text x="248" y="237" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">50-60%</text>
-<rect x="260" y="222" width="0.00" height="18" rx="3" fill="#dc2626"/>
-<text x="268.00" y="236" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">0</text>
-<text x="248" y="271" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">60-70%</text>
-<rect x="260" y="256" width="0.00" height="18" rx="3" fill="#dc2626"/>
-<text x="268.00" y="270" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">0</text>
-<text x="248" y="305" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">70-80%</text>
-<rect x="260" y="290" width="0.00" height="18" rx="3" fill="#dc2626"/>
-<text x="268.00" y="304" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">0</text>
-<text x="248" y="339" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">80-90%</text>
-<rect x="260" y="324" width="252.44" height="18" rx="3" fill="#dc2626"/>
-<text x="520.44" y="338" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">4</text>
-<text x="248" y="373" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">90-100%</text>
-<rect x="260" y="358" width="0.00" height="18" rx="3" fill="#dc2626"/>
-<text x="268.00" y="372" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">0</text>
-<text x="248" y="407" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">100-200%</text>
-<rect x="260" y="392" width="63.11" height="18" rx="3" fill="#dc2626"/>
-<text x="331.11" y="406" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">1</text>
-<text x="248" y="441" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">200-500%</text>
-<rect x="260" y="426" width="0.00" height="18" rx="3" fill="#dc2626"/>
-<text x="268.00" y="440" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">0</text>
-<text x="248" y="475" font-family="Arial, sans-serif" font-size="12" text-anchor="end" fill="#374151">500%+</text>
-<rect x="260" y="460" width="0.00" height="18" rx="3" fill="#dc2626"/>
-<text x="268.00" y="474" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">0</text>
+<text x="104" y="28" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">RLE dictionary worse: Tiny/constant plain stream</text>
+<text x="104" y="48" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">same log byte scale on both axes; points above the diagonal are larger with rle-dict + zstd</text>
+<line x1="104.00" y1="72" x2="104.00" y2="512" stroke="#eef2f7" stroke-width="1"/>
+<line x1="104" y1="512.00" x2="544" y2="512.00" stroke="#eef2f7" stroke-width="1"/>
+<text x="104.00" y="534" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">1000 B</text>
+<text x="96" y="516.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">1000 B</text>
+<line x1="214.00" y1="72" x2="214.00" y2="512" stroke="#eef2f7" stroke-width="1"/>
+<line x1="104" y1="402.00" x2="544" y2="402.00" stroke="#eef2f7" stroke-width="1"/>
+<text x="214.00" y="534" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">5.49 KiB</text>
+<text x="96" y="406.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">5.49 KiB</text>
+<line x1="324.00" y1="72" x2="324.00" y2="512" stroke="#eef2f7" stroke-width="1"/>
+<line x1="104" y1="292.00" x2="544" y2="292.00" stroke="#eef2f7" stroke-width="1"/>
+<text x="324.00" y="534" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">30.88 KiB</text>
+<text x="96" y="296.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">30.88 KiB</text>
+<line x1="434.00" y1="72" x2="434.00" y2="512" stroke="#eef2f7" stroke-width="1"/>
+<line x1="104" y1="182.00" x2="544" y2="182.00" stroke="#eef2f7" stroke-width="1"/>
+<text x="434.00" y="534" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">173.66 KiB</text>
+<text x="96" y="186.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">173.66 KiB</text>
+<line x1="544.00" y1="72" x2="544.00" y2="512" stroke="#eef2f7" stroke-width="1"/>
+<line x1="104" y1="72.00" x2="544" y2="72.00" stroke="#eef2f7" stroke-width="1"/>
+<text x="544.00" y="534" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#6b7280">976.56 KiB</text>
+<text x="96" y="76.00" font-family="Arial, sans-serif" font-size="10" text-anchor="end" fill="#6b7280">976.56 KiB</text>
+<rect x="104" y="72" width="440" height="440" fill="none" stroke="#9ca3af" stroke-width="1"/>
+<line x1="104" y1="512" x2="544" y2="72" stroke="#111827" stroke-width="1.4" stroke-dasharray="5 5"/>
+<text x="116" y="500" font-family="Arial, sans-serif" font-size="10" fill="#111827">equal size</text>
+<circle cx="375.34" cy="193.39" r="5.5" fill="#22c55e" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>WindowName
+plain+zstd: 70,803 B (69.14 KiB)
+rle-dict+zstd: 148,703 B (145.22 KiB)
+worse by: 110.023587%
+plain baseline / rle-dict+zstd: 26.9x</title></circle>
+<circle cx="170.67" cy="406.41" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>ParamOrderID
+plain+zstd: 2,848 B (2.78 KiB)
+rle-dict+zstd: 5,247 B (5.12 KiB)
+worse by: 84.234551%
+plain baseline / rle-dict+zstd: 763x</title></circle>
+<circle cx="170.67" cy="406.41" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>Params
+plain+zstd: 2,848 B (2.78 KiB)
+rle-dict+zstd: 5,247 B (5.12 KiB)
+worse by: 84.234551%
+plain baseline / rle-dict+zstd: 763x</title></circle>
+<circle cx="170.67" cy="406.41" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>SocialAction
+plain+zstd: 2,848 B (2.78 KiB)
+rle-dict+zstd: 5,247 B (5.12 KiB)
+worse by: 84.234551%
+plain baseline / rle-dict+zstd: 763x</title></circle>
+<circle cx="170.67" cy="406.41" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>SocialNetwork
+plain+zstd: 2,848 B (2.78 KiB)
+rle-dict+zstd: 5,247 B (5.12 KiB)
+worse by: 84.234551%
+plain baseline / rle-dict+zstd: 763x</title></circle>
+<circle cx="195.83" cy="398.14" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>CounterClass
+plain+zstd: 4,228 B (4.13 KiB)
+rle-dict+zstd: 5,975 B (5.83 KiB)
+worse by: 41.319773%
+plain baseline / rle-dict+zstd: 670x</title></circle>
+<circle cx="195.83" cy="398.14" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>HTTPError
+plain+zstd: 4,228 B (4.13 KiB)
+rle-dict+zstd: 5,975 B (5.83 KiB)
+worse by: 41.319773%
+plain baseline / rle-dict+zstd: 670x</title></circle>
+<circle cx="195.83" cy="398.14" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>IsEvent
+plain+zstd: 4,228 B (4.13 KiB)
+rle-dict+zstd: 5,975 B (5.83 KiB)
+worse by: 41.319773%
+plain baseline / rle-dict+zstd: 670x</title></circle>
+<circle cx="195.83" cy="398.14" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>IsOldCounter
+plain+zstd: 4,228 B (4.13 KiB)
+rle-dict+zstd: 5,975 B (5.83 KiB)
+worse by: 41.319773%
+plain baseline / rle-dict+zstd: 670x</title></circle>
+<circle cx="195.83" cy="398.14" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>IsParameter
+plain+zstd: 4,228 B (4.13 KiB)
+rle-dict+zstd: 5,975 B (5.83 KiB)
+worse by: 41.319773%
+plain baseline / rle-dict+zstd: 670x</title></circle>
+<circle cx="195.83" cy="398.14" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>ParamCurrencyID
+plain+zstd: 4,228 B (4.13 KiB)
+rle-dict+zstd: 5,975 B (5.83 KiB)
+worse by: 41.319773%
+plain baseline / rle-dict+zstd: 670x</title></circle>
+<circle cx="195.83" cy="398.14" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>WithHash
+plain+zstd: 4,228 B (4.13 KiB)
+rle-dict+zstd: 5,975 B (5.83 KiB)
+worse by: 41.319773%
+plain baseline / rle-dict+zstd: 670x</title></circle>
+<circle cx="195.89" cy="398.14" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>OpenerName
+plain+zstd: 4,232 B (4.13 KiB)
+rle-dict+zstd: 5,975 B (5.83 KiB)
+worse by: 41.186200%
+plain baseline / rle-dict+zstd: 670x</title></circle>
+<circle cx="204.61" cy="389.66" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>SocialSourcePage
+plain+zstd: 4,853 B (4.74 KiB)
+rle-dict+zstd: 6,826 B (6.67 KiB)
+worse by: 40.655265%
+plain baseline / rle-dict+zstd: 587x</title></circle>
+<circle cx="197.75" cy="396.99" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>SilverlightVersion4
+plain+zstd: 4,357 B (4.25 KiB)
+rle-dict+zstd: 6,084 B (5.94 KiB)
+worse by: 39.637365%
+plain baseline / rle-dict+zstd: 658x</title></circle>
+<circle cx="210.44" cy="388.86" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>SocialSourceNetworkID
+plain+zstd: 5,318 B (5.19 KiB)
+rle-dict+zstd: 6,912 B (6.75 KiB)
+worse by: 29.973674%
+plain baseline / rle-dict+zstd: 579x</title></circle>
+<circle cx="214.58" cy="387.01" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>ParamPrice
+plain+zstd: 5,675 B (5.54 KiB)
+rle-dict+zstd: 7,115 B (6.95 KiB)
+worse by: 25.374449%
+plain baseline / rle-dict+zstd: 1125x</title></circle>
+<circle cx="366.28" cy="235.94" r="5.5" fill="#14b8a6" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>SendTiming
+plain+zstd: 61,415 B (59.98 KiB)
+rle-dict+zstd: 76,243 B (74.46 KiB)
+worse by: 24.143939%
+plain baseline / rle-dict+zstd: 52.5x</title></circle>
+<circle cx="214.04" cy="388.89" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>CLID
+plain+zstd: 5,627 B (5.50 KiB)
+rle-dict+zstd: 6,908 B (6.75 KiB)
+worse by: 22.765239%
+plain baseline / rle-dict+zstd: 580x</title></circle>
+<circle cx="205.63" cy="397.66" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>CounterID
+plain+zstd: 4,931 B (4.82 KiB)
+rle-dict+zstd: 6,020 B (5.88 KiB)
+worse by: 22.084770%
+plain baseline / rle-dict+zstd: 665x</title></circle>
+<circle cx="205.29" cy="398.13" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>EventDate
+plain+zstd: 4,905 B (4.79 KiB)
+rle-dict+zstd: 5,976 B (5.84 KiB)
+worse by: 21.834862%
+plain baseline / rle-dict+zstd: 670x</title></circle>
+<circle cx="205.42" cy="398.14" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>GoodEvent
+plain+zstd: 4,915 B (4.80 KiB)
+rle-dict+zstd: 5,975 B (5.83 KiB)
+worse by: 21.566633%
+plain baseline / rle-dict+zstd: 670x</title></circle>
+<circle cx="218.69" cy="387.36" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>CookieEnable
+plain+zstd: 6,053 B (5.91 KiB)
+rle-dict+zstd: 7,077 B (6.91 KiB)
+worse by: 16.917231%
+plain baseline / rle-dict+zstd: 566x</title></circle>
+<circle cx="209.70" cy="396.49" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>ParamCurrency
+plain+zstd: 5,256 B (5.13 KiB)
+rle-dict+zstd: 6,132 B (5.99 KiB)
+worse by: 16.666667%
+plain baseline / rle-dict+zstd: 1142x</title></circle>
+<circle cx="236.64" cy="370.27" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>IsDownload
+plain+zstd: 8,024 B (7.84 KiB)
+rle-dict+zstd: 9,254 B (9.04 KiB)
+worse by: 15.329013%
+plain baseline / rle-dict+zstd: 433x</title></circle>
+<circle cx="223.08" cy="384.62" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>JavascriptEnable
+plain+zstd: 6,485 B (6.33 KiB)
+rle-dict+zstd: 7,387 B (7.21 KiB)
+worse by: 13.909021%
+plain baseline / rle-dict+zstd: 542x</title></circle>
+<circle cx="228.23" cy="379.79" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>CodeVersion
+plain+zstd: 7,031 B (6.87 KiB)
+rle-dict+zstd: 7,970 B (7.78 KiB)
+worse by: 13.355142%
+plain baseline / rle-dict+zstd: 503x</title></circle>
+<circle cx="271.91" cy="340.19" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>UTMContent
+plain+zstd: 13,959 B (13.63 KiB)
+rle-dict+zstd: 14,839 B (14.49 KiB)
+worse by: 6.304177%
+plain baseline / rle-dict+zstd: 271x</title></circle>
+<circle cx="302.22" cy="310.72" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>MobilePhone
+plain+zstd: 22,463 B (21.94 KiB)
+rle-dict+zstd: 23,572 B (23.02 KiB)
+worse by: 4.937008%
+plain baseline / rle-dict+zstd: 170x</title></circle>
+<circle cx="279.19" cy="335.72" r="5.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.2" opacity="0.88"><title>UTMTerm
+plain+zstd: 15,648 B (15.28 KiB)
+rle-dict+zstd: 15,920 B (15.55 KiB)
+worse by: 1.738241%
+plain baseline / rle-dict+zstd: 253x</title></circle>
+<text x="324" y="616" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#374151">plain + zstd compressed bytes</text>
+<text x="20" y="292" transform="rotate(-90 20 292)" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#374151">rle-dict + zstd compressed bytes</text>
+<text x="590" y="78" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Color: plain baseline / rle-dict+zstd</text>
+<rect x="590" y="90" width="13" height="13" rx="2" fill="#991b1b"/>
+<text x="610" y="101" font-family="Arial, sans-serif" font-size="11" fill="#374151">&lt;1x</text>
+<rect x="590" y="112" width="13" height="13" rx="2" fill="#dc2626"/>
+<text x="610" y="123" font-family="Arial, sans-serif" font-size="11" fill="#374151">1-2x</text>
+<rect x="590" y="134" width="13" height="13" rx="2" fill="#f97316"/>
+<text x="610" y="145" font-family="Arial, sans-serif" font-size="11" fill="#374151">2-5x</text>
+<rect x="590" y="156" width="13" height="13" rx="2" fill="#f59e0b"/>
+<text x="610" y="167" font-family="Arial, sans-serif" font-size="11" fill="#374151">5-10x</text>
+<rect x="590" y="178" width="13" height="13" rx="2" fill="#84cc16"/>
+<text x="610" y="189" font-family="Arial, sans-serif" font-size="11" fill="#374151">10-25x</text>
+<rect x="590" y="200" width="13" height="13" rx="2" fill="#22c55e"/>
+<text x="610" y="211" font-family="Arial, sans-serif" font-size="11" fill="#374151">25-50x</text>
+<rect x="590" y="222" width="13" height="13" rx="2" fill="#14b8a6"/>
+<text x="610" y="233" font-family="Arial, sans-serif" font-size="11" fill="#374151">50-100x</text>
+<rect x="590" y="244" width="13" height="13" rx="2" fill="#2563eb"/>
+<text x="610" y="255" font-family="Arial, sans-serif" font-size="11" fill="#374151">100x+</text>
+<text x="590" y="288" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">points: 30 losing columns</text>
 </svg>
