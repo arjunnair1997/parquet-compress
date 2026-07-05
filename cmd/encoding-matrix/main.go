@@ -397,7 +397,7 @@ func parseFlags(args []string) (config, error) {
 	fs.StringVar(&cfg.ShapeStatsJSON, "column-shape-stats-json", "", "optional writer stats JSON used to enrich col_top_5.md; defaults under the row results directory")
 	fs.BoolVar(&cfg.Verify, "verify", cfg.Verify, "verify every generated parquet output")
 	fs.BoolVar(&cfg.SkipExisting, "skip-existing", cfg.SkipExisting, "reuse an existing result markdown/column TSV when present")
-	fs.BoolVar(&cfg.RefreshMissingDictionaryStats, "refresh-missing-dictionary-stats", cfg.RefreshMissingDictionaryStats, "with --skip-existing, rerun zstd/rle-dict configs whose column TSV lacks dictionary page byte stats")
+	fs.BoolVar(&cfg.RefreshMissingDictionaryStats, "refresh-missing-dictionary-stats", cfg.RefreshMissingDictionaryStats, "with --skip-existing, rerun compressed rle-dict configs whose column TSV lacks dictionary page byte stats")
 	fs.BoolVar(&cfg.KeepOutput, "keep-output", cfg.KeepOutput, "keep generated parquet output directories after the experiment; only valid with --parallel 1")
 	fs.BoolVar(&cfg.GeneratePDF, "generate-pdf", cfg.GeneratePDF, "write sibling PDFs for generated markdown results; disabled by default")
 	if err := fs.Parse(args); err != nil {
@@ -764,7 +764,7 @@ func runExperiment(cfg config, toolPath string, c combo) experimentResult {
 }
 
 func shouldRefreshMissingDictionaryStats(cfg config, c combo, columnTSVPath string) (bool, error) {
-	if !cfg.RefreshMissingDictionaryStats || c.Compression != "zstd" || !comboUsesRLEDictionary(c) {
+	if !cfg.RefreshMissingDictionaryStats || c.Compression == "none" || !comboUsesRLEDictionary(c) {
 		return false, nil
 	}
 	hasStats, err := columnStatsTSVHasDictionaryPageBytes(columnTSVPath)
