@@ -32,27 +32,31 @@ type WriterStatsSnapshot struct {
 
 // WriterColumnStats contains collected stats for a single leaf column.
 type WriterColumnStats struct {
-	ColumnIndex      int                   `json:"column_index"`
-	Path             []string              `json:"path"`
-	Name             string                `json:"name"`
-	Type             string                `json:"type"`
-	PhysicalType     string                `json:"physical_type"`
-	SortedAscending  bool                  `json:"sorted_ascending"`
-	SortedDescending bool                  `json:"sorted_descending"`
-	RowGroups        []WriterRowGroupStats `json:"row_groups"`
-	Pages            []WriterPageStats     `json:"pages"`
+	ColumnIndex       int                   `json:"column_index"`
+	Path              []string              `json:"path"`
+	Name              string                `json:"name"`
+	Type              string                `json:"type"`
+	PhysicalType      string                `json:"physical_type"`
+	SortedAscending   bool                  `json:"sorted_ascending"`
+	SortedDescending  bool                  `json:"sorted_descending"`
+	MinValueLength    int                   `json:"min_value_length"`
+	MedianValueLength float64               `json:"median_value_length"`
+	MaxValueLength    int                   `json:"max_value_length"`
+	RowGroups         []WriterRowGroupStats `json:"row_groups"`
+	Pages             []WriterPageStats     `json:"pages"`
 }
 
 // WriterRowGroupStats contains one row of stats for a column in one row group.
 type WriterRowGroupStats struct {
-	RowGroupIndex      int64 `json:"row_group_index"`
-	NumRows            int64 `json:"num_rows"`
-	Cardinality        int64 `json:"cardinality"`
-	PageCount          int   `json:"page_count"`
-	PageCardinalityMin int64 `json:"page_cardinality_min"`
-	PageCardinalityMax int64 `json:"page_cardinality_max"`
-	MinValueLength     int   `json:"min_value_length"`
-	MaxValueLength     int   `json:"max_value_length"`
+	RowGroupIndex      int64   `json:"row_group_index"`
+	NumRows            int64   `json:"num_rows"`
+	Cardinality        int64   `json:"cardinality"`
+	PageCount          int     `json:"page_count"`
+	PageCardinalityMin int64   `json:"page_cardinality_min"`
+	PageCardinalityMax int64   `json:"page_cardinality_max"`
+	MinValueLength     int     `json:"min_value_length"`
+	MedianValueLength  float64 `json:"median_value_length"`
+	MaxValueLength     int     `json:"max_value_length"`
 }
 
 // WriterPageStats contains one row of stats for an encoded data page.
@@ -76,9 +80,12 @@ type WriterPageStats struct {
 }
 
 type writerStatsColumn struct {
-	stats   WriterColumnStats
-	hasLast bool
-	last    Value
+	stats            WriterColumnStats
+	hasLength        bool
+	lengthCounts     map[int]int64
+	lengthValueCount int64
+	hasLast          bool
+	last             Value
 }
 
 type writerStatsColumnAccumulator struct {
@@ -89,6 +96,8 @@ type writerStatsColumnAccumulator struct {
 	pageCardinalityMax int64
 	minLength          int
 	maxLength          int
+	lengthCounts       map[int]int64
+	lengthValueCount   int64
 	hasLength          bool
 	hasFirst           bool
 	first              Value
@@ -122,6 +131,7 @@ func (s *WriterStats) Snapshot() WriterStatsSnapshot {
 	columns := make([]WriterColumnStats, 0, len(s.columns))
 	for _, col := range s.columns {
 		copyCol := col.stats
+		copyCol.MedianValueLength = medianLengthFromCounts(col.lengthCounts, col.lengthValueCount)
 		copyCol.Path = slices.Clone(copyCol.Path)
 		copyCol.RowGroups = slices.Clone(copyCol.RowGroups)
 		copyCol.Pages = slices.Clone(copyCol.Pages)
@@ -195,6 +205,22 @@ func (s *WriterStats) finishColumnRowGroup(columnIndex int, path columnPath, typ
 		col.hasLast = true
 		col.last = acc.last
 	}
+	if acc.hasLength {
+		if !col.hasLength || acc.minLength < col.stats.MinValueLength {
+			col.stats.MinValueLength = acc.minLength
+		}
+		if !col.hasLength || acc.maxLength > col.stats.MaxValueLength {
+			col.stats.MaxValueLength = acc.maxLength
+		}
+		col.hasLength = true
+		if col.lengthCounts == nil {
+			col.lengthCounts = make(map[int]int64, len(acc.lengthCounts))
+		}
+		for length, count := range acc.lengthCounts {
+			col.lengthCounts[length] += count
+			col.lengthValueCount += count
+		}
+	}
 
 	col.stats.RowGroups = append(col.stats.RowGroups, WriterRowGroupStats{
 		RowGroupIndex:      rowGroupIndex,
@@ -204,6 +230,7 @@ func (s *WriterStats) finishColumnRowGroup(columnIndex int, path columnPath, typ
 		PageCardinalityMin: acc.pageCardinalityMin,
 		PageCardinalityMax: acc.pageCardinalityMax,
 		MinValueLength:     acc.minLength,
+		MedianValueLength:  medianLengthFromCounts(acc.lengthCounts, acc.lengthValueCount),
 		MaxValueLength:     acc.maxLength,
 	})
 	col.stats.Pages = append(col.stats.Pages, acc.pages...)
@@ -222,6 +249,7 @@ func (s *WriterStats) recordError(format string, args ...any) {
 func newWriterStatsColumnAccumulator() *writerStatsColumnAccumulator {
 	return &writerStatsColumnAccumulator{
 		unique:           make(map[string]struct{}),
+		lengthCounts:     make(map[int]int64),
 		sortedAscending:  true,
 		sortedDescending: true,
 	}
@@ -263,6 +291,8 @@ func (a *writerStatsColumnAccumulator) recordPage(columnType Type, firstRowIndex
 			pageUnique[key] = struct{}{}
 
 			length := valueLength(v)
+			a.lengthCounts[length]++
+			a.lengthValueCount++
 			if !a.hasLength || length < a.minLength {
 				a.minLength = length
 			}
@@ -388,6 +418,34 @@ func valueLength(v Value) int {
 	default:
 		return len(v.Bytes())
 	}
+}
+
+func medianLengthFromCounts(counts map[int]int64, total int64) float64 {
+	if total <= 0 || len(counts) == 0 {
+		return 0
+	}
+	leftRank := (total + 1) / 2
+	rightRank := (total + 2) / 2
+	var left, right int
+	leftSet := false
+	var seen int64
+	lengths := make([]int, 0, len(counts))
+	for length := range counts {
+		lengths = append(lengths, length)
+	}
+	sort.Ints(lengths)
+	for _, length := range lengths {
+		seen += counts[length]
+		if seen >= leftRank && !leftSet {
+			left = length
+			leftSet = true
+		}
+		if seen >= rightRank {
+			right = length
+			break
+		}
+	}
+	return float64(left+right) / 2
 }
 
 func valueNumeric(v Value) (float64, bool) {

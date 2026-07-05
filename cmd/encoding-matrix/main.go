@@ -140,26 +140,30 @@ type columnShapeStatsSnapshot struct {
 }
 
 type columnShapeStats struct {
-	ColumnIndex      int                  `json:"column_index"`
-	Path             []string             `json:"path"`
-	Name             string               `json:"name"`
-	Type             string               `json:"type"`
-	PhysicalType     string               `json:"physical_type"`
-	SortedAscending  bool                 `json:"sorted_ascending"`
-	SortedDescending bool                 `json:"sorted_descending"`
-	RowGroups        []shapeRowGroupStats `json:"row_groups"`
-	Pages            []shapePageStats     `json:"pages"`
+	ColumnIndex       int                  `json:"column_index"`
+	Path              []string             `json:"path"`
+	Name              string               `json:"name"`
+	Type              string               `json:"type"`
+	PhysicalType      string               `json:"physical_type"`
+	SortedAscending   bool                 `json:"sorted_ascending"`
+	SortedDescending  bool                 `json:"sorted_descending"`
+	MinValueLength    int                  `json:"min_value_length"`
+	MedianValueLength float64              `json:"median_value_length"`
+	MaxValueLength    int                  `json:"max_value_length"`
+	RowGroups         []shapeRowGroupStats `json:"row_groups"`
+	Pages             []shapePageStats     `json:"pages"`
 }
 
 type shapeRowGroupStats struct {
-	RowGroupIndex      int64 `json:"row_group_index"`
-	NumRows            int64 `json:"num_rows"`
-	Cardinality        int64 `json:"cardinality"`
-	PageCount          int   `json:"page_count"`
-	PageCardinalityMin int64 `json:"page_cardinality_min"`
-	PageCardinalityMax int64 `json:"page_cardinality_max"`
-	MinValueLength     int   `json:"min_value_length"`
-	MaxValueLength     int   `json:"max_value_length"`
+	RowGroupIndex      int64   `json:"row_group_index"`
+	NumRows            int64   `json:"num_rows"`
+	Cardinality        int64   `json:"cardinality"`
+	PageCount          int     `json:"page_count"`
+	PageCardinalityMin int64   `json:"page_cardinality_min"`
+	PageCardinalityMax int64   `json:"page_cardinality_max"`
+	MinValueLength     int     `json:"min_value_length"`
+	MedianValueLength  float64 `json:"median_value_length"`
+	MaxValueLength     int     `json:"max_value_length"`
 }
 
 type shapePageStats struct {
@@ -260,6 +264,9 @@ type rleDictWorseColumn struct {
 	MeasuredReason                          string
 	RowGroupCardinality                     string
 	MedianCardinalityRatio                  float64
+	ValueLengthMin                          string
+	ValueLengthMedian                       string
+	ValueLengthMax                          string
 	HasShapeStats                           bool
 	PhysicalBytes                           int64
 	BaselineEncodedBytes                    int64
@@ -1862,6 +1869,8 @@ func writeColumnShapeStatsMarkdown(b *strings.Builder, shape columnShapeStats, p
 	fmt.Fprintf(b, "- Row groups: `%d`; pages: `%d`\n", len(shape.RowGroups), len(shape.Pages))
 	fmt.Fprintf(b, "- Row-group cardinality min/median/max: `%s`\n", summarizeInt64(rowGroupCardinalities))
 	fmt.Fprintf(b, "- Page cardinality per row group min/median/max of mins: `%s`; of maxes: `%s`\n", summarizeInt64(pageCardinalityMins), summarizeInt64(pageCardinalityMaxes))
+	valueLengthMin, valueLengthMedian, valueLengthMax := columnValueLengthSummary(shape, true)
+	fmt.Fprintf(b, "- Value length min/median/max: `%s / %s / %s` bytes\n", valueLengthMin, valueLengthMedian, valueLengthMax)
 	fmt.Fprintf(b, "- Value length per row group min/median/max of mins: `%s`; of maxes: `%s`\n\n", summarizeInt(minLengths), summarizeInt(maxLengths))
 
 	writeShapeImage(b, "Row-group cardinality", plots.RowGroupCardinality, reportDir)
@@ -2244,6 +2253,7 @@ func buildZstdRLEDictWorseCategoryComparison(byColumn map[string][]columnObserva
 			summary.MissingShapeStats++
 		}
 		rowGroupCardinality, medianCardinalityRatio, hasShapeStats := rleDictWorseShapeSummary(shape, ok)
+		valueLengthMin, valueLengthMedian, valueLengthMax := columnValueLengthSummary(shape, ok)
 		categoryName := classifyRLEDictWorseColumn(plain, rleDict, shape, ok)
 		measuredFeature, measuredReason := rleDictWorseMeasuredReason(categoryName, plain, rleDict, shape, ok)
 		category := byName[categoryName]
@@ -2258,6 +2268,9 @@ func buildZstdRLEDictWorseCategoryComparison(byColumn map[string][]columnObserva
 			MeasuredReason:                          measuredReason,
 			RowGroupCardinality:                     rowGroupCardinality,
 			MedianCardinalityRatio:                  medianCardinalityRatio,
+			ValueLengthMin:                          valueLengthMin,
+			ValueLengthMedian:                       valueLengthMedian,
+			ValueLengthMax:                          valueLengthMax,
 			HasShapeStats:                           hasShapeStats,
 			PhysicalBytes:                           plain.Column.PhysicalBytes,
 			BaselineEncodedBytes:                    plain.BaselineEncodedBytes,
@@ -2378,6 +2391,44 @@ func rleDictWorseShapeSummary(shape columnShapeStats, ok bool) (string, float64,
 		ratio = medianCardinality / medianRows
 	}
 	return summarizeInt64(cardinalities), ratio, true
+}
+
+func columnValueLengthSummary(shape columnShapeStats, ok bool) (string, string, string) {
+	if !ok || len(shape.RowGroups) == 0 {
+		return "", "", ""
+	}
+	haveLength := false
+	minLength := 0
+	maxLength := 0
+	for _, rowGroup := range shape.RowGroups {
+		if !haveLength || rowGroup.MinValueLength < minLength {
+			minLength = rowGroup.MinValueLength
+		}
+		if !haveLength || rowGroup.MaxValueLength > maxLength {
+			maxLength = rowGroup.MaxValueLength
+		}
+		haveLength = true
+	}
+	if !haveLength {
+		return "", "", ""
+	}
+	median := shape.MedianValueLength
+	if median == 0 && !(minLength == 0 && maxLength == 0) {
+		medians := make([]float64, 0, len(shape.RowGroups))
+		for _, rowGroup := range shape.RowGroups {
+			if rowGroup.MedianValueLength != 0 || (rowGroup.MinValueLength == 0 && rowGroup.MaxValueLength == 0) {
+				medians = append(medians, rowGroup.MedianValueLength)
+			}
+		}
+		if len(medians) > 0 {
+			median = medianFloat64(medians)
+		}
+	}
+	medianText := ""
+	if median != 0 || minLength == 0 {
+		medianText = formatLengthFloat(median)
+	}
+	return formatCount(int64(minLength)), medianText, formatCount(int64(maxLength))
 }
 
 func int64sToFloat64s(values []int64) []float64 {
@@ -2529,10 +2580,10 @@ func writeRLEDictWorseCategoryComparison(b *strings.Builder, summary rleDictWors
 		if len(category.Rows) == 0 {
 			continue
 		}
-		fmt.Fprintf(b, "| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | Dictionary pages |\n")
-		fmt.Fprintf(b, "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+		fmt.Fprintf(b, "| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Min value length (B) | Median value length (B) | Max value length (B) | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | RLE + dict is better without including dict page | Dictionary pages |\n")
+		fmt.Fprintf(b, "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |\n")
 		for _, row := range category.Rows {
-			fmt.Fprintf(b, "| `%s` | `%s` | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %d |\n",
+			fmt.Fprintf(b, "| `%s` | `%s` | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %d |\n",
 				row.Column,
 				row.Type,
 				row.Category,
@@ -2540,6 +2591,9 @@ func writeRLEDictWorseCategoryComparison(b *strings.Builder, summary rleDictWors
 				row.MeasuredReason,
 				optionalString(row.RowGroupCardinality, row.HasShapeStats),
 				optionalPercentMarkdown(row.MedianCardinalityRatio*100, row.HasShapeStats),
+				optionalString(row.ValueLengthMin, row.HasShapeStats),
+				optionalString(row.ValueLengthMedian, row.HasShapeStats),
+				optionalString(row.ValueLengthMax, row.HasShapeStats),
 				formatByteCount(row.PhysicalBytes),
 				formatByteCount(row.BaselineEncodedBytes),
 				formatByteCount(row.PlainBytes),
@@ -2553,6 +2607,7 @@ func writeRLEDictWorseCategoryComparison(b *strings.Builder, summary rleDictWors
 				formatOptionalBytesAsPercentOf(row.RLEDictBytesWithoutDictionaryPages, row.PhysicalBytes, row.HasCompressedBytesWithoutDictionaryPage),
 				formatOptionalBytesAsPercentOf(row.RLEDictBytesWithoutDictionaryPages, row.BaselineEncodedBytes, row.HasCompressedBytesWithoutDictionaryPage),
 				formatOptionalPercentDifference(row.RLEDictBytesWithoutDictionaryPages, row.PlainBytes, row.HasCompressedBytesWithoutDictionaryPage),
+				yesNo(row.HasCompressedBytesWithoutDictionaryPage && row.RLEDictBytesWithoutDictionaryPages < row.PlainBytes),
 				row.DictionaryPageCount,
 			)
 		}
@@ -3390,6 +3445,13 @@ func formatCount(n int64) string {
 	return b.String()
 }
 
+func formatLengthFloat(value float64) string {
+	if math.Abs(value-math.Round(value)) < 0.000001 {
+		return formatCount(int64(math.Round(value)))
+	}
+	return fmt.Sprintf("%.2f", value)
+}
+
 func formatPercent(value float64) string {
 	return fmt.Sprintf("%.6f%%", value)
 }
@@ -3487,6 +3549,13 @@ func optionalPercentMarkdown(value float64, ok bool) string {
 		return ""
 	}
 	return fmt.Sprintf("%.6f%%", value)
+}
+
+func yesNo(value bool) string {
+	if value {
+		return "yes"
+	}
+	return "no"
 }
 
 func formatBytesAsPercentOf(bytes, total int64) string {

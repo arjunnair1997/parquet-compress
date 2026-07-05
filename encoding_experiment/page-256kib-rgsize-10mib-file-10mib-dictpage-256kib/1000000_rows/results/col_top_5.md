@@ -118,10 +118,10 @@ RLE dictionary encoding was already larger than plain before ZSTD, usually becau
 | `200-500%` | 0 |
 | `500%+` | 0 |
 
-| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | Dictionary pages |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `WatchID` | `int64` | True dictionary bloat | plain encoded 8,004,555 B (7.63 MiB); rle encoded 9,834,361 B (9.38 MiB) | RLE dictionary was larger than plain before ZSTD; the compressed result stayed larger. | 9,315 / 11,938 / 14,202 | 100.000000% | 8,000,000 B (7.63 MiB) | 8,006,312 B (7.64 MiB) | 8,005,353 B (7.63 MiB) | 100.066913% | 99.988022% | 9,835,734 B (9.38 MiB) | 122.946675% | 122.849747% | 22.864463% | 1,834,419 B (1.75 MiB) | 22.930238% | 22.912160% | -77.085095% | 58 |
-| `HID` | `int32` | True dictionary bloat | plain encoded 4,003,775 B (3.82 MiB); rle encoded 4,491,293 B (4.28 MiB) | RLE dictionary was larger than plain before ZSTD; the compressed result stayed larger. | 5,818 / 5,965 / 13,281 | 49.966494% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 3,792,143 B (3.62 MiB) | 94.803575% | 94.684013% | 4,492,493 B (4.28 MiB) | 112.312325% | 112.170681% | 18.468449% | 1,752,569 B (1.67 MiB) | 43.814225% | 43.758968% | -53.784206% | 60 |
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Min value length (B) | Median value length (B) | Max value length (B) | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | RLE + dict is better without including dict page | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| `WatchID` | `int64` | True dictionary bloat | plain encoded 8,004,555 B (7.63 MiB); rle encoded 9,834,361 B (9.38 MiB) | RLE dictionary was larger than plain before ZSTD; the compressed result stayed larger. | 9,315 / 11,938 / 14,202 | 100.000000% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,312 B (7.64 MiB) | 8,005,353 B (7.63 MiB) | 100.066913% | 99.988022% | 9,835,734 B (9.38 MiB) | 122.946675% | 122.849747% | 22.864463% | 1,834,419 B (1.75 MiB) | 22.930238% | 22.912160% | -77.085095% | yes | 58 |
+| `HID` | `int32` | True dictionary bloat | plain encoded 4,003,775 B (3.82 MiB); rle encoded 4,491,293 B (4.28 MiB) | RLE dictionary was larger than plain before ZSTD; the compressed result stayed larger. | 5,818 / 5,965 / 13,281 | 49.966494% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 3,792,143 B (3.62 MiB) | 94.803575% | 94.684013% | 4,492,493 B (4.28 MiB) | 112.312325% | 112.170681% | 18.468449% | 1,752,569 B (1.67 MiB) | 43.814225% | 43.758968% | -53.784206% | yes | 60 |
 
 ### Tiny/constant plain stream
 
@@ -145,38 +145,38 @@ The column is tiny or nearly constant per row group; plain pages give ZSTD an ex
 | `200-500%` | 0 |
 | `500%+` | 0 |
 
-| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | Dictionary pages |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `WindowName` | `int32` | Tiny/constant plain stream | median row-group cardinality 6; median cardinality/rows 0.050260% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 6 / 3,150 | 0.050260% | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 70,803 B (69.14 KiB) | 1.770075% | 1.767842% | 148,703 B (145.22 KiB) | 3.717575% | 3.712886% | 110.023587% | 73,928 B (72.20 KiB) | 1.848200% | 1.845869% | 4.413655% | 59 |
-| `ParamOrderID` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) | n/a | 0.071144% | 5,247 B (5.12 KiB) | n/a | 0.131072% | 84.234551% | 3,949 B (3.86 KiB) | n/a | 0.098647% | 38.658708% | 59 |
-| `Params` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) | n/a | 0.071144% | 5,247 B (5.12 KiB) | n/a | 0.131072% | 84.234551% | 3,949 B (3.86 KiB) | n/a | 0.098647% | 38.658708% | 59 |
-| `SocialAction` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) | n/a | 0.071144% | 5,247 B (5.12 KiB) | n/a | 0.131072% | 84.234551% | 3,949 B (3.86 KiB) | n/a | 0.098647% | 38.658708% | 59 |
-| `SocialNetwork` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) | n/a | 0.071144% | 5,247 B (5.12 KiB) | n/a | 0.131072% | 84.234551% | 3,949 B (3.86 KiB) | n/a | 0.098647% | 38.658708% | 59 |
-| `CounterClass` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | 57 |
-| `HTTPError` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | 57 |
-| `IsEvent` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | 57 |
-| `IsOldCounter` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | 57 |
-| `IsParameter` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | 57 |
-| `ParamCurrencyID` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | 57 |
-| `WithHash` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | 57 |
-| `OpenerName` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,046 B (3.82 MiB) | 4,232 B (4.13 KiB) | 0.105800% | 0.105667% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.186200% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.554820% | 57 |
-| `SocialSourcePage` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 5 | 0.008377% | 1,024 B (1.00 KiB) | 4,005,153 B (3.82 MiB) | 4,853 B (4.74 KiB) | 473.925781% | 0.121169% | 6,826 B (6.67 KiB) | 666.601562% | 0.170430% | 40.655265% | 4,890 B (4.78 KiB) | 477.539062% | 0.122093% | 0.762415% | 59 |
-| `SilverlightVersion4` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 3 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,357 B (4.25 KiB) | 0.108925% | 0.108788% | 6,084 B (5.94 KiB) | 0.152100% | 0.151908% | 39.637365% | 4,794 B (4.68 KiB) | 0.119850% | 0.119699% | 10.029837% | 57 |
-| `SocialSourceNetworkID` | `int16` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 4 | 0.016753% | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 5,318 B (5.19 KiB) | 0.132950% | 0.132782% | 6,912 B (6.75 KiB) | 0.172800% | 0.172582% | 29.973674% | 5,390 B (5.26 KiB) | 0.134750% | 0.134580% | 1.353892% | 57 |
-| `ParamPrice` | `int64` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 8,000,000 B (7.63 MiB) | 8,006,318 B (7.64 MiB) | 5,675 B (5.54 KiB) | 0.070938% | 0.070882% | 7,115 B (6.95 KiB) | 0.088938% | 0.088867% | 25.374449% | 5,633 B (5.50 KiB) | 0.070413% | 0.070357% | -0.740088% | 57 |
-| `SendTiming` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 989 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 61,415 B (59.98 KiB) | 1.535375% | 1.533438% | 76,243 B (74.46 KiB) | 1.906075% | 1.903670% | 24.143939% | 53,896 B (52.63 KiB) | 1.347400% | 1.345700% | -12.242937% | 59 |
-| `CLID` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 2 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 5,627 B (5.50 KiB) | 0.140675% | 0.140497% | 6,908 B (6.75 KiB) | 0.172700% | 0.172482% | 22.765239% | 5,554 B (5.42 KiB) | 0.138850% | 0.138675% | -1.297317% | 57 |
-| `CounterID` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 4 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 4,931 B (4.82 KiB) | 0.123275% | 0.123120% | 6,020 B (5.88 KiB) | 0.150500% | 0.150310% | 22.084770% | 4,742 B (4.63 KiB) | 0.118550% | 0.118400% | -3.832894% | 57 |
-| `EventDate` | `date` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,045 B (3.82 MiB) | 4,905 B (4.79 KiB) | 0.122625% | 0.122471% | 5,976 B (5.84 KiB) | 0.149400% | 0.149212% | 21.834862% | 4,722 B (4.61 KiB) | 0.118050% | 0.117901% | -3.730887% | 57 |
-| `GoodEvent` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 4,915 B (4.80 KiB) | 0.122875% | 0.122720% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 21.566633% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | -3.947101% | 57 |
-| `CookieEnable` | `int16` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 2 | 0.016753% | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 6,053 B (5.91 KiB) | 0.151325% | 0.151134% | 7,077 B (6.91 KiB) | 0.176925% | 0.176702% | 16.917231% | 5,663 B (5.53 KiB) | 0.141575% | 0.141396% | -6.443086% | 57 |
-| `ParamCurrency` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 3,000,000 B (2.86 MiB) | 7,004,733 B (6.68 MiB) | 5,256 B (5.13 KiB) | 0.175200% | 0.075035% | 6,132 B (5.99 KiB) | 0.204400% | 0.087541% | 16.666667% | 4,657 B (4.55 KiB) | 0.155233% | 0.066484% | -11.396499% | 59 |
-| `IsDownload` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 2 | 0.008377% | 4,000,000 B (3.81 MiB) | 4,005,055 B (3.82 MiB) | 8,024 B (7.84 KiB) | 0.200600% | 0.200347% | 9,254 B (9.04 KiB) | 0.231350% | 0.231058% | 15.329013% | 7,900 B (7.71 KiB) | 0.197500% | 0.197251% | -1.545364% | 57 |
-| `JavascriptEnable` | `int16` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 2 | 0.016753% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 6,485 B (6.33 KiB) | 0.162125% | 0.161921% | 7,387 B (7.21 KiB) | 0.184675% | 0.184442% | 13.909021% | 5,941 B (5.80 KiB) | 0.148525% | 0.148338% | -8.388589% | 57 |
-| `CodeVersion` | `int32` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 3 | 0.016753% | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 7,031 B (6.87 KiB) | 0.175775% | 0.175553% | 7,970 B (7.78 KiB) | 0.199250% | 0.198999% | 13.355142% | 6,424 B (6.27 KiB) | 0.160600% | 0.160397% | -8.633196% | 57 |
-| `UTMContent` | `string` | Tiny/constant plain stream | median row-group cardinality 3; median cardinality/rows 0.025130% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 3 / 25 | 0.025130% | 13,001 B (12.70 KiB) | 4,018,131 B (3.83 MiB) | 13,959 B (13.63 KiB) | 107.368664% | 0.347400% | 14,839 B (14.49 KiB) | 114.137374% | 0.369301% | 6.304177% | 9,904 B (9.67 KiB) | 76.178755% | 0.246483% | -29.049359% | 59 |
-| `MobilePhone` | `int16` | Tiny/constant plain stream | median row-group cardinality 7; median cardinality/rows 0.058636% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 3 / 7 / 11 | 0.058636% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 22,463 B (21.94 KiB) | 0.561575% | 0.560867% | 23,572 B (23.02 KiB) | 0.589300% | 0.588557% | 4.937008% | 20,726 B (20.24 KiB) | 0.518150% | 0.517497% | -7.732716% | 57 |
-| `UTMTerm` | `string` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 75 | 0.016753% | 28,101 B (27.44 KiB) | 4,034,484 B (3.85 MiB) | 15,648 B (15.28 KiB) | 55.684851% | 0.387856% | 15,920 B (15.55 KiB) | 56.652788% | 0.394598% | 1.738241% | 10,518 B (10.27 KiB) | 37.429273% | 0.260702% | -32.783742% | 59 |
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Min value length (B) | Median value length (B) | Max value length (B) | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | RLE + dict is better without including dict page | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| `WindowName` | `int32` | Tiny/constant plain stream | median row-group cardinality 6; median cardinality/rows 0.050260% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 6 / 3,150 | 0.050260% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 70,803 B (69.14 KiB) | 1.770075% | 1.767842% | 148,703 B (145.22 KiB) | 3.717575% | 3.712886% | 110.023587% | 73,928 B (72.20 KiB) | 1.848200% | 1.845869% | 4.413655% | no | 59 |
+| `ParamOrderID` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 | 0 | 0 | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) | n/a | 0.071144% | 5,247 B (5.12 KiB) | n/a | 0.131072% | 84.234551% | 3,949 B (3.86 KiB) | n/a | 0.098647% | 38.658708% | no | 59 |
+| `Params` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 | 0 | 0 | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) | n/a | 0.071144% | 5,247 B (5.12 KiB) | n/a | 0.131072% | 84.234551% | 3,949 B (3.86 KiB) | n/a | 0.098647% | 38.658708% | no | 59 |
+| `SocialAction` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 | 0 | 0 | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) | n/a | 0.071144% | 5,247 B (5.12 KiB) | n/a | 0.131072% | 84.234551% | 3,949 B (3.86 KiB) | n/a | 0.098647% | 38.658708% | no | 59 |
+| `SocialNetwork` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 0 | 0 | 0 | 0 B (0 B) | 4,003,158 B (3.82 MiB) | 2,848 B (2.78 KiB) | n/a | 0.071144% | 5,247 B (5.12 KiB) | n/a | 0.131072% | 84.234551% | 3,949 B (3.86 KiB) | n/a | 0.098647% | 38.658708% | no | 59 |
+| `CounterClass` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | no | 57 |
+| `HTTPError` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | no | 57 |
+| `IsEvent` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | no | 57 |
+| `IsOldCounter` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | no | 57 |
+| `IsParameter` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | no | 57 |
+| `ParamCurrencyID` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | no | 57 |
+| `WithHash` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,228 B (4.13 KiB) | 0.105700% | 0.105567% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.319773% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.660360% | no | 57 |
+| `OpenerName` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,046 B (3.82 MiB) | 4,232 B (4.13 KiB) | 0.105800% | 0.105667% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 41.186200% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | 11.554820% | no | 57 |
+| `SocialSourcePage` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 5 | 0.008377% | 0 | 0 | 28 | 1,024 B (1.00 KiB) | 4,005,153 B (3.82 MiB) | 4,853 B (4.74 KiB) | 473.925781% | 0.121169% | 6,826 B (6.67 KiB) | 666.601562% | 0.170430% | 40.655265% | 4,890 B (4.78 KiB) | 477.539062% | 0.122093% | 0.762415% | no | 59 |
+| `SilverlightVersion4` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 3 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 4,357 B (4.25 KiB) | 0.108925% | 0.108788% | 6,084 B (5.94 KiB) | 0.152100% | 0.151908% | 39.637365% | 4,794 B (4.68 KiB) | 0.119850% | 0.119699% | 10.029837% | no | 57 |
+| `SocialSourceNetworkID` | `int16` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 4 | 0.016753% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 5,318 B (5.19 KiB) | 0.132950% | 0.132782% | 6,912 B (6.75 KiB) | 0.172800% | 0.172582% | 29.973674% | 5,390 B (5.26 KiB) | 0.134750% | 0.134580% | 1.353892% | no | 57 |
+| `ParamPrice` | `int64` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,318 B (7.64 MiB) | 5,675 B (5.54 KiB) | 0.070938% | 0.070882% | 7,115 B (6.95 KiB) | 0.088938% | 0.088867% | 25.374449% | 5,633 B (5.50 KiB) | 0.070413% | 0.070357% | -0.740088% | yes | 57 |
+| `SendTiming` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 989 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 61,415 B (59.98 KiB) | 1.535375% | 1.533438% | 76,243 B (74.46 KiB) | 1.906075% | 1.903670% | 24.143939% | 53,896 B (52.63 KiB) | 1.347400% | 1.345700% | -12.242937% | yes | 59 |
+| `CLID` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 2 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 5,627 B (5.50 KiB) | 0.140675% | 0.140497% | 6,908 B (6.75 KiB) | 0.172700% | 0.172482% | 22.765239% | 5,554 B (5.42 KiB) | 0.138850% | 0.138675% | -1.297317% | yes | 57 |
+| `CounterID` | `int32` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 4 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 4,931 B (4.82 KiB) | 0.123275% | 0.123120% | 6,020 B (5.88 KiB) | 0.150500% | 0.150310% | 22.084770% | 4,742 B (4.63 KiB) | 0.118550% | 0.118400% | -3.832894% | yes | 57 |
+| `EventDate` | `date` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,045 B (3.82 MiB) | 4,905 B (4.79 KiB) | 0.122625% | 0.122471% | 5,976 B (5.84 KiB) | 0.149400% | 0.149212% | 21.834862% | 4,722 B (4.61 KiB) | 0.118050% | 0.117901% | -3.730887% | yes | 57 |
+| `GoodEvent` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 4,915 B (4.80 KiB) | 0.122875% | 0.122720% | 5,975 B (5.83 KiB) | 0.149375% | 0.149187% | 21.566633% | 4,721 B (4.61 KiB) | 0.118025% | 0.117876% | -3.947101% | yes | 57 |
+| `CookieEnable` | `int16` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 2 | 0.016753% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 6,053 B (5.91 KiB) | 0.151325% | 0.151134% | 7,077 B (6.91 KiB) | 0.176925% | 0.176702% | 16.917231% | 5,663 B (5.53 KiB) | 0.141575% | 0.141396% | -6.443086% | yes | 57 |
+| `ParamCurrency` | `string` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 1 | 0.008377% | 3 | 3 | 3 | 3,000,000 B (2.86 MiB) | 7,004,733 B (6.68 MiB) | 5,256 B (5.13 KiB) | 0.175200% | 0.075035% | 6,132 B (5.99 KiB) | 0.204400% | 0.087541% | 16.666667% | 4,657 B (4.55 KiB) | 0.155233% | 0.066484% | -11.396499% | yes | 59 |
+| `IsDownload` | `int16` | Tiny/constant plain stream | median row-group cardinality 1; median cardinality/rows 0.008377% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 1 / 2 | 0.008377% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,055 B (3.82 MiB) | 8,024 B (7.84 KiB) | 0.200600% | 0.200347% | 9,254 B (9.04 KiB) | 0.231350% | 0.231058% | 15.329013% | 7,900 B (7.71 KiB) | 0.197500% | 0.197251% | -1.545364% | yes | 57 |
+| `JavascriptEnable` | `int16` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 2 | 0.016753% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 6,485 B (6.33 KiB) | 0.162125% | 0.161921% | 7,387 B (7.21 KiB) | 0.184675% | 0.184442% | 13.909021% | 5,941 B (5.80 KiB) | 0.148525% | 0.148338% | -8.388589% | yes | 57 |
+| `CodeVersion` | `int32` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 3 | 0.016753% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 7,031 B (6.87 KiB) | 0.175775% | 0.175553% | 7,970 B (7.78 KiB) | 0.199250% | 0.198999% | 13.355142% | 6,424 B (6.27 KiB) | 0.160600% | 0.160397% | -8.633196% | yes | 57 |
+| `UTMContent` | `string` | Tiny/constant plain stream | median row-group cardinality 3; median cardinality/rows 0.025130% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 3 / 25 | 0.025130% | 0 | 0 | 62 | 13,001 B (12.70 KiB) | 4,018,131 B (3.83 MiB) | 13,959 B (13.63 KiB) | 107.368664% | 0.347400% | 14,839 B (14.49 KiB) | 114.137374% | 0.369301% | 6.304177% | 9,904 B (9.67 KiB) | 76.178755% | 0.246483% | -29.049359% | yes | 59 |
+| `MobilePhone` | `int16` | Tiny/constant plain stream | median row-group cardinality 7; median cardinality/rows 0.058636% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 3 / 7 / 11 | 0.058636% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 22,463 B (21.94 KiB) | 0.561575% | 0.560867% | 23,572 B (23.02 KiB) | 0.589300% | 0.588557% | 4.937008% | 20,726 B (20.24 KiB) | 0.518150% | 0.517497% | -7.732716% | yes | 57 |
+| `UTMTerm` | `string` | Tiny/constant plain stream | median row-group cardinality 2; median cardinality/rows 0.016753% | Plain+ZSTD collapsed a constant or near-constant stream more than RLE-dict's dictionary/page/ID overhead. | 1 / 2 / 75 | 0.016753% | 0 | 0 | 72 | 28,101 B (27.44 KiB) | 4,034,484 B (3.85 MiB) | 15,648 B (15.28 KiB) | 55.684851% | 0.387856% | 15,920 B (15.55 KiB) | 56.652788% | 0.394598% | 1.738241% | 10,518 B (10.27 KiB) | 37.429273% | 0.260702% | -32.783742% | yes | 59 |
 
 ### Small-domain fixed-width literals
 
@@ -200,26 +200,26 @@ RLE dictionary shrank the encoded stream, but ZSTD compressed the repeated fixed
 | `200-500%` | 0 |
 | `500%+` | 0 |
 
-| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | Dictionary pages |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `ClientIP` | `int32` | Small-domain fixed-width literals | median row-group cardinality 924; median cardinality/rows 7.739990%; plain encoded 4,003,592 B (3.82 MiB); rle encoded 941,748 B (919.68 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 744 / 924 / 1,957 | 7.739990% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 408,058 B (398.49 KiB) | 10.201450% | 10.188587% | 806,924 B (788.01 KiB) | 20.173100% | 20.147664% | 97.747379% | 469,904 B (458.89 KiB) | 11.747600% | 11.732787% | 15.156179% | 57 |
-| `IPNetworkID` | `int32` | Small-domain fixed-width literals | median row-group cardinality 600; median cardinality/rows 5.025967%; plain encoded 4,003,590 B (3.82 MiB); rle encoded 748,476 B (730.93 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 498 / 600 / 1,095 | 5.025967% | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 323,708 B (316.12 KiB) | 8.092700% | 8.082492% | 619,756 B (605.23 KiB) | 15.493900% | 15.474356% | 91.455262% | 420,504 B (410.65 KiB) | 10.512600% | 10.499339% | 29.902258% | 57 |
-| `WindowClientHeight` | `int16` | Small-domain fixed-width literals | median row-group cardinality 435; median cardinality/rows 3.643826%; plain encoded 4,003,650 B (3.82 MiB); rle encoded 750,345 B (732.76 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 318 / 435 / 575 | 3.643826% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 319,342 B (311.86 KiB) | 7.983550% | 7.973481% | 583,325 B (569.65 KiB) | 14.583125% | 14.564733% | 82.664667% | 459,637 B (448.86 KiB) | 11.490925% | 11.476433% | 43.932524% | 57 |
-| `UserID` | `int64` | Small-domain fixed-width literals | median row-group cardinality 898; median cardinality/rows 7.522198%; plain encoded 8,004,550 B (7.63 MiB); rle encoded 1,230,153 B (1.17 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 716 / 898 / 1,805 | 7.522198% | 8,000,000 B (7.63 MiB) | 8,006,315 B (7.64 MiB) | 617,840 B (603.36 KiB) | 7.723000% | 7.716908% | 1,101,572 B (1.05 MiB) | 13.769650% | 13.758789% | 78.294057% | 455,193 B (444.52 KiB) | 5.689913% | 5.685425% | -26.325100% | 57 |
-| `RemoteIP` | `int32` | Small-domain fixed-width literals | median row-group cardinality 851; median cardinality/rows 7.128497%; plain encoded 4,003,606 B (3.82 MiB); rle encoded 927,182 B (905.45 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 508 / 851 / 1,951 | 7.128497% | 4,000,000 B (3.81 MiB) | 4,005,047 B (3.82 MiB) | 426,425 B (416.43 KiB) | 10.660625% | 10.647191% | 698,454 B (682.08 KiB) | 17.461350% | 17.439346% | 63.792930% | 407,905 B (398.34 KiB) | 10.197625% | 10.184774% | -4.343085% | 59 |
-| `Interests` | `int16` | Small-domain fixed-width literals | median row-group cardinality 217; median cardinality/rows 1.817725%; plain encoded 4,003,589 B (3.82 MiB); rle encoded 487,582 B (476.15 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 151 / 217 / 395 | 1.817725% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 193,369 B (188.84 KiB) | 4.834225% | 4.828129% | 310,021 B (302.75 KiB) | 7.750525% | 7.740752% | 60.326112% | 243,865 B (238.15 KiB) | 6.096625% | 6.088938% | 26.113803% | 60 |
-| `WindowClientWidth` | `int16` | Small-domain fixed-width literals | median row-group cardinality 306; median cardinality/rows 2.563243%; plain encoded 4,003,590 B (3.82 MiB); rle encoded 695,366 B (679.07 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 241 / 306 / 374 | 2.563243% | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 305,724 B (298.56 KiB) | 7.643100% | 7.633459% | 471,075 B (460.03 KiB) | 11.776875% | 11.762020% | 54.085057% | 384,571 B (375.56 KiB) | 9.614275% | 9.602147% | 25.790255% | 57 |
-| `FUniqID` | `int64` | Small-domain fixed-width literals | median row-group cardinality 812; median cardinality/rows 6.801809%; plain encoded 8,004,554 B (7.63 MiB); rle encoded 1,186,134 B (1.13 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 628 / 812 / 1,703 | 6.801809% | 8,000,000 B (7.63 MiB) | 8,006,317 B (7.64 MiB) | 693,929 B (677.67 KiB) | 8.674112% | 8.667269% | 1,058,653 B (1.01 MiB) | 13.233163% | 13.222722% | 52.559268% | 451,570 B (440.99 KiB) | 5.644625% | 5.640171% | -34.925619% | 57 |
-| `Robotness` | `int16` | Small-domain fixed-width literals | median row-group cardinality 114; median cardinality/rows 0.954934%; plain encoded 4,003,775 B (3.82 MiB); rle encoded 415,545 B (405.81 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 85 / 114 / 200 | 0.954934% | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 173,390 B (169.33 KiB) | 4.334750% | 4.329280% | 240,793 B (235.15 KiB) | 6.019825% | 6.012229% | 38.873637% | 207,281 B (202.42 KiB) | 5.182025% | 5.175486% | 19.546110% | 57 |
-| `RegionID` | `int32` | Small-domain fixed-width literals | median row-group cardinality 149; median cardinality/rows 1.248115%; plain encoded 4,003,584 B (3.82 MiB); rle encoded 435,033 B (424.84 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 112 / 149 / 275 | 1.248115% | 4,000,000 B (3.81 MiB) | 4,005,048 B (3.82 MiB) | 190,701 B (186.23 KiB) | 4.767525% | 4.761516% | 244,341 B (238.61 KiB) | 6.108525% | 6.100826% | 28.127802% | 198,133 B (193.49 KiB) | 4.953325% | 4.947082% | 3.897200% | 57 |
-| `FetchTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 664; median cardinality/rows 5.562071%; plain encoded 4,003,625 B (3.82 MiB); rle encoded 1,131,789 B (1.08 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 329 / 664 / 1,264 | 5.562071% | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 549,819 B (536.93 KiB) | 13.745475% | 13.728133% | 685,133 B (669.08 KiB) | 17.128325% | 17.106715% | 24.610645% | 475,578 B (464.43 KiB) | 11.889450% | 11.874450% | -13.502807% | 57 |
-| `DNSTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 98; median cardinality/rows 0.820908%; plain encoded 4,003,588 B (3.82 MiB); rle encoded 343,417 B (335.37 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 68 / 98 / 352 | 0.820908% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 135,085 B (131.92 KiB) | 3.377125% | 3.372866% | 156,185 B (152.52 KiB) | 3.904625% | 3.899701% | 15.619795% | 121,048 B (118.21 KiB) | 3.026200% | 3.022383% | -10.391235% | 57 |
-| `UserAgentMajor` | `int16` | Small-domain fixed-width literals | median row-group cardinality 29; median cardinality/rows 0.242922%; plain encoded 4,003,585 B (3.82 MiB); rle encoded 275,570 B (269.11 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 26 / 29 / 31 | 0.242922% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 154,186 B (150.57 KiB) | 3.854650% | 3.849790% | 177,456 B (173.30 KiB) | 4.436400% | 4.430806% | 15.092161% | 169,722 B (165.74 KiB) | 4.243050% | 4.237700% | 10.076142% | 57 |
-| `ConnectTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 222; median cardinality/rows 1.859608%; plain encoded 4,003,660 B (3.82 MiB); rle encoded 703,627 B (687.14 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 117 / 222 / 628 | 1.859608% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 333,011 B (325.21 KiB) | 8.325275% | 8.314776% | 377,469 B (368.62 KiB) | 9.436725% | 9.424824% | 13.350310% | 291,018 B (284.20 KiB) | 7.275450% | 7.266275% | -12.610094% | 57 |
-| `OS` | `int16` | Small-domain fixed-width literals | median row-group cardinality 23; median cardinality/rows 0.192662%; plain encoded 4,003,587 B (3.82 MiB); rle encoded 229,346 B (223.97 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 16 / 23 / 31 | 0.192662% | 4,000,000 B (3.81 MiB) | 4,005,049 B (3.82 MiB) | 105,900 B (103.42 KiB) | 2.647500% | 2.644162% | 119,893 B (117.08 KiB) | 2.997325% | 2.993546% | 13.213409% | 113,271 B (110.62 KiB) | 2.831775% | 2.828205% | 6.960340% | 57 |
-| `ResponseEndTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 673; median cardinality/rows 5.637460%; plain encoded 4,003,640 B (3.82 MiB); rle encoded 1,358,021 B (1.30 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 528 / 673 / 1,577 | 5.637460% | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 937,781 B (915.80 KiB) | 23.444525% | 23.414958% | 1,037,700 B (1013.38 KiB) | 25.942500% | 25.909782% | 10.654833% | 796,993 B (778.31 KiB) | 19.924825% | 19.899697% | -15.012887% | 57 |
-| `ResolutionHeight` | `int16` | Small-domain fixed-width literals | median row-group cardinality 70; median cardinality/rows 0.586363%; plain encoded 4,003,586 B (3.82 MiB); rle encoded 371,693 B (362.98 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 49 / 70 / 103 | 0.586363% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 186,022 B (181.66 KiB) | 4.650550% | 4.644686% | 205,409 B (200.59 KiB) | 5.135225% | 5.128750% | 10.421886% | 184,227 B (179.91 KiB) | 4.605675% | 4.599868% | -0.964940% | 57 |
-| `ResolutionWidth` | `int16` | Small-domain fixed-width literals | median row-group cardinality 64; median cardinality/rows 0.536103%; plain encoded 4,003,581 B (3.82 MiB); rle encoded 368,799 B (360.16 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 48 / 64 / 84 | 0.536103% | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 187,130 B (182.74 KiB) | 4.678250% | 4.672348% | 203,528 B (198.76 KiB) | 5.088200% | 5.081780% | 8.762892% | 185,086 B (180.75 KiB) | 4.627150% | 4.621312% | -1.092289% | 57 |
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Min value length (B) | Median value length (B) | Max value length (B) | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | RLE + dict is better without including dict page | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| `ClientIP` | `int32` | Small-domain fixed-width literals | median row-group cardinality 924; median cardinality/rows 7.739990%; plain encoded 4,003,592 B (3.82 MiB); rle encoded 941,748 B (919.68 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 744 / 924 / 1,957 | 7.739990% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 408,058 B (398.49 KiB) | 10.201450% | 10.188587% | 806,924 B (788.01 KiB) | 20.173100% | 20.147664% | 97.747379% | 469,904 B (458.89 KiB) | 11.747600% | 11.732787% | 15.156179% | no | 57 |
+| `IPNetworkID` | `int32` | Small-domain fixed-width literals | median row-group cardinality 600; median cardinality/rows 5.025967%; plain encoded 4,003,590 B (3.82 MiB); rle encoded 748,476 B (730.93 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 498 / 600 / 1,095 | 5.025967% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 323,708 B (316.12 KiB) | 8.092700% | 8.082492% | 619,756 B (605.23 KiB) | 15.493900% | 15.474356% | 91.455262% | 420,504 B (410.65 KiB) | 10.512600% | 10.499339% | 29.902258% | no | 57 |
+| `WindowClientHeight` | `int16` | Small-domain fixed-width literals | median row-group cardinality 435; median cardinality/rows 3.643826%; plain encoded 4,003,650 B (3.82 MiB); rle encoded 750,345 B (732.76 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 318 / 435 / 575 | 3.643826% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 319,342 B (311.86 KiB) | 7.983550% | 7.973481% | 583,325 B (569.65 KiB) | 14.583125% | 14.564733% | 82.664667% | 459,637 B (448.86 KiB) | 11.490925% | 11.476433% | 43.932524% | no | 57 |
+| `UserID` | `int64` | Small-domain fixed-width literals | median row-group cardinality 898; median cardinality/rows 7.522198%; plain encoded 8,004,550 B (7.63 MiB); rle encoded 1,230,153 B (1.17 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 716 / 898 / 1,805 | 7.522198% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,315 B (7.64 MiB) | 617,840 B (603.36 KiB) | 7.723000% | 7.716908% | 1,101,572 B (1.05 MiB) | 13.769650% | 13.758789% | 78.294057% | 455,193 B (444.52 KiB) | 5.689913% | 5.685425% | -26.325100% | yes | 57 |
+| `RemoteIP` | `int32` | Small-domain fixed-width literals | median row-group cardinality 851; median cardinality/rows 7.128497%; plain encoded 4,003,606 B (3.82 MiB); rle encoded 927,182 B (905.45 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 508 / 851 / 1,951 | 7.128497% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,047 B (3.82 MiB) | 426,425 B (416.43 KiB) | 10.660625% | 10.647191% | 698,454 B (682.08 KiB) | 17.461350% | 17.439346% | 63.792930% | 407,905 B (398.34 KiB) | 10.197625% | 10.184774% | -4.343085% | yes | 59 |
+| `Interests` | `int16` | Small-domain fixed-width literals | median row-group cardinality 217; median cardinality/rows 1.817725%; plain encoded 4,003,589 B (3.82 MiB); rle encoded 487,582 B (476.15 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 151 / 217 / 395 | 1.817725% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 193,369 B (188.84 KiB) | 4.834225% | 4.828129% | 310,021 B (302.75 KiB) | 7.750525% | 7.740752% | 60.326112% | 243,865 B (238.15 KiB) | 6.096625% | 6.088938% | 26.113803% | no | 60 |
+| `WindowClientWidth` | `int16` | Small-domain fixed-width literals | median row-group cardinality 306; median cardinality/rows 2.563243%; plain encoded 4,003,590 B (3.82 MiB); rle encoded 695,366 B (679.07 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 241 / 306 / 374 | 2.563243% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,052 B (3.82 MiB) | 305,724 B (298.56 KiB) | 7.643100% | 7.633459% | 471,075 B (460.03 KiB) | 11.776875% | 11.762020% | 54.085057% | 384,571 B (375.56 KiB) | 9.614275% | 9.602147% | 25.790255% | no | 57 |
+| `FUniqID` | `int64` | Small-domain fixed-width literals | median row-group cardinality 812; median cardinality/rows 6.801809%; plain encoded 8,004,554 B (7.63 MiB); rle encoded 1,186,134 B (1.13 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 628 / 812 / 1,703 | 6.801809% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,317 B (7.64 MiB) | 693,929 B (677.67 KiB) | 8.674112% | 8.667269% | 1,058,653 B (1.01 MiB) | 13.233163% | 13.222722% | 52.559268% | 451,570 B (440.99 KiB) | 5.644625% | 5.640171% | -34.925619% | yes | 57 |
+| `Robotness` | `int16` | Small-domain fixed-width literals | median row-group cardinality 114; median cardinality/rows 0.954934%; plain encoded 4,003,775 B (3.82 MiB); rle encoded 415,545 B (405.81 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 85 / 114 / 200 | 0.954934% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,054 B (3.82 MiB) | 173,390 B (169.33 KiB) | 4.334750% | 4.329280% | 240,793 B (235.15 KiB) | 6.019825% | 6.012229% | 38.873637% | 207,281 B (202.42 KiB) | 5.182025% | 5.175486% | 19.546110% | no | 57 |
+| `RegionID` | `int32` | Small-domain fixed-width literals | median row-group cardinality 149; median cardinality/rows 1.248115%; plain encoded 4,003,584 B (3.82 MiB); rle encoded 435,033 B (424.84 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 112 / 149 / 275 | 1.248115% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,048 B (3.82 MiB) | 190,701 B (186.23 KiB) | 4.767525% | 4.761516% | 244,341 B (238.61 KiB) | 6.108525% | 6.100826% | 28.127802% | 198,133 B (193.49 KiB) | 4.953325% | 4.947082% | 3.897200% | no | 57 |
+| `FetchTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 664; median cardinality/rows 5.562071%; plain encoded 4,003,625 B (3.82 MiB); rle encoded 1,131,789 B (1.08 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 329 / 664 / 1,264 | 5.562071% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 549,819 B (536.93 KiB) | 13.745475% | 13.728133% | 685,133 B (669.08 KiB) | 17.128325% | 17.106715% | 24.610645% | 475,578 B (464.43 KiB) | 11.889450% | 11.874450% | -13.502807% | yes | 57 |
+| `DNSTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 98; median cardinality/rows 0.820908%; plain encoded 4,003,588 B (3.82 MiB); rle encoded 343,417 B (335.37 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 68 / 98 / 352 | 0.820908% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 135,085 B (131.92 KiB) | 3.377125% | 3.372866% | 156,185 B (152.52 KiB) | 3.904625% | 3.899701% | 15.619795% | 121,048 B (118.21 KiB) | 3.026200% | 3.022383% | -10.391235% | yes | 57 |
+| `UserAgentMajor` | `int16` | Small-domain fixed-width literals | median row-group cardinality 29; median cardinality/rows 0.242922%; plain encoded 4,003,585 B (3.82 MiB); rle encoded 275,570 B (269.11 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 26 / 29 / 31 | 0.242922% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 154,186 B (150.57 KiB) | 3.854650% | 3.849790% | 177,456 B (173.30 KiB) | 4.436400% | 4.430806% | 15.092161% | 169,722 B (165.74 KiB) | 4.243050% | 4.237700% | 10.076142% | no | 57 |
+| `ConnectTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 222; median cardinality/rows 1.859608%; plain encoded 4,003,660 B (3.82 MiB); rle encoded 703,627 B (687.14 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 117 / 222 / 628 | 1.859608% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 333,011 B (325.21 KiB) | 8.325275% | 8.314776% | 377,469 B (368.62 KiB) | 9.436725% | 9.424824% | 13.350310% | 291,018 B (284.20 KiB) | 7.275450% | 7.266275% | -12.610094% | yes | 57 |
+| `OS` | `int16` | Small-domain fixed-width literals | median row-group cardinality 23; median cardinality/rows 0.192662%; plain encoded 4,003,587 B (3.82 MiB); rle encoded 229,346 B (223.97 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 16 / 23 / 31 | 0.192662% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,049 B (3.82 MiB) | 105,900 B (103.42 KiB) | 2.647500% | 2.644162% | 119,893 B (117.08 KiB) | 2.997325% | 2.993546% | 13.213409% | 113,271 B (110.62 KiB) | 2.831775% | 2.828205% | 6.960340% | no | 57 |
+| `ResponseEndTiming` | `int32` | Small-domain fixed-width literals | median row-group cardinality 673; median cardinality/rows 5.637460%; plain encoded 4,003,640 B (3.82 MiB); rle encoded 1,358,021 B (1.30 MiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 528 / 673 / 1,577 | 5.637460% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,051 B (3.82 MiB) | 937,781 B (915.80 KiB) | 23.444525% | 23.414958% | 1,037,700 B (1013.38 KiB) | 25.942500% | 25.909782% | 10.654833% | 796,993 B (778.31 KiB) | 19.924825% | 19.899697% | -15.012887% | yes | 57 |
+| `ResolutionHeight` | `int16` | Small-domain fixed-width literals | median row-group cardinality 70; median cardinality/rows 0.586363%; plain encoded 4,003,586 B (3.82 MiB); rle encoded 371,693 B (362.98 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 49 / 70 / 103 | 0.586363% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 186,022 B (181.66 KiB) | 4.650550% | 4.644686% | 205,409 B (200.59 KiB) | 5.135225% | 5.128750% | 10.421886% | 184,227 B (179.91 KiB) | 4.605675% | 4.599868% | -0.964940% | yes | 57 |
+| `ResolutionWidth` | `int16` | Small-domain fixed-width literals | median row-group cardinality 64; median cardinality/rows 0.536103%; plain encoded 4,003,581 B (3.82 MiB); rle encoded 368,799 B (360.16 KiB) | RLE dictionary reduced pre-codec bytes, but ZSTD compressed the plain fixed-width values to fewer bytes. | 48 / 64 / 84 | 0.536103% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,053 B (3.82 MiB) | 187,130 B (182.74 KiB) | 4.678250% | 4.672348% | 203,528 B (198.76 KiB) | 5.088200% | 5.081780% | 8.762892% | 185,086 B (180.75 KiB) | 4.627150% | 4.621312% | -1.092289% | yes | 57 |
 
 ### Structured medium/high-cardinality numeric streams
 
@@ -243,14 +243,14 @@ The column has enough distinct numeric/timestamp values that the plain stream pr
 | `200-500%` | 0 |
 | `500%+` | 0 |
 
-| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | Dictionary pages |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `ClientEventTime` | `timestamp_millis` | Structured medium/high-cardinality numeric streams | median row-group cardinality 5882; median cardinality/rows 49.271235%; plain+zstd 2,474,093 B (2.36 MiB); rle+zstd 3,958,277 B (3.77 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 5,666 / 5,882 / 13,078 | 49.271235% | 8,000,000 B (7.63 MiB) | 8,006,314 B (7.64 MiB) | 2,474,093 B (2.36 MiB) | 30.926162% | 30.901773% | 3,958,277 B (3.77 MiB) | 49.478462% | 49.439442% | 59.989014% | 1,725,958 B (1.65 MiB) | 21.574475% | 21.557461% | -30.238758% | 60 |
-| `EventTime` | `timestamp_millis` | Structured medium/high-cardinality numeric streams | median row-group cardinality 6237; median cardinality/rows 52.244932%; plain+zstd 2,514,539 B (2.40 MiB); rle+zstd 4,021,616 B (3.84 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 5,997 / 6,237 / 13,042 | 52.244932% | 8,000,000 B (7.63 MiB) | 8,006,315 B (7.64 MiB) | 2,514,539 B (2.40 MiB) | 31.431738% | 31.406946% | 4,021,616 B (3.84 MiB) | 50.270200% | 50.230549% | 59.934525% | 1,755,738 B (1.67 MiB) | 21.946725% | 21.929414% | -30.176545% | 60 |
-| `LocalEventTime` | `timestamp_millis` | Structured medium/high-cardinality numeric streams | median row-group cardinality 6254; median cardinality/rows 52.387335%; plain+zstd 2,517,265 B (2.40 MiB); rle+zstd 4,023,316 B (3.84 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 5,968 / 6,254 / 13,047 | 52.387335% | 8,000,000 B (7.63 MiB) | 8,006,317 B (7.64 MiB) | 2,517,265 B (2.40 MiB) | 31.465813% | 31.440986% | 4,023,316 B (3.84 MiB) | 50.291450% | 50.251770% | 59.828862% | 1,755,643 B (1.67 MiB) | 21.945538% | 21.928222% | -30.255933% | 60 |
-| `URLHash` | `int64` | Structured medium/high-cardinality numeric streams | median row-group cardinality 3292; median cardinality/rows 27.575808%; plain+zstd 3,580,060 B (3.41 MiB); rle+zstd 4,529,372 B (4.32 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 3,001 / 3,292 / 7,420 | 27.575808% | 8,000,000 B (7.63 MiB) | 8,006,310 B (7.64 MiB) | 3,580,060 B (3.41 MiB) | 44.750750% | 44.715481% | 4,529,372 B (4.32 MiB) | 56.617150% | 56.572528% | 26.516651% | 1,565,061 B (1.49 MiB) | 19.563263% | 19.547844% | -56.283945% | 57 |
-| `ResponseStartTiming` | `int32` | Structured medium/high-cardinality numeric streams | median row-group cardinality 1112; median cardinality/rows 9.314793%; plain+zstd 1,245,745 B (1.19 MiB); rle+zstd 1,556,751 B (1.48 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 800 / 1,112 / 3,761 | 9.314793% | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 1,245,745 B (1.19 MiB) | 31.143625% | 31.104356% | 1,556,751 B (1.48 MiB) | 38.918775% | 38.869702% | 24.965462% | 1,001,805 B (978.33 KiB) | 25.045125% | 25.013545% | -19.581857% | 58 |
-| `RefererHash` | `int64` | Structured medium/high-cardinality numeric streams | median row-group cardinality 2729; median cardinality/rows 22.859776%; plain+zstd 2,841,886 B (2.71 MiB); rle+zstd 3,502,907 B (3.34 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 378 / 2,729 / 6,051 | 22.859776% | 8,000,000 B (7.63 MiB) | 8,006,316 B (7.64 MiB) | 2,841,886 B (2.71 MiB) | 35.523575% | 35.495551% | 3,502,907 B (3.34 MiB) | 43.786338% | 43.751795% | 23.259941% | 1,272,178 B (1.21 MiB) | 15.902225% | 15.889680% | -55.234728% | 59 |
+| Column | Type | Category | Measured feature | Measured reason | Row-group cardinality min/median/max | Median cardinality / rows | Min value length (B) | Median value length (B) | Max value length (B) | Physical bytes before encoding/compression | Plain encoded bytes before compression | Plain + ZSTD compressed bytes | Plain + ZSTD / physical | Plain + ZSTD / plain encoded | RLE dict + ZSTD compressed bytes | RLE dict + ZSTD / physical | RLE dict + ZSTD / plain encoded | RLE dict + ZSTD vs plain + ZSTD | RLE dict + ZSTD without dict pages | RLE dict without dict pages / physical | RLE dict without dict pages / plain encoded | RLE dict without dict pages vs plain + ZSTD | RLE + dict is better without including dict page | Dictionary pages |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| `ClientEventTime` | `timestamp_millis` | Structured medium/high-cardinality numeric streams | median row-group cardinality 5882; median cardinality/rows 49.271235%; plain+zstd 2,474,093 B (2.36 MiB); rle+zstd 3,958,277 B (3.77 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 5,666 / 5,882 / 13,078 | 49.271235% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,314 B (7.64 MiB) | 2,474,093 B (2.36 MiB) | 30.926162% | 30.901773% | 3,958,277 B (3.77 MiB) | 49.478462% | 49.439442% | 59.989014% | 1,725,958 B (1.65 MiB) | 21.574475% | 21.557461% | -30.238758% | yes | 60 |
+| `EventTime` | `timestamp_millis` | Structured medium/high-cardinality numeric streams | median row-group cardinality 6237; median cardinality/rows 52.244932%; plain+zstd 2,514,539 B (2.40 MiB); rle+zstd 4,021,616 B (3.84 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 5,997 / 6,237 / 13,042 | 52.244932% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,315 B (7.64 MiB) | 2,514,539 B (2.40 MiB) | 31.431738% | 31.406946% | 4,021,616 B (3.84 MiB) | 50.270200% | 50.230549% | 59.934525% | 1,755,738 B (1.67 MiB) | 21.946725% | 21.929414% | -30.176545% | yes | 60 |
+| `LocalEventTime` | `timestamp_millis` | Structured medium/high-cardinality numeric streams | median row-group cardinality 6254; median cardinality/rows 52.387335%; plain+zstd 2,517,265 B (2.40 MiB); rle+zstd 4,023,316 B (3.84 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 5,968 / 6,254 / 13,047 | 52.387335% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,317 B (7.64 MiB) | 2,517,265 B (2.40 MiB) | 31.465813% | 31.440986% | 4,023,316 B (3.84 MiB) | 50.291450% | 50.251770% | 59.828862% | 1,755,643 B (1.67 MiB) | 21.945538% | 21.928222% | -30.255933% | yes | 60 |
+| `URLHash` | `int64` | Structured medium/high-cardinality numeric streams | median row-group cardinality 3292; median cardinality/rows 27.575808%; plain+zstd 3,580,060 B (3.41 MiB); rle+zstd 4,529,372 B (4.32 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 3,001 / 3,292 / 7,420 | 27.575808% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,310 B (7.64 MiB) | 3,580,060 B (3.41 MiB) | 44.750750% | 44.715481% | 4,529,372 B (4.32 MiB) | 56.617150% | 56.572528% | 26.516651% | 1,565,061 B (1.49 MiB) | 19.563263% | 19.547844% | -56.283945% | yes | 57 |
+| `ResponseStartTiming` | `int32` | Structured medium/high-cardinality numeric streams | median row-group cardinality 1112; median cardinality/rows 9.314793%; plain+zstd 1,245,745 B (1.19 MiB); rle+zstd 1,556,751 B (1.48 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 800 / 1,112 / 3,761 | 9.314793% | 4 | 4 | 4 | 4,000,000 B (3.81 MiB) | 4,005,050 B (3.82 MiB) | 1,245,745 B (1.19 MiB) | 31.143625% | 31.104356% | 1,556,751 B (1.48 MiB) | 38.918775% | 38.869702% | 24.965462% | 1,001,805 B (978.33 KiB) | 25.045125% | 25.013545% | -19.581857% | yes | 58 |
+| `RefererHash` | `int64` | Structured medium/high-cardinality numeric streams | median row-group cardinality 2729; median cardinality/rows 22.859776%; plain+zstd 2,841,886 B (2.71 MiB); rle+zstd 3,502,907 B (3.34 MiB) | The high-cardinality numeric/timestamp column produced a larger RLE-dict+ZSTD stream than plain+ZSTD. | 378 / 2,729 / 6,051 | 22.859776% | 8 | 8 | 8 | 8,000,000 B (7.63 MiB) | 8,006,316 B (7.64 MiB) | 2,841,886 B (2.71 MiB) | 35.523575% | 35.495551% | 3,502,907 B (3.34 MiB) | 43.786338% | 43.751795% | 23.259941% | 1,272,178 B (1.21 MiB) | 15.902225% | 15.889680% | -55.234728% | yes | 59 |
 
 ## Delta Binary Packed Winner vs Second Best Improvement Distribution
 
@@ -308,6 +308,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 3 / 4`
 - Page cardinality per row group min/median/max of mins: `1 / 3 / 4`; of maxes: `1 / 3 / 4`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/advengineid_row_group_cardinality.svg)
@@ -344,6 +345,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `6 / 6 / 6`
 - Page cardinality per row group min/median/max of mins: `6 / 6 / 6`; of maxes: `6 / 6 / 6`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/age_row_group_cardinality.svg)
@@ -380,6 +382,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `3 / 5 / 11`
 - Page cardinality per row group min/median/max of mins: `3 / 5 / 11`; of maxes: `3 / 5 / 11`
+- Value length min/median/max: `2 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `2 / 2 / 2`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/browsercountry_row_group_cardinality.svg)
@@ -418,6 +421,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `3 / 7 / 14`
 - Page cardinality per row group min/median/max of mins: `3 / 7 / 14`; of maxes: `3 / 7 / 14`
+- Value length min/median/max: `2 / 2 / 3` bytes
 - Value length per row group min/median/max of mins: `2 / 2 / 2`; of maxes: `2 / 3 / 3`
 
 ![Row-group cardinality](column_shape_stats/images/browserlanguage_row_group_cardinality.svg)
@@ -456,6 +460,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 2`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 2`; of maxes: `1 / 1 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/clid_row_group_cardinality.svg)
@@ -492,6 +497,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `5,666 / 5,882 / 13,078`
 - Page cardinality per row group min/median/max of mins: `5,666 / 5,882 / 13,078`; of maxes: `5,666 / 5,882 / 13,078`
+- Value length min/median/max: `8 / 8 / 8` bytes
 - Value length per row group min/median/max of mins: `8 / 8 / 8`; of maxes: `8 / 8 / 8`
 
 ![Row-group cardinality](column_shape_stats/images/clienteventtime_row_group_cardinality.svg)
@@ -528,6 +534,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `744 / 924 / 1,957`
 - Page cardinality per row group min/median/max of mins: `744 / 924 / 1,957`; of maxes: `744 / 924 / 1,957`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/clientip_row_group_cardinality.svg)
@@ -564,6 +571,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `10 / 15 / 20`
 - Page cardinality per row group min/median/max of mins: `10 / 15 / 20`; of maxes: `10 / 15 / 20`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/clienttimezone_row_group_cardinality.svg)
@@ -600,6 +608,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 2 / 3`
 - Page cardinality per row group min/median/max of mins: `1 / 2 / 3`; of maxes: `1 / 2 / 3`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/codeversion_row_group_cardinality.svg)
@@ -636,6 +645,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `117 / 222 / 628`
 - Page cardinality per row group min/median/max of mins: `117 / 222 / 628`; of maxes: `117 / 222 / 628`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/connecttiming_row_group_cardinality.svg)
@@ -672,6 +682,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 2 / 2`
 - Page cardinality per row group min/median/max of mins: `1 / 2 / 2`; of maxes: `1 / 2 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/cookieenable_row_group_cardinality.svg)
@@ -708,6 +719,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/counterclass_row_group_cardinality.svg)
@@ -744,6 +756,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 4`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 4`; of maxes: `1 / 1 / 4`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/counterid_row_group_cardinality.svg)
@@ -780,6 +793,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `68 / 98 / 352`
 - Page cardinality per row group min/median/max of mins: `68 / 98 / 352`; of maxes: `68 / 98 / 352`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/dnstiming_row_group_cardinality.svg)
@@ -816,6 +830,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `2 / 2 / 2`
 - Page cardinality per row group min/median/max of mins: `2 / 2 / 2`; of maxes: `2 / 2 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/dontcounthits_row_group_cardinality.svg)
@@ -852,6 +867,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/eventdate_row_group_cardinality.svg)
@@ -888,6 +904,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `5,997 / 6,237 / 13,042`
 - Page cardinality per row group min/median/max of mins: `5,997 / 6,237 / 13,042`; of maxes: `5,997 / 6,237 / 13,042`
+- Value length min/median/max: `8 / 8 / 8` bytes
 - Value length per row group min/median/max of mins: `8 / 8 / 8`; of maxes: `8 / 8 / 8`
 
 ![Row-group cardinality](column_shape_stats/images/eventtime_row_group_cardinality.svg)
@@ -924,6 +941,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `628 / 812 / 1,703`
 - Page cardinality per row group min/median/max of mins: `628 / 812 / 1,703`; of maxes: `628 / 812 / 1,703`
+- Value length min/median/max: `8 / 8 / 8` bytes
 - Value length per row group min/median/max of mins: `8 / 8 / 8`; of maxes: `8 / 8 / 8`
 
 ![Row-group cardinality](column_shape_stats/images/funiqid_row_group_cardinality.svg)
@@ -960,6 +978,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `329 / 664 / 1,264`
 - Page cardinality per row group min/median/max of mins: `329 / 664 / 1,264`; of maxes: `329 / 664 / 1,264`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/fetchtiming_row_group_cardinality.svg)
@@ -996,6 +1015,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `4 / 5 / 7`
 - Page cardinality per row group min/median/max of mins: `4 / 5 / 7`; of maxes: `4 / 5 / 7`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/flashmajor_row_group_cardinality.svg)
@@ -1032,6 +1052,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `9 / 9 / 9`
 - Page cardinality per row group min/median/max of mins: `9 / 9 / 9`; of maxes: `9 / 9 / 9`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/flashminor_row_group_cardinality.svg)
@@ -1068,6 +1089,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `18 / 24 / 29`
 - Page cardinality per row group min/median/max of mins: `18 / 24 / 29`; of maxes: `18 / 24 / 29`
+- Value length min/median/max: `0 / 3 / 8` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `8 / 8 / 8`
 
 ![Row-group cardinality](column_shape_stats/images/flashminor2_row_group_cardinality.svg)
@@ -1106,6 +1128,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 15`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 15`; of maxes: `1 / 1 / 15`
+- Value length min/median/max: `0 / 0 / 12` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 0 / 12`
 
 ![Row-group cardinality](column_shape_stats/images/fromtag_row_group_cardinality.svg)
@@ -1144,6 +1167,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/goodevent_row_group_cardinality.svg)
@@ -1180,6 +1204,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `5,818 / 5,965 / 13,281`
 - Page cardinality per row group min/median/max of mins: `5,818 / 5,965 / 13,281`; of maxes: `5,818 / 5,965 / 13,281`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/hid_row_group_cardinality.svg)
@@ -1216,6 +1241,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/httperror_row_group_cardinality.svg)
@@ -1252,6 +1278,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 2 / 2`
 - Page cardinality per row group min/median/max of mins: `1 / 2 / 2`; of maxes: `1 / 2 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/hasgclid_row_group_cardinality.svg)
@@ -1288,6 +1315,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 4 / 87`
 - Page cardinality per row group min/median/max of mins: `1 / 4 / 87`; of maxes: `1 / 4 / 87`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/historylength_row_group_cardinality.svg)
@@ -1324,6 +1352,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `2 / 3 / 3`
 - Page cardinality per row group min/median/max of mins: `2 / 3 / 3`; of maxes: `2 / 3 / 3`
+- Value length min/median/max: `1 / 1 / 1` bytes
 - Value length per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
 
 ![Row-group cardinality](column_shape_stats/images/hitcolor_row_group_cardinality.svg)
@@ -1362,6 +1391,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `498 / 600 / 1,095`
 - Page cardinality per row group min/median/max of mins: `498 / 600 / 1,095`; of maxes: `498 / 600 / 1,095`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/ipnetworkid_row_group_cardinality.svg)
@@ -1398,6 +1428,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `3 / 4 / 4`
 - Page cardinality per row group min/median/max of mins: `3 / 4 / 4`; of maxes: `3 / 4 / 4`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/income_row_group_cardinality.svg)
@@ -1434,6 +1465,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `151 / 217 / 395`
 - Page cardinality per row group min/median/max of mins: `151 / 217 / 395`; of maxes: `151 / 217 / 395`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/interests_row_group_cardinality.svg)
@@ -1470,6 +1502,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `2 / 2 / 2`
 - Page cardinality per row group min/median/max of mins: `2 / 2 / 2`; of maxes: `2 / 2 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/isartifical_row_group_cardinality.svg)
@@ -1506,6 +1539,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 2`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 2`; of maxes: `1 / 1 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/isdownload_row_group_cardinality.svg)
@@ -1542,6 +1576,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/isevent_row_group_cardinality.svg)
@@ -1578,6 +1613,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 2`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 2`; of maxes: `1 / 1 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/islink_row_group_cardinality.svg)
@@ -1614,6 +1650,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `2 / 2 / 2`
 - Page cardinality per row group min/median/max of mins: `2 / 2 / 2`; of maxes: `2 / 2 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/ismobile_row_group_cardinality.svg)
@@ -1650,6 +1687,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 2`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 2`; of maxes: `1 / 1 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/isnotbounce_row_group_cardinality.svg)
@@ -1686,6 +1724,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/isoldcounter_row_group_cardinality.svg)
@@ -1722,6 +1761,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/isparameter_row_group_cardinality.svg)
@@ -1758,6 +1798,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `2 / 2 / 2`
 - Page cardinality per row group min/median/max of mins: `2 / 2 / 2`; of maxes: `2 / 2 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/isrefresh_row_group_cardinality.svg)
@@ -1794,6 +1835,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `2 / 2 / 2`
 - Page cardinality per row group min/median/max of mins: `2 / 2 / 2`; of maxes: `2 / 2 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/javaenable_row_group_cardinality.svg)
@@ -1830,6 +1872,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 2 / 2`
 - Page cardinality per row group min/median/max of mins: `1 / 2 / 2`; of maxes: `1 / 2 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/javascriptenable_row_group_cardinality.svg)
@@ -1866,6 +1909,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `5,968 / 6,254 / 13,047`
 - Page cardinality per row group min/median/max of mins: `5,968 / 6,254 / 13,047`; of maxes: `5,968 / 6,254 / 13,047`
+- Value length min/median/max: `8 / 8 / 8` bytes
 - Value length per row group min/median/max of mins: `8 / 8 / 8`; of maxes: `8 / 8 / 8`
 
 ![Row-group cardinality](column_shape_stats/images/localeventtime_row_group_cardinality.svg)
@@ -1902,6 +1946,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `3 / 7 / 11`
 - Page cardinality per row group min/median/max of mins: `3 / 7 / 11`; of maxes: `3 / 7 / 11`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/mobilephone_row_group_cardinality.svg)
@@ -1938,6 +1983,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `2 / 4 / 6`
 - Page cardinality per row group min/median/max of mins: `2 / 4 / 6`; of maxes: `2 / 4 / 6`
+- Value length min/median/max: `0 / 0 / 17` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `4 / 6 / 17`
 
 ![Row-group cardinality](column_shape_stats/images/mobilephonemodel_row_group_cardinality.svg)
@@ -1976,6 +2022,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `3 / 4 / 4`
 - Page cardinality per row group min/median/max of mins: `3 / 4 / 4`; of maxes: `3 / 4 / 4`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/netmajor_row_group_cardinality.svg)
@@ -2012,6 +2059,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `2 / 3 / 3`
 - Page cardinality per row group min/median/max of mins: `2 / 3 / 3`; of maxes: `2 / 3 / 3`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/netminor_row_group_cardinality.svg)
@@ -2048,6 +2096,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `16 / 23 / 31`
 - Page cardinality per row group min/median/max of mins: `16 / 23 / 31`; of maxes: `16 / 23 / 31`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/os_row_group_cardinality.svg)
@@ -2084,6 +2133,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/openername_row_group_cardinality.svg)
@@ -2120,6 +2170,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 9 / 18`
 - Page cardinality per row group min/median/max of mins: `1 / 9 / 18`; of maxes: `1 / 9 / 18`
+- Value length min/median/max: `0 / 0 / 22` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 13 / 22`
 
 ![Row-group cardinality](column_shape_stats/images/openstatadid_row_group_cardinality.svg)
@@ -2158,6 +2209,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 4 / 6`
 - Page cardinality per row group min/median/max of mins: `1 / 4 / 6`; of maxes: `1 / 4 / 6`
+- Value length min/median/max: `0 / 0 / 12` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 10 / 12`
 
 ![Row-group cardinality](column_shape_stats/images/openstatcampaignid_row_group_cardinality.svg)
@@ -2196,6 +2248,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 2 / 6`
 - Page cardinality per row group min/median/max of mins: `1 / 2 / 6`; of maxes: `1 / 2 / 6`
+- Value length min/median/max: `0 / 0 / 16` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 16 / 16`
 
 ![Row-group cardinality](column_shape_stats/images/openstatservicename_row_group_cardinality.svg)
@@ -2234,6 +2287,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 3 / 7`
 - Page cardinality per row group min/median/max of mins: `1 / 3 / 7`; of maxes: `1 / 3 / 7`
+- Value length min/median/max: `0 / 0 / 31` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 20 / 31`
 
 ![Row-group cardinality](column_shape_stats/images/openstatsourceid_row_group_cardinality.svg)
@@ -2272,6 +2326,7 @@ Column shape stats:
 - Row groups: `79`; pages: `173`
 - Row-group cardinality min/median/max: `95 / 227 / 6,169`
 - Page cardinality per row group min/median/max of mins: `12 / 183 / 850`; of maxes: `95 / 227 / 1,065`
+- Value length min/median/max: `0 / 138.50 / 3,723` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `357 / 517 / 3,723`
 
 ![Row-group cardinality](column_shape_stats/images/originalurl_row_group_cardinality.svg)
@@ -2310,6 +2365,7 @@ Column shape stats:
 - Row groups: `79`; pages: `122`
 - Row-group cardinality min/median/max: `1 / 2 / 3`
 - Page cardinality per row group min/median/max of mins: `1 / 2 / 3`; of maxes: `1 / 2 / 3`
+- Value length min/median/max: `0 / 20 / 20` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 20`; of maxes: `7 / 20 / 20`
 
 ![Row-group cardinality](column_shape_stats/images/pagecharset_row_group_cardinality.svg)
@@ -2348,6 +2404,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `3 / 3 / 3` bytes
 - Value length per row group min/median/max of mins: `3 / 3 / 3`; of maxes: `3 / 3 / 3`
 
 ![Row-group cardinality](column_shape_stats/images/paramcurrency_row_group_cardinality.svg)
@@ -2386,6 +2443,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/paramcurrencyid_row_group_cardinality.svg)
@@ -2422,6 +2480,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `0 / 0 / 0` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 0 / 0`
 
 ![Row-group cardinality](column_shape_stats/images/paramorderid_row_group_cardinality.svg)
@@ -2460,6 +2519,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `8 / 8 / 8` bytes
 - Value length per row group min/median/max of mins: `8 / 8 / 8`; of maxes: `8 / 8 / 8`
 
 ![Row-group cardinality](column_shape_stats/images/paramprice_row_group_cardinality.svg)
@@ -2496,6 +2556,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `0 / 0 / 0` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 0 / 0`
 
 ![Row-group cardinality](column_shape_stats/images/params_row_group_cardinality.svg)
@@ -2534,6 +2595,7 @@ Column shape stats:
 - Row groups: `79`; pages: `349`
 - Row-group cardinality min/median/max: `361 / 2,628 / 5,960`
 - Page cardinality per row group min/median/max of mins: `1 / 670 / 1,130`; of maxes: `223 / 802 / 1,644`
+- Value length min/median/max: `0 / 64 / 2,007` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `514 / 1,014 / 2,007`
 
 ![Row-group cardinality](column_shape_stats/images/referer_row_group_cardinality.svg)
@@ -2572,6 +2634,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `12 / 35 / 79`
 - Page cardinality per row group min/median/max of mins: `12 / 35 / 79`; of maxes: `12 / 35 / 79`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/referercategoryid_row_group_cardinality.svg)
@@ -2608,6 +2671,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `378 / 2,729 / 6,051`
 - Page cardinality per row group min/median/max of mins: `378 / 2,729 / 6,051`; of maxes: `378 / 2,729 / 6,051`
+- Value length min/median/max: `8 / 8 / 8` bytes
 - Value length per row group min/median/max of mins: `8 / 8 / 8`; of maxes: `8 / 8 / 8`
 
 ![Row-group cardinality](column_shape_stats/images/refererhash_row_group_cardinality.svg)
@@ -2644,6 +2708,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `7 / 17 / 33`
 - Page cardinality per row group min/median/max of mins: `7 / 17 / 33`; of maxes: `7 / 17 / 33`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/refererregionid_row_group_cardinality.svg)
@@ -2680,6 +2745,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `112 / 149 / 275`
 - Page cardinality per row group min/median/max of mins: `112 / 149 / 275`; of maxes: `112 / 149 / 275`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/regionid_row_group_cardinality.svg)
@@ -2716,6 +2782,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `508 / 851 / 1,951`
 - Page cardinality per row group min/median/max of mins: `508 / 851 / 1,951`; of maxes: `508 / 851 / 1,951`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/remoteip_row_group_cardinality.svg)
@@ -2752,6 +2819,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `4 / 4 / 5`
 - Page cardinality per row group min/median/max of mins: `4 / 4 / 5`; of maxes: `4 / 4 / 5`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/resolutiondepth_row_group_cardinality.svg)
@@ -2788,6 +2856,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `49 / 70 / 103`
 - Page cardinality per row group min/median/max of mins: `49 / 70 / 103`; of maxes: `49 / 70 / 103`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/resolutionheight_row_group_cardinality.svg)
@@ -2824,6 +2893,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `48 / 64 / 84`
 - Page cardinality per row group min/median/max of mins: `48 / 64 / 84`; of maxes: `48 / 64 / 84`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/resolutionwidth_row_group_cardinality.svg)
@@ -2860,6 +2930,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `528 / 673 / 1,577`
 - Page cardinality per row group min/median/max of mins: `528 / 673 / 1,577`; of maxes: `528 / 673 / 1,577`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/responseendtiming_row_group_cardinality.svg)
@@ -2896,6 +2967,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `800 / 1,112 / 3,761`
 - Page cardinality per row group min/median/max of mins: `800 / 1,112 / 3,761`; of maxes: `800 / 1,112 / 3,761`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/responsestarttiming_row_group_cardinality.svg)
@@ -2932,6 +3004,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `85 / 114 / 200`
 - Page cardinality per row group min/median/max of mins: `85 / 114 / 200`; of maxes: `85 / 114 / 200`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/robotness_row_group_cardinality.svg)
@@ -2968,6 +3041,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `3 / 11 / 15`
 - Page cardinality per row group min/median/max of mins: `3 / 11 / 15`; of maxes: `3 / 11 / 15`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/searchengineid_row_group_cardinality.svg)
@@ -3004,6 +3078,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `7 / 421 / 558`
 - Page cardinality per row group min/median/max of mins: `7 / 421 / 558`; of maxes: `7 / 421 / 558`
+- Value length min/median/max: `0 / 0 / 1,939` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `37 / 148 / 1,939`
 
 ![Row-group cardinality](column_shape_stats/images/searchphrase_row_group_cardinality.svg)
@@ -3042,6 +3117,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 989`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 989`; of maxes: `1 / 1 / 989`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/sendtiming_row_group_cardinality.svg)
@@ -3078,6 +3154,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `3 / 3 / 3`
 - Page cardinality per row group min/median/max of mins: `3 / 3 / 3`; of maxes: `3 / 3 / 3`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/sex_row_group_cardinality.svg)
@@ -3114,6 +3191,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `4 / 5 / 6`
 - Page cardinality per row group min/median/max of mins: `4 / 5 / 6`; of maxes: `4 / 5 / 6`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/silverlightversion1_row_group_cardinality.svg)
@@ -3150,6 +3228,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `2 / 2 / 2`
 - Page cardinality per row group min/median/max of mins: `2 / 2 / 2`; of maxes: `2 / 2 / 2`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/silverlightversion2_row_group_cardinality.svg)
@@ -3186,6 +3265,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `17 / 22 / 28`
 - Page cardinality per row group min/median/max of mins: `17 / 22 / 28`; of maxes: `17 / 22 / 28`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/silverlightversion3_row_group_cardinality.svg)
@@ -3222,6 +3302,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 3`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 3`; of maxes: `1 / 1 / 3`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/silverlightversion4_row_group_cardinality.svg)
@@ -3258,6 +3339,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `0 / 0 / 0` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 0 / 0`
 
 ![Row-group cardinality](column_shape_stats/images/socialaction_row_group_cardinality.svg)
@@ -3296,6 +3378,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `0 / 0 / 0` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 0 / 0`
 
 ![Row-group cardinality](column_shape_stats/images/socialnetwork_row_group_cardinality.svg)
@@ -3334,6 +3417,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 2 / 4`
 - Page cardinality per row group min/median/max of mins: `1 / 2 / 4`; of maxes: `1 / 2 / 4`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/socialsourcenetworkid_row_group_cardinality.svg)
@@ -3370,6 +3454,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 5`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 5`; of maxes: `1 / 1 / 5`
+- Value length min/median/max: `0 / 0 / 28` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 0 / 28`
 
 ![Row-group cardinality](column_shape_stats/images/socialsourcepage_row_group_cardinality.svg)
@@ -3408,6 +3493,7 @@ Column shape stats:
 - Row groups: `79`; pages: `603`
 - Row-group cardinality min/median/max: `108 / 2,277 / 2,527`
 - Page cardinality per row group min/median/max of mins: `15 / 135 / 258`; of maxes: `84 / 334 / 758`
+- Value length min/median/max: `0 / 121 / 1,026` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 33`; of maxes: `143 / 523 / 1,026`
 
 ![Row-group cardinality](column_shape_stats/images/title_row_group_cardinality.svg)
@@ -3446,6 +3532,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `5 / 7 / 8`
 - Page cardinality per row group min/median/max of mins: `5 / 7 / 8`; of maxes: `5 / 7 / 8`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/traficsourceid_row_group_cardinality.svg)
@@ -3482,6 +3569,7 @@ Column shape stats:
 - Row groups: `79`; pages: `396`
 - Row-group cardinality min/median/max: `2,860 / 3,100 / 6,974`
 - Page cardinality per row group min/median/max of mins: `116 / 646 / 935`; of maxes: `847 / 1,003 / 1,731`
+- Value length min/median/max: `0 / 74 / 1,991` bytes
 - Value length per row group min/median/max of mins: `0 / 17 / 19`; of maxes: `252 / 483 / 1,991`
 
 ![Row-group cardinality](column_shape_stats/images/url_row_group_cardinality.svg)
@@ -3520,6 +3608,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `2 / 4 / 78`
 - Page cardinality per row group min/median/max of mins: `2 / 4 / 78`; of maxes: `2 / 4 / 78`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/urlcategoryid_row_group_cardinality.svg)
@@ -3556,6 +3645,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `3,001 / 3,292 / 7,420`
 - Page cardinality per row group min/median/max of mins: `3,001 / 3,292 / 7,420`; of maxes: `3,001 / 3,292 / 7,420`
+- Value length min/median/max: `8 / 8 / 8` bytes
 - Value length per row group min/median/max of mins: `8 / 8 / 8`; of maxes: `8 / 8 / 8`
 
 ![Row-group cardinality](column_shape_stats/images/urlhash_row_group_cardinality.svg)
@@ -3592,6 +3682,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `3 / 5 / 35`
 - Page cardinality per row group min/median/max of mins: `3 / 5 / 35`; of maxes: `3 / 5 / 35`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/urlregionid_row_group_cardinality.svg)
@@ -3628,6 +3719,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 10 / 18`
 - Page cardinality per row group min/median/max of mins: `1 / 10 / 18`; of maxes: `1 / 10 / 18`
+- Value length min/median/max: `0 / 0 / 66` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 43 / 66`
 
 ![Row-group cardinality](column_shape_stats/images/utmcampaign_row_group_cardinality.svg)
@@ -3666,6 +3758,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 3 / 25`
 - Page cardinality per row group min/median/max of mins: `1 / 3 / 25`; of maxes: `1 / 3 / 25`
+- Value length min/median/max: `0 / 0 / 62` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 7 / 62`
 
 ![Row-group cardinality](column_shape_stats/images/utmcontent_row_group_cardinality.svg)
@@ -3704,6 +3797,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 3 / 5`
 - Page cardinality per row group min/median/max of mins: `1 / 3 / 5`; of maxes: `1 / 3 / 5`
+- Value length min/median/max: `0 / 0 / 16` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 4 / 16`
 
 ![Row-group cardinality](column_shape_stats/images/utmmedium_row_group_cardinality.svg)
@@ -3742,6 +3836,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 6 / 8`
 - Page cardinality per row group min/median/max of mins: `1 / 6 / 8`; of maxes: `1 / 6 / 8`
+- Value length min/median/max: `0 / 0 / 19` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 16 / 19`
 
 ![Row-group cardinality](column_shape_stats/images/utmsource_row_group_cardinality.svg)
@@ -3780,6 +3875,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 2 / 75`
 - Page cardinality per row group min/median/max of mins: `1 / 2 / 75`; of maxes: `1 / 2 / 75`
+- Value length min/median/max: `0 / 0 / 72` bytes
 - Value length per row group min/median/max of mins: `0 / 0 / 0`; of maxes: `0 / 16 / 72`
 
 ![Row-group cardinality](column_shape_stats/images/utmterm_row_group_cardinality.svg)
@@ -3818,6 +3914,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `11 / 14 / 18`
 - Page cardinality per row group min/median/max of mins: `11 / 14 / 18`; of maxes: `11 / 14 / 18`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/useragent_row_group_cardinality.svg)
@@ -3854,6 +3951,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `26 / 29 / 31`
 - Page cardinality per row group min/median/max of mins: `26 / 29 / 31`; of maxes: `26 / 29 / 31`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/useragentmajor_row_group_cardinality.svg)
@@ -3890,6 +3988,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `19 / 22 / 28`
 - Page cardinality per row group min/median/max of mins: `19 / 22 / 28`; of maxes: `19 / 22 / 28`
+- Value length min/median/max: `2 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `2 / 2 / 2`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/useragentminor_row_group_cardinality.svg)
@@ -3928,6 +4027,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `716 / 898 / 1,805`
 - Page cardinality per row group min/median/max of mins: `716 / 898 / 1,805`; of maxes: `716 / 898 / 1,805`
+- Value length min/median/max: `8 / 8 / 8` bytes
 - Value length per row group min/median/max of mins: `8 / 8 / 8`; of maxes: `8 / 8 / 8`
 
 ![Row-group cardinality](column_shape_stats/images/userid_row_group_cardinality.svg)
@@ -3964,6 +4064,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `9,315 / 11,938 / 14,202`
 - Page cardinality per row group min/median/max of mins: `9,315 / 11,938 / 14,202`; of maxes: `9,315 / 11,938 / 14,202`
+- Value length min/median/max: `8 / 8 / 8` bytes
 - Value length per row group min/median/max of mins: `8 / 8 / 8`; of maxes: `8 / 8 / 8`
 
 ![Row-group cardinality](column_shape_stats/images/watchid_row_group_cardinality.svg)
@@ -4000,6 +4101,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `318 / 435 / 575`
 - Page cardinality per row group min/median/max of mins: `318 / 435 / 575`; of maxes: `318 / 435 / 575`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/windowclientheight_row_group_cardinality.svg)
@@ -4036,6 +4138,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `241 / 306 / 374`
 - Page cardinality per row group min/median/max of mins: `241 / 306 / 374`; of maxes: `241 / 306 / 374`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/windowclientwidth_row_group_cardinality.svg)
@@ -4072,6 +4175,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 6 / 3,150`
 - Page cardinality per row group min/median/max of mins: `1 / 6 / 3,150`; of maxes: `1 / 6 / 3,150`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/windowname_row_group_cardinality.svg)
@@ -4108,6 +4212,7 @@ Column shape stats:
 - Row groups: `79`; pages: `79`
 - Row-group cardinality min/median/max: `1 / 1 / 1`
 - Page cardinality per row group min/median/max of mins: `1 / 1 / 1`; of maxes: `1 / 1 / 1`
+- Value length min/median/max: `4 / 4 / 4` bytes
 - Value length per row group min/median/max of mins: `4 / 4 / 4`; of maxes: `4 / 4 / 4`
 
 ![Row-group cardinality](column_shape_stats/images/withhash_row_group_cardinality.svg)
