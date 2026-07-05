@@ -245,6 +245,52 @@ type zstdPlainRLEDictBucket struct {
 	RLEDictBetter int
 }
 
+type pageEncodingDistribution struct {
+	TSVPath               string
+	ImagePath             string
+	Columns               []pageEncodingDistributionColumn
+	ComparedColumns       int
+	MixedColumns          int
+	PlainOnlyColumns      int
+	RLEDictOnlyColumns    int
+	TieOnlyColumns        int
+	ComparisonWindows     int64
+	RowsCompared          int64
+	PlainWindowWins       int64
+	RLEDictWindowWins     int64
+	TieWindowWins         int64
+	PlainRowsWon          int64
+	RLEDictRowsWon        int64
+	TieRowsWon            int64
+	PlainAllocatedBytes   int64
+	RLEDictAllocatedBytes int64
+	ExactMatchedPages     int64
+	UnmatchedPlainPages   int64
+	UnmatchedRLEDictPages int64
+}
+
+type pageEncodingDistributionColumn struct {
+	Column                 string
+	Type                   string
+	PlainPages             int64
+	RLEDictPages           int64
+	ComparisonWindows      int64
+	RowsCompared           int64
+	PlainWindowWins        int64
+	RLEDictWindowWins      int64
+	TieWindowWins          int64
+	PlainRowsWon           int64
+	RLEDictRowsWon         int64
+	TieRowsWon             int64
+	PlainAllocatedBytes    int64
+	RLEDictAllocatedBytes  int64
+	RLEDictVsPlainPct      float64
+	ExactMatchedPages      int64
+	UnmatchedPlainPages    int64
+	UnmatchedRLEDictPages  int64
+	WinnerByAllocatedBytes string
+}
+
 type deltaBinaryPackedWinnerComparison struct {
 	Buckets                []encodingImprovementBucket
 	WinnerCount            int
@@ -1005,6 +1051,15 @@ func field(record []string, index map[string]int, name string) string {
 func parseInt(s string) int64 {
 	n, _ := strconv.ParseInt(s, 10, 64)
 	return n
+}
+
+func parseFloat(s string) float64 {
+	n, _ := strconv.ParseFloat(s, 64)
+	return n
+}
+
+func parseRoundedFloat(s string) int64 {
+	return int64(math.Round(parseFloat(s)))
 }
 
 func (r *experimentResult) sumColumns() {
@@ -1851,6 +1906,13 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	fmt.Fprintf(&b, "For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.\n\n")
 	writeShapeImage(&b, "ZSTD plain versus RLE dictionary improvement distribution", zstdComparisonPath, reportDir)
 	writeZstdPlainRLEDictComparisonTable(&b, zstdComparison)
+	pageDistribution, err := loadPageEncodingDistribution(cfg)
+	if err != nil {
+		return err
+	}
+	if pageDistribution != nil {
+		writePageEncodingDistributionMarkdown(&b, *pageDistribution, reportDir)
+	}
 
 	rleDictWorseCategories := buildZstdRLEDictWorseCategoryComparison(byColumn, shapeByColumn)
 	if err := writeRLEDictWorseCategoryImages(reportDir, &rleDictWorseCategories); err != nil {
@@ -2293,6 +2355,185 @@ func writeZstdPlainRLEDictComparisonSVG(path string, summary zstdPlainRLEDictCom
 		"columns",
 		summary.Buckets,
 	)
+}
+
+func loadPageEncodingDistribution(cfg config) (*pageEncodingDistribution, error) {
+	tsvPattern := filepath.Join(
+		cfg.TSVDir,
+		"page_encoding_distribution",
+		fmt.Sprintf("*_rows-%d_plain-zstd_vs_rle-dict-zstd_page-distribution.tsv", cfg.Rows),
+	)
+	tsvPath := newestMatch(tsvPattern)
+	if tsvPath == "" {
+		return nil, nil
+	}
+	distribution, err := parsePageEncodingDistributionTSV(tsvPath)
+	if err != nil {
+		return nil, err
+	}
+	distribution.TSVPath = tsvPath
+	distribution.ImagePath = newestMatch(filepath.Join(
+		cfg.MarkdownDir,
+		"page_encoding_distribution",
+		"images",
+		fmt.Sprintf("*_rows-%d_plain-zstd_vs_rle-dict-zstd_page-distribution.svg", cfg.Rows),
+	))
+	return &distribution, nil
+}
+
+func parsePageEncodingDistributionTSV(path string) (pageEncodingDistribution, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return pageEncodingDistribution{}, err
+	}
+	defer f.Close()
+
+	reader := csv.NewReader(f)
+	reader.Comma = '\t'
+	reader.FieldsPerRecord = -1
+	header, err := reader.Read()
+	if err != nil {
+		return pageEncodingDistribution{}, err
+	}
+	index := make(map[string]int, len(header))
+	for i, name := range header {
+		index[name] = i
+	}
+
+	var distribution pageEncodingDistribution
+	for {
+		record, err := reader.Read()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return pageEncodingDistribution{}, err
+		}
+		col := pageEncodingDistributionColumn{
+			Column:                 field(record, index, "column"),
+			Type:                   field(record, index, "type"),
+			PlainPages:             parseInt(field(record, index, "plain_pages")),
+			RLEDictPages:           parseInt(field(record, index, "rle_dict_pages")),
+			ComparisonWindows:      parseInt(field(record, index, "comparison_windows")),
+			RowsCompared:           parseInt(field(record, index, "rows_compared")),
+			PlainWindowWins:        parseInt(field(record, index, "plain_window_wins")),
+			RLEDictWindowWins:      parseInt(field(record, index, "rle_dict_window_wins")),
+			TieWindowWins:          parseInt(field(record, index, "tie_window_wins")),
+			PlainRowsWon:           parseInt(field(record, index, "plain_rows_won")),
+			RLEDictRowsWon:         parseInt(field(record, index, "rle_dict_rows_won")),
+			TieRowsWon:             parseInt(field(record, index, "tie_rows_won")),
+			PlainAllocatedBytes:    parseRoundedFloat(field(record, index, "plain_allocated_compressed_bytes")),
+			RLEDictAllocatedBytes:  parseRoundedFloat(field(record, index, "rle_dict_allocated_compressed_bytes_with_amortized_dictionary")),
+			RLEDictVsPlainPct:      parseFloat(field(record, index, "rle_dict_allocated_vs_plain_pct")),
+			WinnerByAllocatedBytes: field(record, index, "winner_by_allocated_bytes"),
+			ExactMatchedPages:      parseInt(field(record, index, "exact_matched_pages")),
+			UnmatchedPlainPages:    parseInt(field(record, index, "unmatched_plain_pages")),
+			UnmatchedRLEDictPages:  parseInt(field(record, index, "unmatched_rle_dict_pages")),
+		}
+		distribution.Columns = append(distribution.Columns, col)
+		distribution.ComparedColumns++
+		distribution.ComparisonWindows += col.ComparisonWindows
+		distribution.RowsCompared += col.RowsCompared
+		distribution.PlainWindowWins += col.PlainWindowWins
+		distribution.RLEDictWindowWins += col.RLEDictWindowWins
+		distribution.TieWindowWins += col.TieWindowWins
+		distribution.PlainRowsWon += col.PlainRowsWon
+		distribution.RLEDictRowsWon += col.RLEDictRowsWon
+		distribution.TieRowsWon += col.TieRowsWon
+		distribution.PlainAllocatedBytes += col.PlainAllocatedBytes
+		distribution.RLEDictAllocatedBytes += col.RLEDictAllocatedBytes
+		distribution.ExactMatchedPages += col.ExactMatchedPages
+		distribution.UnmatchedPlainPages += col.UnmatchedPlainPages
+		distribution.UnmatchedRLEDictPages += col.UnmatchedRLEDictPages
+
+		hasPlain := col.PlainWindowWins > 0
+		hasRLEDict := col.RLEDictWindowWins > 0
+		hasTie := col.TieWindowWins > 0
+		winnerKinds := 0
+		for _, ok := range []bool{hasPlain, hasRLEDict, hasTie} {
+			if ok {
+				winnerKinds++
+			}
+		}
+		switch {
+		case winnerKinds > 1:
+			distribution.MixedColumns++
+		case hasPlain:
+			distribution.PlainOnlyColumns++
+		case hasRLEDict:
+			distribution.RLEDictOnlyColumns++
+		case hasTie:
+			distribution.TieOnlyColumns++
+		}
+	}
+	return distribution, nil
+}
+
+func writePageEncodingDistributionMarkdown(b *strings.Builder, distribution pageEncodingDistribution, reportDir string) {
+	fmt.Fprintf(b, "### Page-Level Winner Distribution\n\n")
+	fmt.Fprintf(b, "This is the page-level version of the same `plain + zstd` vs `rle-dict + zstd` comparison. Page ranges differ between the two runs, so the distribution is computed over overlap windows from the union of page row ranges. RLE dictionary bytes include `compressed_page_bytes_with_amortized_dictionary`, where each column chunk's compressed dictionary page bytes are spread evenly across that chunk's data pages before comparing windows.\n\n")
+	if distribution.TSVPath != "" {
+		fmt.Fprintf(b, "- Source TSV: [%s](%s)\n", filepath.Base(distribution.TSVPath), markdownLinkTarget(reportDir, distribution.TSVPath))
+	}
+	fmt.Fprintf(b, "- Compared columns: `%s`; mixed page winners: `%s`; plain-only columns: `%s`; rle-dict-only columns: `%s`; tie-only columns: `%s`\n",
+		formatCount(int64(distribution.ComparedColumns)),
+		formatCount(int64(distribution.MixedColumns)),
+		formatCount(int64(distribution.PlainOnlyColumns)),
+		formatCount(int64(distribution.RLEDictOnlyColumns)),
+		formatCount(int64(distribution.TieOnlyColumns)),
+	)
+	fmt.Fprintf(b, "- Overlap windows: `%s`; `plain + zstd` wins: `%s`; `rle-dict + zstd` wins: `%s`; ties: `%s`\n",
+		formatCount(distribution.ComparisonWindows),
+		formatCount(distribution.PlainWindowWins),
+		formatCount(distribution.RLEDictWindowWins),
+		formatCount(distribution.TieWindowWins),
+	)
+	fmt.Fprintf(b, "- Row-weighted wins: `plain + zstd` %s; `rle-dict + zstd` %s; ties %s\n",
+		formatCountPercent(distribution.PlainRowsWon, distribution.RowsCompared),
+		formatCountPercent(distribution.RLEDictRowsWon, distribution.RowsCompared),
+		formatCountPercent(distribution.TieRowsWon, distribution.RowsCompared),
+	)
+	fmt.Fprintf(b, "- Allocated page bytes: `plain + zstd` `%s`; `rle-dict + zstd` `%s`; rle-dict vs plain `%s`\n",
+		formatByteCount(distribution.PlainAllocatedBytes),
+		formatByteCount(distribution.RLEDictAllocatedBytes),
+		formatPercent(percentLarger(distribution.RLEDictAllocatedBytes, distribution.PlainAllocatedBytes)),
+	)
+	fmt.Fprintf(b, "- Exact matched page ranges: `%s`; unmatched plain pages: `%s`; unmatched rle-dict pages: `%s`\n\n",
+		formatCount(distribution.ExactMatchedPages),
+		formatCount(distribution.UnmatchedPlainPages),
+		formatCount(distribution.UnmatchedRLEDictPages),
+	)
+	writeShapeImage(b, "Page-window winner distribution by column", distribution.ImagePath, reportDir)
+	writePageEncodingDistributionTable(b, distribution)
+}
+
+func writePageEncodingDistributionTable(b *strings.Builder, distribution pageEncodingDistribution) {
+	if len(distribution.Columns) == 0 {
+		return
+	}
+	fmt.Fprintf(b, "| Column | Type | Windows | Plain wins | RLE dict wins | Ties | Row-weighted plain | Row-weighted RLE dict | Plain allocated bytes | RLE dict allocated bytes | RLE dict vs plain | Exact matches | Unmatched pages |\n")
+	fmt.Fprintf(b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+	for _, row := range distribution.Columns {
+		fmt.Fprintf(
+			b,
+			"| `%s` | `%s` | `%s` | %s | %s | %s | %s | %s | `%s` | `%s` | `%s` | `%s` | `%s / %s` |\n",
+			row.Column,
+			row.Type,
+			formatCount(row.ComparisonWindows),
+			formatCountPercent(row.PlainWindowWins, row.ComparisonWindows),
+			formatCountPercent(row.RLEDictWindowWins, row.ComparisonWindows),
+			formatCountPercent(row.TieWindowWins, row.ComparisonWindows),
+			formatCountPercent(row.PlainRowsWon, row.RowsCompared),
+			formatCountPercent(row.RLEDictRowsWon, row.RowsCompared),
+			formatByteCount(row.PlainAllocatedBytes),
+			formatByteCount(row.RLEDictAllocatedBytes),
+			formatPercent(row.RLEDictVsPlainPct),
+			formatCount(row.ExactMatchedPages),
+			formatCount(row.UnmatchedPlainPages),
+			formatCount(row.UnmatchedRLEDictPages),
+		)
+	}
+	fmt.Fprintf(b, "\n")
 }
 
 func buildZstdRLEDictWorseCategoryComparison(byColumn map[string][]columnObservation, shapeByColumn map[string]columnShapeStats) rleDictWorseCategoryComparison {
@@ -4054,6 +4295,14 @@ func formatLengthFloat(value float64) string {
 
 func formatPercent(value float64) string {
 	return fmt.Sprintf("%.6f%%", value)
+}
+
+func formatCountPercent(count, total int64) string {
+	if total <= 0 {
+		return fmt.Sprintf("`%s` (`n/a`)", formatCount(count))
+	}
+	pct := (float64(count) / float64(total)) * 100
+	return fmt.Sprintf("`%s` (`%.2f%%`)", formatCount(count), pct)
 }
 
 func formatPlotNumber(value float64) string {
