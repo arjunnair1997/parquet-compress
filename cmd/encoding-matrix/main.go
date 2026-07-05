@@ -30,22 +30,23 @@ const (
 )
 
 type config struct {
-	Rows           int64
-	Parallel       int
-	ZstdLevel      int
-	Input          string
-	MaxDictSize    string
-	ExperimentDir  string
-	ResultDir      string
-	MarkdownDir    string
-	ConfigDir      string
-	TSVDir         string
-	OutputRoot     string
-	ShapeStatsJSON string
-	Verify         bool
-	SkipExisting   bool
-	KeepOutput     bool
-	GeneratePDF    bool
+	Rows                          int64
+	Parallel                      int
+	ZstdLevel                     int
+	Input                         string
+	MaxDictSize                   string
+	ExperimentDir                 string
+	ResultDir                     string
+	MarkdownDir                   string
+	ConfigDir                     string
+	TSVDir                        string
+	OutputRoot                    string
+	ShapeStatsJSON                string
+	Verify                        bool
+	SkipExisting                  bool
+	RefreshMissingDictionaryStats bool
+	KeepOutput                    bool
+	GeneratePDF                   bool
 }
 
 type combo struct {
@@ -338,6 +339,7 @@ func parseFlags(args []string) (config, error) {
 	fs.StringVar(&cfg.ShapeStatsJSON, "column-shape-stats-json", "", "optional writer stats JSON used to enrich col_top_5.md; defaults under the row results directory")
 	fs.BoolVar(&cfg.Verify, "verify", cfg.Verify, "verify every generated parquet output")
 	fs.BoolVar(&cfg.SkipExisting, "skip-existing", cfg.SkipExisting, "reuse an existing result markdown/column TSV when present")
+	fs.BoolVar(&cfg.RefreshMissingDictionaryStats, "refresh-missing-dictionary-stats", cfg.RefreshMissingDictionaryStats, "with --skip-existing, rerun zstd/rle-dict configs whose column TSV lacks dictionary page byte stats")
 	fs.BoolVar(&cfg.KeepOutput, "keep-output", cfg.KeepOutput, "keep generated parquet output directories after the experiment; only valid with --parallel 1")
 	fs.BoolVar(&cfg.GeneratePDF, "generate-pdf", cfg.GeneratePDF, "write sibling PDFs for generated markdown results; disabled by default")
 	if err := fs.Parse(args); err != nil {
@@ -604,25 +606,35 @@ func runExperiment(cfg config, toolPath string, c combo) experimentResult {
 
 	existingResult, existingColumns := findExistingResultFiles(cfg.ConfigDir, cfg.TSVDir, c.Slug)
 	if cfg.SkipExisting && existingResult != "" && existingColumns != "" {
-		if cfg.GeneratePDF {
-			if err := ensurePDFForMarkdown(existingResult); err != nil {
-				result.Elapsed = time.Since(started)
-				result.Err = err
-				return result
-			}
-		}
-		columns, err := parseColumnStatsTSV(existingColumns)
-		if elapsed, ok := parseWriteElapsed(existingResult); ok {
-			result.Elapsed = elapsed
-		} else {
+		refreshMissingDictionaryStats, err := shouldRefreshMissingDictionaryStats(cfg, c, existingColumns)
+		if err != nil {
 			result.Elapsed = time.Since(started)
+			result.Err = err
+			return result
 		}
-		result.ResultPath = existingResult
-		result.ColumnTSVPath = existingColumns
-		result.Columns = columns
-		result.Err = err
-		result.sumColumns()
-		return result
+		if refreshMissingDictionaryStats {
+			fmt.Printf("refreshing %s because existing column TSV lacks dictionary page byte stats\n", c.Slug)
+		} else {
+			if cfg.GeneratePDF {
+				if err := ensurePDFForMarkdown(existingResult); err != nil {
+					result.Elapsed = time.Since(started)
+					result.Err = err
+					return result
+				}
+			}
+			columns, err := parseColumnStatsTSV(existingColumns)
+			if elapsed, ok := parseWriteElapsed(existingResult); ok {
+				result.Elapsed = elapsed
+			} else {
+				result.Elapsed = time.Since(started)
+			}
+			result.ResultPath = existingResult
+			result.ColumnTSVPath = existingColumns
+			result.Columns = columns
+			result.Err = err
+			result.sumColumns()
+			return result
+		}
 	}
 
 	if !cfg.KeepOutput {
@@ -691,6 +703,44 @@ func runExperiment(cfg config, toolPath string, c combo) experimentResult {
 		result.Err = removeOutputDir(cfg.OutputRoot, result.OutputDir)
 	}
 	return result
+}
+
+func shouldRefreshMissingDictionaryStats(cfg config, c combo, columnTSVPath string) (bool, error) {
+	if !cfg.RefreshMissingDictionaryStats || c.Compression != "zstd" || !comboUsesRLEDictionary(c) {
+		return false, nil
+	}
+	hasStats, err := columnStatsTSVHasDictionaryPageBytes(columnTSVPath)
+	if err != nil {
+		return false, err
+	}
+	return !hasStats, nil
+}
+
+func comboUsesRLEDictionary(c combo) bool {
+	return c.IntEncoding == "rle-dict" ||
+		c.DateEncoding == "rle-dict" ||
+		c.TimestampEncoding == "rle-dict" ||
+		c.StringEncoding == "rle-dict"
+}
+
+func columnStatsTSVHasDictionaryPageBytes(path string) (bool, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	reader := csv.NewReader(f)
+	reader.Comma = '\t'
+	header, err := reader.Read()
+	if err != nil {
+		return false, err
+	}
+	seen := make(map[string]bool, len(header))
+	for _, name := range header {
+		seen[name] = true
+	}
+	return seen["dictionary_page_compressed_bytes"] && seen["compressed_bytes_without_dictionary_pages"], nil
 }
 
 func parseWriteElapsed(markdownPath string) (time.Duration, bool) {
@@ -3441,7 +3491,7 @@ func optionalPercentMarkdown(value float64, ok bool) string {
 
 func formatBytesAsPercentOf(bytes, total int64) string {
 	if total == 0 {
-		return ""
+		return "n/a"
 	}
 	return formatPercent((float64(bytes) / float64(total)) * 100)
 }
