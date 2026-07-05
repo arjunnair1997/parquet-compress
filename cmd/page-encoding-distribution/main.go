@@ -144,48 +144,59 @@ type pageStats struct {
 }
 
 type pageCost struct {
-	Column        string
-	Type          string
-	RowGroupIndex int64
-	PageIndex     int
-	Start         int64
-	End           int64
-	Rows          int64
-	Cost          float64
-	Encoding      string
+	Column                string
+	Type                  string
+	RowGroupIndex         int64
+	PageIndex             int
+	Start                 int64
+	End                   int64
+	Rows                  int64
+	Cost                  float64
+	CostWithoutDictionary float64
+	Encoding              string
 }
 
 type columnDistribution struct {
-	Column                     string
-	Type                       string
-	PlainPages                 int
-	RLEDictPages               int
-	ComparisonWindows          int
-	RowsCompared               int64
-	PlainWindowWins            int
-	RLEDictWindowWins          int
-	TieWindowWins              int
-	PlainRowsWon               int64
-	RLEDictRowsWon             int64
-	TieRowsWon                 int64
-	PlainAllocatedBytes        float64
-	RLEDictAllocatedBytes      float64
-	PlainTotalPageBytes        float64
-	RLEDictTotalPageBytes      float64
-	ExactMatchedPages          int
-	ExactPlainWins             int
-	ExactRLEDictWins           int
-	ExactTies                  int
-	UnmatchedPlainPages        int
-	UnmatchedRLEDictPages      int
-	WinnerByAllocatedBytes     string
-	PlainWindowWinPct          float64
-	RLEDictWindowWinPct        float64
-	TieWindowWinPct            float64
-	PlainRowWinPct             float64
-	RLEDictRowWinPct           float64
-	TieRowWinPct               float64
-	RLEDictAllocatedVsPlainPct float64
+	Column                    string
+	Type                      string
+	PlainPages                int
+	RLEDictPages              int
+	ComparisonWindows         int
+	RowsCompared              int64
+	PlainWindowWins           int
+	RLEDictWindowWins         int
+	TieWindowWins             int
+	PlainRowsWon              int64
+	RLEDictRowsWon            int64
+	TieRowsWon                int64
+	PlainAllocatedBytes       float64
+	RLEDictAllocatedBytes     float64
+	RLEDictNoDictBytes        float64
+	PlainTotalPageBytes       float64
+	RLEDictTotalPageBytes     float64
+	RLEDictNoDictTotalBytes   float64
+	ExactMatchedPages         int
+	ExactPlainWins            int
+	ExactRLEDictWins          int
+	ExactTies                 int
+	UnmatchedPlainPages       int
+	UnmatchedRLEDictPages     int
+	WinnerByAllocatedBytes    string
+	RLEDictNoDictWinner       string
+	PlainWindowWinPct         float64
+	RLEDictWindowWinPct       float64
+	TieWindowWinPct           float64
+	PlainRowWinPct            float64
+	RLEDictRowWinPct          float64
+	TieRowWinPct              float64
+	RLEDictToPlainRatio       float64
+	RLEDictNoDictToPlainRatio float64
+	DictOverheadFlipPlainWins int
+	DictOverheadFlipTieWins   int
+	DictOverheadFlipWins      int
+	DictOverheadFlipRows      int64
+	DictOverheadFlipWinPct    float64
+	DictOverheadFlipRowPct    float64
 }
 
 func main() {
@@ -482,23 +493,25 @@ func pagesByColumn(snapshot statsSnapshot, includeAmortizedDictionary bool) map[
 			if start == 0 && page.RowGroupFirstRowIndex != 0 {
 				start = page.RowGroupFirstRowIndex + page.FirstRowIndex
 			}
-			cost := float64(page.CompressedPageBytesAfterCodec)
+			costWithoutDictionary := float64(page.CompressedPageBytesAfterCodec)
+			cost := costWithoutDictionary
 			if includeAmortizedDictionary {
 				cost = page.CompressedPageBytesWithAmortizedDictionary
 				if cost == 0 {
-					cost = float64(page.CompressedPageBytesAfterCodec) + page.AmortizedDictionaryCompressedBytes
+					cost = costWithoutDictionary + page.AmortizedDictionaryCompressedBytes
 				}
 			}
 			pages = append(pages, pageCost{
-				Column:        col.Name,
-				Type:          col.Type,
-				RowGroupIndex: page.RowGroupIndex,
-				PageIndex:     page.PageIndex,
-				Start:         start,
-				End:           start + page.NumRows,
-				Rows:          page.NumRows,
-				Cost:          cost,
-				Encoding:      page.Encoding,
+				Column:                col.Name,
+				Type:                  col.Type,
+				RowGroupIndex:         page.RowGroupIndex,
+				PageIndex:             page.PageIndex,
+				Start:                 start,
+				End:                   start + page.NumRows,
+				Rows:                  page.NumRows,
+				Cost:                  cost,
+				CostWithoutDictionary: costWithoutDictionary,
+				Encoding:              page.Encoding,
 			})
 		}
 		sort.Slice(pages, func(i, j int) bool {
@@ -539,6 +552,7 @@ func compareColumn(column, typ string, plainPages, rlePages []pageCost) columnDi
 	}
 	for _, page := range rlePages {
 		dist.RLEDictTotalPageBytes += page.Cost
+		dist.RLEDictNoDictTotalBytes += page.CostWithoutDictionary
 	}
 
 	dist.ExactMatchedPages, dist.ExactPlainWins, dist.ExactRLEDictWins, dist.ExactTies, dist.UnmatchedPlainPages, dist.UnmatchedRLEDictPages = exactMatchCounts(plainPages, rlePages)
@@ -562,11 +576,24 @@ func compareColumn(column, typ string, plainPages, rlePages []pageCost) columnDi
 			rows := end - start
 			plainCost := p.Cost * float64(rows) / float64(p.Rows)
 			rleCost := r.Cost * float64(rows) / float64(r.Rows)
+			rleNoDictCost := r.CostWithoutDictionary * float64(rows) / float64(r.Rows)
 			dist.ComparisonWindows++
 			dist.RowsCompared += rows
 			dist.PlainAllocatedBytes += plainCost
 			dist.RLEDictAllocatedBytes += rleCost
-			switch winner(plainCost, rleCost) {
+			dist.RLEDictNoDictBytes += rleNoDictCost
+			actualWinner := winner(plainCost, rleCost)
+			noDictWinner := winner(plainCost, rleNoDictCost)
+			if noDictWinner == pageWinnerRLEDict && actualWinner != pageWinnerRLEDict {
+				dist.DictOverheadFlipWins++
+				dist.DictOverheadFlipRows += rows
+				if actualWinner == pageWinnerPlain {
+					dist.DictOverheadFlipPlainWins++
+				} else {
+					dist.DictOverheadFlipTieWins++
+				}
+			}
+			switch actualWinner {
 			case pageWinnerPlain:
 				dist.PlainWindowWins++
 				dist.PlainRowsWon += rows
@@ -601,8 +628,19 @@ func compareColumn(column, typ string, plainPages, rlePages []pageCost) columnDi
 	if dist.PlainAllocatedBytes > 0 || dist.RLEDictAllocatedBytes > 0 {
 		dist.WinnerByAllocatedBytes = winner(dist.PlainAllocatedBytes, dist.RLEDictAllocatedBytes)
 	}
+	dist.RLEDictNoDictWinner = "n/a"
+	if dist.PlainAllocatedBytes > 0 || dist.RLEDictNoDictBytes > 0 {
+		dist.RLEDictNoDictWinner = winner(dist.PlainAllocatedBytes, dist.RLEDictNoDictBytes)
+	}
 	if dist.PlainAllocatedBytes > 0 {
-		dist.RLEDictAllocatedVsPlainPct = ((dist.RLEDictAllocatedBytes / dist.PlainAllocatedBytes) - 1) * 100
+		dist.RLEDictToPlainRatio = dist.RLEDictAllocatedBytes / dist.PlainAllocatedBytes
+		dist.RLEDictNoDictToPlainRatio = dist.RLEDictNoDictBytes / dist.PlainAllocatedBytes
+	}
+	if dist.ComparisonWindows > 0 {
+		dist.DictOverheadFlipWinPct = float64(dist.DictOverheadFlipWins) / float64(dist.ComparisonWindows) * 100
+	}
+	if dist.RowsCompared > 0 {
+		dist.DictOverheadFlipRowPct = float64(dist.DictOverheadFlipRows) / float64(dist.RowsCompared) * 100
 	}
 	return dist
 }
@@ -687,10 +725,18 @@ func writeDistributionTSV(path string, rows []columnDistribution) error {
 		"tie_row_win_pct",
 		"plain_allocated_compressed_bytes",
 		"rle_dict_allocated_compressed_bytes_with_amortized_dictionary",
-		"rle_dict_allocated_vs_plain_pct",
+		"rle_dict_allocated_to_plain_ratio",
 		"winner_by_allocated_bytes",
+		"rle_dict_allocated_compressed_bytes_without_dictionary_pages",
+		"rle_dict_without_dictionary_allocated_to_plain_ratio",
+		"winner_without_dictionary_pages",
+		"rle_dict_without_dictionary_overhead_flip_window_wins",
+		"rle_dict_without_dictionary_overhead_flip_window_win_pct",
+		"rle_dict_without_dictionary_overhead_flip_rows",
+		"rle_dict_without_dictionary_overhead_flip_row_pct",
 		"plain_total_page_compressed_bytes",
 		"rle_dict_total_page_compressed_bytes_with_amortized_dictionary",
+		"rle_dict_total_page_compressed_bytes_without_dictionary_pages",
 		"exact_matched_pages",
 		"exact_plain_wins",
 		"exact_rle_dict_wins",
@@ -723,10 +769,18 @@ func writeDistributionTSV(path string, rows []columnDistribution) error {
 			formatFloat(row.TieRowWinPct),
 			formatFloat(row.PlainAllocatedBytes),
 			formatFloat(row.RLEDictAllocatedBytes),
-			formatFloat(row.RLEDictAllocatedVsPlainPct),
+			formatFloat(row.RLEDictToPlainRatio),
 			row.WinnerByAllocatedBytes,
+			formatFloat(row.RLEDictNoDictBytes),
+			formatFloat(row.RLEDictNoDictToPlainRatio),
+			row.RLEDictNoDictWinner,
+			strconv.Itoa(row.DictOverheadFlipWins),
+			formatFloat(row.DictOverheadFlipWinPct),
+			strconv.FormatInt(row.DictOverheadFlipRows, 10),
+			formatFloat(row.DictOverheadFlipRowPct),
 			formatFloat(row.PlainTotalPageBytes),
 			formatFloat(row.RLEDictTotalPageBytes),
+			formatFloat(row.RLEDictNoDictTotalBytes),
 			strconv.Itoa(row.ExactMatchedPages),
 			strconv.Itoa(row.ExactPlainWins),
 			strconv.Itoa(row.ExactRLEDictWins),
@@ -769,16 +823,17 @@ func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, rows []c
 
 	fmt.Fprintf(&b, "## Method\n\n")
 	fmt.Fprintf(&b, "The primary distribution uses overlap windows from the union of page row ranges for each column. For each overlapping row span, the page compressed byte cost is allocated in proportion to row overlap. The RLE dictionary cost uses `compressed_page_bytes_with_amortized_dictionary`, meaning the compressed dictionary page bytes for a column chunk are divided evenly across that chunk's data pages before comparison.\n\n")
+	fmt.Fprintf(&b, "Red chart segments are windows where `rle-dict + zstd` does not win with amortized dictionary-page bytes included, but would win if dictionary-page bytes were excluded. The direct size metric is `rle-dict + zstd allocated bytes / plain + zstd allocated bytes`.\n\n")
 	fmt.Fprintf(&b, "`exact_matched_pages` counts only pages where both runs produced the same absolute row range. Exact matches are useful as a sanity check, but the overlap-window distribution is the full comparison when page boundaries differ.\n\n")
 
 	fmt.Fprintf(&b, "## Distribution Chart\n\n")
 	writeImage(&b, "Page-window winner distribution by column", svgPath, reportDir)
 
 	fmt.Fprintf(&b, "## Column Distribution\n\n")
-	fmt.Fprintf(&b, "| Column | Type | Windows | Plain wins | RLE dict wins | Ties | Rows compared | Row-weighted plain | Row-weighted RLE dict | Allocated plain bytes | Allocated RLE dict bytes | RLE dict vs plain | Exact matches | Unmatched plain | Unmatched RLE dict |\n")
-	fmt.Fprintf(&b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+	fmt.Fprintf(&b, "| Column | Type | Windows | Plain wins | RLE dict wins | Red overhead flips | Ties | Rows compared | Row-weighted plain | Row-weighted RLE dict | Allocated plain bytes | Allocated RLE dict bytes | RLE+zstd / plain+zstd | Exact matches | Unmatched plain | Unmatched RLE dict |\n")
+	fmt.Fprintf(&b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
 	for _, row := range rows {
-		fmt.Fprintf(&b, "| `%s` | `%s` | `%d` | `%d` (%s) | `%d` (%s) | `%d` (%s) | `%d` | `%s` | `%s` | `%s` | `%s` | `%s` | `%d` | `%d` | `%d` |\n",
+		fmt.Fprintf(&b, "| `%s` | `%s` | `%d` | `%d` (%s) | `%d` (%s) | `%d` (%s) | `%d` (%s) | `%d` | `%s` | `%s` | `%s` | `%s` | `%s` | `%d` | `%d` | `%d` |\n",
 			row.Column,
 			row.Type,
 			row.ComparisonWindows,
@@ -786,6 +841,8 @@ func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, rows []c
 			formatPercent(row.PlainWindowWinPct),
 			row.RLEDictWindowWins,
 			formatPercent(row.RLEDictWindowWinPct),
+			row.DictOverheadFlipWins,
+			formatPercent(row.DictOverheadFlipWinPct),
 			row.TieWindowWins,
 			formatPercent(row.TieWindowWinPct),
 			row.RowsCompared,
@@ -793,7 +850,7 @@ func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, rows []c
 			formatPercent(row.RLEDictRowWinPct),
 			formatBytesFloat(row.PlainAllocatedBytes),
 			formatBytesFloat(row.RLEDictAllocatedBytes),
-			formatPercent(row.RLEDictAllocatedVsPlainPct),
+			formatRatio(row.RLEDictToPlainRatio),
 			row.ExactMatchedPages,
 			row.UnmatchedPlainPages,
 			row.UnmatchedRLEDictPages,
@@ -829,7 +886,8 @@ func writeDistributionSVG(path string, rows []columnDistribution) error {
 	fmt.Fprintf(&b, `<text x="%d" y="28" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">%s</text>`+"\n", leftMargin, html.EscapeString("Page-window winner distribution by column"))
 	fmt.Fprintf(&b, `<rect x="%d" y="40" width="14" height="10" fill="#2563eb"/><text x="%d" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">plain + zstd</text>`+"\n", leftMargin, leftMargin+20)
 	fmt.Fprintf(&b, `<rect x="%d" y="40" width="14" height="10" fill="#16a34a"/><text x="%d" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">rle-dict + zstd</text>`+"\n", leftMargin+130, leftMargin+150)
-	fmt.Fprintf(&b, `<rect x="%d" y="40" width="14" height="10" fill="#9ca3af"/><text x="%d" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">tie</text>`+"\n", leftMargin+285, leftMargin+305)
+	fmt.Fprintf(&b, `<rect x="%d" y="40" width="14" height="10" fill="#dc2626"/><text x="%d" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">rle wins only without dict page</text>`+"\n", leftMargin+285, leftMargin+305)
+	fmt.Fprintf(&b, `<rect x="%d" y="40" width="14" height="10" fill="#9ca3af"/><text x="%d" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">tie</text>`+"\n", leftMargin+500, leftMargin+520)
 	for i, row := range rows {
 		y := topMargin + i*rowHeight
 		label := row.Column
@@ -842,13 +900,24 @@ func writeDistributionSVG(path string, rows []columnDistribution) error {
 			continue
 		}
 		x := float64(leftMargin)
-		plainWidth := plotWidth * float64(row.PlainWindowWins) / float64(row.ComparisonWindows)
+		plainWins := row.PlainWindowWins - row.DictOverheadFlipPlainWins
+		if plainWins < 0 {
+			plainWins = 0
+		}
+		tieWins := row.TieWindowWins - row.DictOverheadFlipTieWins
+		if tieWins < 0 {
+			tieWins = 0
+		}
+		plainWidth := plotWidth * float64(plainWins) / float64(row.ComparisonWindows)
 		rleWidth := plotWidth * float64(row.RLEDictWindowWins) / float64(row.ComparisonWindows)
-		tieWidth := plotWidth * float64(row.TieWindowWins) / float64(row.ComparisonWindows)
+		flipWidth := plotWidth * float64(row.DictOverheadFlipWins) / float64(row.ComparisonWindows)
+		tieWidth := plotWidth * float64(tieWins) / float64(row.ComparisonWindows)
 		fmt.Fprintf(&b, `<rect x="%.2f" y="%d" width="%.2f" height="14" fill="#2563eb"/>`+"\n", x, y+2, plainWidth)
 		x += plainWidth
 		fmt.Fprintf(&b, `<rect x="%.2f" y="%d" width="%.2f" height="14" fill="#16a34a"/>`+"\n", x, y+2, rleWidth)
 		x += rleWidth
+		fmt.Fprintf(&b, `<rect x="%.2f" y="%d" width="%.2f" height="14" fill="#dc2626"/>`+"\n", x, y+2, flipWidth)
+		x += flipWidth
 		fmt.Fprintf(&b, `<rect x="%.2f" y="%d" width="%.2f" height="14" fill="#9ca3af"/>`+"\n", x, y+2, tieWidth)
 		if row.ComparisonWindows > 0 {
 			fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">%d</text>`+"\n", width-rightMargin+4, y+13, row.ComparisonWindows)
@@ -1008,6 +1077,13 @@ func formatPercent(v float64) string {
 		return "n/a"
 	}
 	return fmt.Sprintf("%.2f%%", v)
+}
+
+func formatRatio(v float64) string {
+	if v == 0 || math.IsNaN(v) || math.IsInf(v, 0) {
+		return "n/a"
+	}
+	return fmt.Sprintf("%.6f", v)
 }
 
 func formatBytesFloat(v float64) string {
