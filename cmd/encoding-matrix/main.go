@@ -246,8 +246,10 @@ type zstdPlainRLEDictBucket struct {
 }
 
 type pageEncodingDistribution struct {
+	Compression           string
 	TSVPath               string
 	ImagePath             string
+	PlainWinsImagePath    string
 	Columns               []pageEncodingDistributionColumn
 	ComparedColumns       int
 	MixedColumns          int
@@ -288,6 +290,11 @@ type pageEncodingDistributionColumn struct {
 	PlainAllocatedBytes    int64
 	RLEDictAllocatedBytes  int64
 	RLEDictNoDictBytes     int64
+	UncompressedBytes      int64
+	PlainToUncompressed    float64
+	RLEDictToUncompressed  float64
+	RLEDictRatioAdvantage  float64
+	AbsoluteRatioDiff      float64
 	RLEDictToPlainRatio    float64
 	RLEDictNoDictRatio     float64
 	DictOverheadFlipWins   int64
@@ -1970,7 +1977,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	fmt.Fprintf(&b, "For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.\n\n")
 	writeShapeImage(&b, "ZSTD plain versus RLE dictionary improvement distribution", zstdComparisonPath, reportDir)
 	writeZstdPlainRLEDictComparisonTable(&b, zstdComparison)
-	pageDistribution, err := loadPageEncodingDistribution(cfg)
+	pageDistribution, err := loadPageEncodingDistribution(cfg, "zstd")
 	if err != nil {
 		return err
 	}
@@ -2034,6 +2041,13 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	writeSnappyRLEDictBetterComparisonTable(&b, snappyComparison)
 	writeShapeImage(&b, "Snappy plain improvement over RLE dictionary", snappyPlainBetterPath, reportDir)
 	writeSnappyPlainBetterComparisonTable(&b, snappyComparison)
+	snappyPageDistribution, err := loadPageEncodingDistribution(cfg, "snappy")
+	if err != nil {
+		return err
+	}
+	if snappyPageDistribution != nil {
+		writePageEncodingDistributionMarkdown(md, *snappyPageDistribution, reportDir)
+	}
 
 	for _, column := range columns {
 		observations := byColumn[column]
@@ -2421,31 +2435,38 @@ func writeZstdPlainRLEDictComparisonSVG(path string, summary zstdPlainRLEDictCom
 	)
 }
 
-func loadPageEncodingDistribution(cfg config) (*pageEncodingDistribution, error) {
+func loadPageEncodingDistribution(cfg config, compression string) (*pageEncodingDistribution, error) {
 	tsvPattern := filepath.Join(
 		cfg.TSVDir,
 		"page_encoding_distribution",
-		fmt.Sprintf("*_rows-%d_plain-zstd_vs_rle-dict-zstd_page-distribution.tsv", cfg.Rows),
+		fmt.Sprintf("*_rows-%d_plain-%s_vs_rle-dict-%s_page-distribution.tsv", cfg.Rows, compression, compression),
 	)
 	tsvPath := newestMatch(tsvPattern)
 	if tsvPath == "" {
 		return nil, nil
 	}
-	distribution, err := parsePageEncodingDistributionTSV(tsvPath)
+	distribution, err := parsePageEncodingDistributionTSV(tsvPath, compression)
 	if err != nil {
 		return nil, err
 	}
+	distribution.Compression = compression
 	distribution.TSVPath = tsvPath
 	distribution.ImagePath = newestMatch(filepath.Join(
 		cfg.MarkdownDir,
 		"page_encoding_distribution",
 		"images",
-		fmt.Sprintf("*_rows-%d_plain-zstd_vs_rle-dict-zstd_page-distribution.svg", cfg.Rows),
+		fmt.Sprintf("*_rows-%d_plain-%s_vs_rle-dict-%s_page-distribution.svg", cfg.Rows, compression, compression),
+	))
+	distribution.PlainWinsImagePath = newestMatch(filepath.Join(
+		cfg.MarkdownDir,
+		"page_encoding_distribution",
+		"images",
+		fmt.Sprintf("*_rows-%d_plain-%s_vs_rle-dict-%s_page-distribution-plain-%s-absolute-wins.svg", cfg.Rows, compression, compression, compression),
 	))
 	return &distribution, nil
 }
 
-func parsePageEncodingDistributionTSV(path string) (pageEncodingDistribution, error) {
+func parsePageEncodingDistributionTSV(path, compression string) (pageEncodingDistribution, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return pageEncodingDistribution{}, err
@@ -2489,6 +2510,11 @@ func parsePageEncodingDistributionTSV(path string) (pageEncodingDistribution, er
 			PlainAllocatedBytes:    parseRoundedFloat(field(record, index, "plain_allocated_compressed_bytes")),
 			RLEDictAllocatedBytes:  parseRoundedFloat(field(record, index, "rle_dict_allocated_compressed_bytes_with_amortized_dictionary")),
 			RLEDictNoDictBytes:     parseRoundedFloat(field(record, index, "rle_dict_allocated_compressed_bytes_without_dictionary_pages")),
+			UncompressedBytes:      parseRoundedFloat(field(record, index, "uncompressed_bytes_for_ratio")),
+			PlainToUncompressed:    parseFloat(field(record, index, "plain_"+compression+"_aggregate_to_uncompressed_ratio")),
+			RLEDictToUncompressed:  parseFloat(field(record, index, "rle_dict_"+compression+"_aggregate_to_uncompressed_ratio")),
+			RLEDictRatioAdvantage:  parseFloat(field(record, index, "rle_dict_ratio_advantage_vs_plain")),
+			AbsoluteRatioDiff:      parseFloat(field(record, index, "absolute_plain_rle_ratio_difference")),
 			RLEDictToPlainRatio:    parseFloat(field(record, index, "rle_dict_allocated_to_plain_ratio")),
 			RLEDictNoDictRatio:     parseFloat(field(record, index, "rle_dict_without_dictionary_allocated_to_plain_ratio")),
 			DictOverheadFlipWins:   parseInt(field(record, index, "rle_dict_without_dictionary_overhead_flip_window_wins")),
@@ -2507,6 +2533,20 @@ func parsePageEncodingDistributionTSV(path string) (pageEncodingDistribution, er
 		}
 		if col.RLEDictNoDictRatio == 0 && col.PlainAllocatedBytes > 0 && col.RLEDictNoDictBytes > 0 {
 			col.RLEDictNoDictRatio = ratio(col.RLEDictNoDictBytes, col.PlainAllocatedBytes)
+		}
+		if col.UncompressedBytes > 0 {
+			if col.PlainToUncompressed == 0 {
+				col.PlainToUncompressed = ratio(col.PlainAllocatedBytes, col.UncompressedBytes)
+			}
+			if col.RLEDictToUncompressed == 0 {
+				col.RLEDictToUncompressed = ratio(col.RLEDictAllocatedBytes, col.UncompressedBytes)
+			}
+		}
+		if col.RLEDictRatioAdvantage == 0 && (col.PlainToUncompressed != 0 || col.RLEDictToUncompressed != 0) {
+			col.RLEDictRatioAdvantage = col.PlainToUncompressed - col.RLEDictToUncompressed
+		}
+		if col.AbsoluteRatioDiff == 0 && col.RLEDictRatioAdvantage != 0 {
+			col.AbsoluteRatioDiff = math.Abs(col.RLEDictRatioAdvantage)
 		}
 		distribution.Columns = append(distribution.Columns, col)
 		distribution.ComparedColumns++
@@ -2547,13 +2587,28 @@ func parsePageEncodingDistributionTSV(path string) (pageEncodingDistribution, er
 			distribution.TieOnlyColumns++
 		}
 	}
+	sort.Slice(distribution.Columns, func(i, j int) bool {
+		if distribution.Columns[i].RLEDictRatioAdvantage != distribution.Columns[j].RLEDictRatioAdvantage {
+			return distribution.Columns[i].RLEDictRatioAdvantage > distribution.Columns[j].RLEDictRatioAdvantage
+		}
+		if distribution.Columns[i].AbsoluteRatioDiff != distribution.Columns[j].AbsoluteRatioDiff {
+			return distribution.Columns[i].AbsoluteRatioDiff > distribution.Columns[j].AbsoluteRatioDiff
+		}
+		return distribution.Columns[i].Column < distribution.Columns[j].Column
+	})
 	return distribution, nil
 }
 
 func writePageEncodingDistributionMarkdown(md *markdownDoc, distribution pageEncodingDistribution, reportDir string) {
 	b := md.b
-	md.Heading(3, "Page-Level Winner Distribution")
-	fmt.Fprintf(b, "This is the page-level version of the same `plain + zstd` vs `rle-dict + zstd` comparison. Page ranges differ between the two runs, so the distribution is computed over overlap windows from the union of page row ranges. Red chart segments are windows where RLE would win if dictionary-page bytes were excluded, but does not win when amortized dictionary-page bytes are included. Size-ratio cells in the image are `min/median/max` values for `compressed bytes after ZSTD / plain uncompressed encoded bytes`; lower is better.\n\n")
+	compression := distribution.Compression
+	if compression == "" {
+		compression = "zstd"
+	}
+	plainLabel := "plain + " + compression
+	rleDictLabel := "rle-dict + " + compression
+	md.Heading(3, strings.ToUpper(compression)+" Page-Level Winner Distribution")
+	fmt.Fprintf(b, "This is the page-level version of the same `%s` vs `%s` comparison. Page ranges differ between the two runs, so the distribution is computed over overlap windows from the union of page row ranges. Red chart segments are windows where RLE would win if dictionary-page bytes were excluded, but does not win when amortized dictionary-page bytes are included. Rows are sorted by `%s aggregate ratio - %s aggregate ratio`, where each aggregate ratio is final encoded-and-compressed page bytes divided by the same plain uncompressed encoded bytes. Larger positive gaps are bigger absolute wins for RLE dictionary.\n\n", plainLabel, rleDictLabel, plainLabel, rleDictLabel)
 	if distribution.TSVPath != "" {
 		fmt.Fprintf(b, "- Source TSV: [%s](%s)\n", filepath.Base(distribution.TSVPath), markdownLinkTarget(reportDir, distribution.TSVPath))
 	}
@@ -2564,14 +2619,18 @@ func writePageEncodingDistributionMarkdown(md *markdownDoc, distribution pageEnc
 		formatCount(int64(distribution.RLEDictOnlyColumns)),
 		formatCount(int64(distribution.TieOnlyColumns)),
 	)
-	fmt.Fprintf(b, "- Overlap windows: `%s`; `plain + zstd` wins: `%s`; `rle-dict + zstd` wins: `%s`; ties: `%s`\n",
+	fmt.Fprintf(b, "- Overlap windows: `%s`; `%s` wins: `%s`; `%s` wins: `%s`; ties: `%s`\n",
 		formatCount(distribution.ComparisonWindows),
+		plainLabel,
 		formatCount(distribution.PlainWindowWins),
+		rleDictLabel,
 		formatCount(distribution.RLEDictWindowWins),
 		formatCount(distribution.TieWindowWins),
 	)
-	fmt.Fprintf(b, "- Row-weighted wins: `plain + zstd` %s; `rle-dict + zstd` %s; ties %s\n",
+	fmt.Fprintf(b, "- Row-weighted wins: `%s` %s; `%s` %s; ties %s\n",
+		plainLabel,
 		formatCountPercent(distribution.PlainRowsWon, distribution.RowsCompared),
+		rleDictLabel,
 		formatCountPercent(distribution.RLEDictRowsWon, distribution.RowsCompared),
 		formatCountPercent(distribution.TieRowsWon, distribution.RowsCompared),
 	)
@@ -2579,9 +2638,13 @@ func writePageEncodingDistributionMarkdown(md *markdownDoc, distribution pageEnc
 		formatCountPercent(distribution.DictOverheadFlipWins, distribution.ComparisonWindows),
 		formatCountPercent(distribution.DictOverheadFlipRows, distribution.RowsCompared),
 	)
-	fmt.Fprintf(b, "- Allocated page bytes: `plain + zstd` `%s`; `rle-dict + zstd` `%s`; `rle-dict + zstd / plain + zstd` `%s`\n",
+	fmt.Fprintf(b, "- Allocated page bytes: `%s` `%s`; `%s` `%s`; `%s / %s` `%s`\n",
+		plainLabel,
 		formatByteCount(distribution.PlainAllocatedBytes),
+		rleDictLabel,
 		formatByteCount(distribution.RLEDictAllocatedBytes),
+		rleDictLabel,
+		plainLabel,
 		formatRatio(ratio(distribution.RLEDictAllocatedBytes, distribution.PlainAllocatedBytes)),
 	)
 	fmt.Fprintf(b, "- Exact matched page ranges: `%s`; unmatched plain pages: `%s`; unmatched rle-dict pages: `%s`\n\n",
@@ -2589,20 +2652,36 @@ func writePageEncodingDistributionMarkdown(md *markdownDoc, distribution pageEnc
 		formatCount(distribution.UnmatchedPlainPages),
 		formatCount(distribution.UnmatchedRLEDictPages),
 	)
-	writeShapeImage(b, "Page-window winner distribution by column", distribution.ImagePath, reportDir)
+	writeShapeImage(b, strings.ToUpper(compression)+" page-window winner distribution by column", distribution.ImagePath, reportDir)
 	writePageEncodingDistributionTable(b, distribution)
+	plainRows := plainAbsoluteWinDistributionColumns(distribution.Columns)
+	if len(plainRows) > 0 {
+		md.Heading(3, strings.ToUpper(compression)+" Plain Absolute Wins")
+		fmt.Fprintf(b, "These are the columns where `%s` has a lower aggregate final-bytes-to-uncompressed ratio than `%s`, sorted by the largest absolute plain advantage.\n\n", plainLabel, rleDictLabel)
+		if distribution.PlainWinsImagePath != "" {
+			writeShapeImage(b, strings.ToUpper(compression)+" plain absolute wins by column", distribution.PlainWinsImagePath, reportDir)
+		}
+		writePageEncodingDistributionRowsTable(b, plainRows, compression)
+	}
 }
 
 func writePageEncodingDistributionTable(b *strings.Builder, distribution pageEncodingDistribution) {
 	if len(distribution.Columns) == 0 {
 		return
 	}
-	fmt.Fprintf(b, "| Column | Type | Windows | Plain wins | RLE dict wins | Red overhead flips | Ties | Row-weighted plain | Row-weighted RLE dict | Plain allocated bytes | RLE dict allocated bytes | RLE+zstd / plain+zstd | Exact matches | Unmatched pages |\n")
-	fmt.Fprintf(b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
-	for _, row := range distribution.Columns {
+	writePageEncodingDistributionRowsTable(b, distribution.Columns, distribution.Compression)
+}
+
+func writePageEncodingDistributionRowsTable(b *strings.Builder, rows []pageEncodingDistributionColumn, compression string) {
+	if compression == "" {
+		compression = "zstd"
+	}
+	fmt.Fprintf(b, "| Column | Type | Windows | Plain wins | RLE dict wins | Red overhead flips | Ties | Row-weighted plain | Row-weighted RLE dict | Plain allocated bytes | RLE dict allocated bytes | Plain ratio | RLE ratio | RLE+%s advantage | Abs ratio gap | RLE+%s / plain+%s | Exact matches | Unmatched pages |\n", compression, compression, compression)
+	fmt.Fprintf(b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+	for _, row := range rows {
 		fmt.Fprintf(
 			b,
-			"| `%s` | `%s` | `%s` | %s | %s | %s | %s | %s | %s | `%s` | `%s` | `%s` | `%s` | `%s / %s` |\n",
+			"| `%s` | `%s` | `%s` | %s | %s | %s | %s | %s | %s | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s / %s` |\n",
 			row.Column,
 			row.Type,
 			formatCount(row.ComparisonWindows),
@@ -2614,6 +2693,10 @@ func writePageEncodingDistributionTable(b *strings.Builder, distribution pageEnc
 			formatCountPercent(row.RLEDictRowsWon, row.RowsCompared),
 			formatByteCount(row.PlainAllocatedBytes),
 			formatByteCount(row.RLEDictAllocatedBytes),
+			formatCompactPercentRatio(row.PlainToUncompressed),
+			formatCompactPercentRatio(row.RLEDictToUncompressed),
+			formatSignedCompactPercentRatio(row.RLEDictRatioAdvantage),
+			formatCompactPercentRatio(row.AbsoluteRatioDiff),
 			formatRatio(row.RLEDictToPlainRatio),
 			formatCount(row.ExactMatchedPages),
 			formatCount(row.UnmatchedPlainPages),
@@ -2621,6 +2704,27 @@ func writePageEncodingDistributionTable(b *strings.Builder, distribution pageEnc
 		)
 	}
 	fmt.Fprintf(b, "\n")
+}
+
+func plainAbsoluteWinDistributionColumns(rows []pageEncodingDistributionColumn) []pageEncodingDistributionColumn {
+	plainRows := make([]pageEncodingDistributionColumn, 0, len(rows))
+	for _, row := range rows {
+		if row.RLEDictRatioAdvantage < 0 {
+			plainRows = append(plainRows, row)
+		}
+	}
+	sort.Slice(plainRows, func(i, j int) bool {
+		left := -plainRows[i].RLEDictRatioAdvantage
+		right := -plainRows[j].RLEDictRatioAdvantage
+		if left != right {
+			return left > right
+		}
+		if plainRows[i].AbsoluteRatioDiff != plainRows[j].AbsoluteRatioDiff {
+			return plainRows[i].AbsoluteRatioDiff > plainRows[j].AbsoluteRatioDiff
+		}
+		return plainRows[i].Column < plainRows[j].Column
+	})
+	return plainRows
 }
 
 func buildZstdRLEDictWorseCategoryComparison(byColumn map[string][]columnObservation, shapeByColumn map[string]columnShapeStats) rleDictWorseCategoryComparison {
@@ -3126,6 +3230,33 @@ func formatCompactRatio(value float64) string {
 		return fmt.Sprintf("%.1fx", value)
 	}
 	return fmt.Sprintf("%.2fx", value)
+}
+
+func formatCompactPercentRatio(value float64) string {
+	if value < 0 || math.IsNaN(value) || math.IsInf(value, 0) {
+		return "n/a"
+	}
+	pct := value * 100
+	if pct >= 100 {
+		return fmt.Sprintf("%.0f%%", pct)
+	}
+	if pct >= 10 {
+		return fmt.Sprintf("%.1f%%", pct)
+	}
+	return fmt.Sprintf("%.2f%%", pct)
+}
+
+func formatSignedCompactPercentRatio(value float64) string {
+	if math.IsNaN(value) || math.IsInf(value, 0) {
+		return "n/a"
+	}
+	if value == 0 {
+		return "0.00%"
+	}
+	if value < 0 {
+		return "-" + formatCompactPercentRatio(-value)
+	}
+	return "+" + formatCompactPercentRatio(value)
 }
 
 func writeRLEDictWorseCategoryComparison(md *markdownDoc, summary rleDictWorseCategoryComparison, reportDir string) {

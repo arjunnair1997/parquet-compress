@@ -1,9 +1,9 @@
 <a id="encoding-matrix-summary"></a>
 # Encoding Matrix Summary [#](#encoding-matrix-summary)
 
-- Started: `2026-07-05T00:25:29-04:00`
-- Finished: `2026-07-05T00:25:33-04:00`
-- Elapsed: `3.412s`
+- Started: `2026-07-05T21:34:40-04:00`
+- Finished: `2026-07-05T21:34:43-04:00`
+- Elapsed: `2.854s`
 - Rows per experiment: `1000000`
 - Experiments: `324`
 - Parallelism: `4`
@@ -171,3 +171,4 @@ Best means smallest target bytes across all 96 runs for that column. For `none`,
 | `WindowClientWidth` | `int16` | `plain` | `zstd-3` | `4000000` | `4005052` | `305724` | `4003590` | `305724` | `305751` | `13.099064` | `1.000365` | `13.100221` | [2026-07-03_rows-1000000-comp-zstd-3-int-plain-str-delta-length-byte-array-date-delta-binary-packed-ts-delta-binary-packed.md](configs/2026-07-03_rows-1000000-comp-zstd-3-int-plain-str-delta-length-byte-array-date-delta-binary-packed-ts-delta-binary-packed.md) |
 | `WindowName` | `int32` | `plain` | `zstd-3` | `4000000` | `4005052` | `70803` | `4003577` | `70803` | `70817` | `56.554951` | `1.000368` | `56.566134` | [2026-07-04_rows-1000000-comp-zstd-3-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-rle-dict.md](configs/2026-07-04_rows-1000000-comp-zstd-3-int-plain-str-delta-byte-array-date-delta-binary-packed-ts-rle-dict.md) |
 | `WithHash` | `int16` | `plain` | `zstd-3` | `4000000` | `4005054` | `4228` | `4003527` | `4228` | `4240` | `944.588208` | `1.000381` | `947.269158` | [2026-07-03_rows-1000000-comp-zstd-3-int-plain-str-delta-length-byte-array-date-delta-binary-packed-ts-plain.md](configs/2026-07-03_rows-1000000-comp-zstd-3-int-plain-str-delta-length-byte-array-date-delta-binary-packed-ts-plain.md) |
+

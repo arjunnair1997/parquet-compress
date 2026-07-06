@@ -1,0 +1,638 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="2422" viewBox="0 0 1100 2422">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="230" y="28" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Page-window winner distribution by column</text>
+<rect x="230" y="40" width="14" height="10" fill="#2563eb"/><text x="250" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">plain + zstd</text>
+<rect x="360" y="40" width="14" height="10" fill="#16a34a"/><text x="380" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">rle-dict + zstd</text>
+<rect x="515" y="40" width="14" height="10" fill="#9ca3af"/><text x="535" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">tie</text>
+<text x="220" y="71" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">AdvEngineID</text>
+<rect x="230" y="60" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="60" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="60" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="60" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="71" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="93" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Age</text>
+<rect x="230" y="82" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="82" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="82" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="82" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="93" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="115" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">BrowserCountry</text>
+<rect x="230" y="104" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="104" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="104" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="104" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="115" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="137" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">BrowserLanguage</text>
+<rect x="230" y="126" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="126" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="126" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="126" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="137" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="159" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ClientTimeZone</text>
+<rect x="230" y="148" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="148" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="148" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="148" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="159" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="181" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FlashMajor</text>
+<rect x="230" y="170" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="170" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="170" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="170" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="181" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="203" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FlashMinor</text>
+<rect x="230" y="192" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="192" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="192" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="192" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="203" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="225" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FlashMinor2</text>
+<rect x="230" y="214" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="214" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="214" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="214" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="225" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="247" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">HasGCLID</text>
+<rect x="230" y="236" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="236" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="236" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="236" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="247" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="269" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Income</text>
+<rect x="230" y="258" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="258" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="258" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="258" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="269" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="291" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsArtifical</text>
+<rect x="230" y="280" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="280" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="280" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="280" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="291" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="313" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsRefresh</text>
+<rect x="230" y="302" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="302" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="302" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="302" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="313" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="335" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">JavaEnable</text>
+<rect x="230" y="324" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="324" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="324" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="324" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="335" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="357" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">MobilePhoneModel</text>
+<rect x="230" y="346" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="346" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="346" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="346" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="357" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="379" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">NetMinor</text>
+<rect x="230" y="368" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="368" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="368" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="368" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="379" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="401" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OpenstatAdID</text>
+<rect x="230" y="390" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="390" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="390" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="390" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="401" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="423" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OpenstatCampaignID</text>
+<rect x="230" y="412" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="412" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="412" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="412" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="423" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="445" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OpenstatServiceName</text>
+<rect x="230" y="434" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="434" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="434" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="434" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="445" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="467" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OriginalURL</text>
+<rect x="230" y="456" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="456" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="456" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="456" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="467" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="489" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">PageCharset</text>
+<rect x="230" y="478" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="478" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="478" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="478" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="489" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="511" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Referer</text>
+<rect x="230" y="500" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="500" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="500" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="500" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="511" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">4</text>
+<text x="220" y="533" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">RefererCategoryID</text>
+<rect x="230" y="522" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="522" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="522" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="522" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="533" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="555" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">RefererRegionID</text>
+<rect x="230" y="544" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="544" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="544" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="544" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="555" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="577" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ResolutionDepth</text>
+<rect x="230" y="566" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="566" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="566" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="566" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="577" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="599" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SearchEngineID</text>
+<rect x="230" y="588" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="588" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="588" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="588" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="599" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="621" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SearchPhrase</text>
+<rect x="230" y="610" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="610" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="610" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="610" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="621" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="643" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Sex</text>
+<rect x="230" y="632" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="632" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="632" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="632" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="643" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="665" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SilverlightVersion2</text>
+<rect x="230" y="654" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="654" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="654" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="654" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="665" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="687" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Title</text>
+<rect x="230" y="676" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="676" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="676" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="676" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="687" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">9</text>
+<text x="220" y="709" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">TraficSourceID</text>
+<rect x="230" y="698" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="698" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="698" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="698" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="709" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="731" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">URL</text>
+<rect x="230" y="720" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="720" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="720" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="720" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="731" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">4</text>
+<text x="220" y="753" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">URLCategoryID</text>
+<rect x="230" y="742" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="742" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="742" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="742" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="753" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="775" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UTMCampaign</text>
+<rect x="230" y="764" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="764" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="764" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="764" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="775" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="797" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UTMContent</text>
+<rect x="230" y="786" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="786" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="786" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="786" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="797" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="819" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UTMMedium</text>
+<rect x="230" y="808" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="808" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="808" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="808" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="819" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="841" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UTMSource</text>
+<rect x="230" y="830" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="830" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="830" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="830" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="841" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="863" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UTMTerm</text>
+<rect x="230" y="852" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="852" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="852" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="852" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="863" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="885" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UserAgentMinor</text>
+<rect x="230" y="874" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="874" width="0.00" height="14" fill="#2563eb"/>
+<rect x="230.00" y="874" width="830.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="874" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="885" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="907" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">CLID</text>
+<rect x="230" y="896" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="896" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="896" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="896" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="907" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="929" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ClientEventTime</text>
+<rect x="230" y="918" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="918" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="918" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="918" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="929" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="951" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ClientIP</text>
+<rect x="230" y="940" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="940" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="940" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="940" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="951" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="973" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">CodeVersion</text>
+<rect x="230" y="962" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="962" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="962" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="962" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="973" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="995" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ConnectTiming</text>
+<rect x="230" y="984" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="984" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="984" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="984" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="995" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1017" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">CookieEnable</text>
+<rect x="230" y="1006" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1006" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1006" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1006" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1017" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1039" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">CounterClass</text>
+<rect x="230" y="1028" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1028" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1028" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1028" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1039" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1061" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">CounterID</text>
+<rect x="230" y="1050" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1050" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1050" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1050" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1061" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1083" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">DNSTiming</text>
+<rect x="230" y="1072" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1072" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1072" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1072" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1083" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1105" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">DontCountHits</text>
+<rect x="230" y="1094" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1094" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1094" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1094" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1105" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1127" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">EventDate</text>
+<rect x="230" y="1116" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1116" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1116" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1116" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1127" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1149" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">EventTime</text>
+<rect x="230" y="1138" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1138" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1138" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1138" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1149" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1171" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FUniqID</text>
+<rect x="230" y="1160" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1160" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1160" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1160" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1171" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1193" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FetchTiming</text>
+<rect x="230" y="1182" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1182" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1182" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1182" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1193" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1215" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FromTag</text>
+<rect x="230" y="1204" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1204" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1204" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1204" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1215" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1237" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">GoodEvent</text>
+<rect x="230" y="1226" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1226" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1226" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1226" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1237" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1259" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">HID</text>
+<rect x="230" y="1248" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1248" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1248" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1248" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1259" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1281" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">HTTPError</text>
+<rect x="230" y="1270" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1270" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1270" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1270" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1281" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1303" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">HistoryLength</text>
+<rect x="230" y="1292" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1292" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1292" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1292" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1303" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1325" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">HitColor</text>
+<rect x="230" y="1314" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1314" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1314" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1314" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1325" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1347" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IPNetworkID</text>
+<rect x="230" y="1336" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1336" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1336" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1336" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1347" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1369" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Interests</text>
+<rect x="230" y="1358" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1358" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1358" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1358" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1369" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1391" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsDownload</text>
+<rect x="230" y="1380" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1380" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1380" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1380" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1391" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1413" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsEvent</text>
+<rect x="230" y="1402" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1402" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1402" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1402" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1413" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1435" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsLink</text>
+<rect x="230" y="1424" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1424" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1424" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1424" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1435" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1457" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsMobile</text>
+<rect x="230" y="1446" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1446" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1446" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1446" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1457" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1479" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsNotBounce</text>
+<rect x="230" y="1468" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1468" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1468" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1468" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1479" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1501" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsOldCounter</text>
+<rect x="230" y="1490" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1490" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1490" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1490" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1501" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1523" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsParameter</text>
+<rect x="230" y="1512" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1512" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1512" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1512" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1523" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1545" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">JavascriptEnable</text>
+<rect x="230" y="1534" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1534" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1534" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1534" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1545" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1567" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">LocalEventTime</text>
+<rect x="230" y="1556" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1556" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1556" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1556" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1567" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1589" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">MobilePhone</text>
+<rect x="230" y="1578" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1578" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1578" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1578" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1589" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1611" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">NetMajor</text>
+<rect x="230" y="1600" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1600" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1600" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1600" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1611" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1633" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OS</text>
+<rect x="230" y="1622" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1622" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1622" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1622" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1633" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1655" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OpenerName</text>
+<rect x="230" y="1644" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1644" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1644" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1644" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1655" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1677" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OpenstatSourceID</text>
+<rect x="230" y="1666" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1666" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1666" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1666" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1677" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1699" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ParamCurrency</text>
+<rect x="230" y="1688" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1688" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1688" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1688" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1699" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1721" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ParamCurrencyID</text>
+<rect x="230" y="1710" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1710" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1710" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1710" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1721" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1743" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ParamOrderID</text>
+<rect x="230" y="1732" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1732" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1732" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1732" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1743" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1765" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ParamPrice</text>
+<rect x="230" y="1754" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1754" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1754" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1754" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1765" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1787" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Params</text>
+<rect x="230" y="1776" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1776" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1776" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1776" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1787" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1809" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">RefererHash</text>
+<rect x="230" y="1798" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1798" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1798" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1798" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1809" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1831" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">RegionID</text>
+<rect x="230" y="1820" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1820" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1820" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1820" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1831" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1853" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">RemoteIP</text>
+<rect x="230" y="1842" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1842" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1842" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1842" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1853" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1875" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ResolutionHeight</text>
+<rect x="230" y="1864" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1864" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1864" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1864" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1875" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1897" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ResolutionWidth</text>
+<rect x="230" y="1886" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1886" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1886" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1886" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1897" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1919" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ResponseEndTiming</text>
+<rect x="230" y="1908" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1908" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1908" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1908" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1919" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1941" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ResponseStartTiming</text>
+<rect x="230" y="1930" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1930" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1930" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1930" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1941" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1963" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Robotness</text>
+<rect x="230" y="1952" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1952" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1952" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1952" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1963" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="1985" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SendTiming</text>
+<rect x="230" y="1974" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1974" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1974" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1974" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="1985" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2007" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SilverlightVersion1</text>
+<rect x="230" y="1996" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="1996" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="1996" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="1996" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2007" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2029" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SilverlightVersion3</text>
+<rect x="230" y="2018" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2018" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2018" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2018" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2029" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2051" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SilverlightVersion4</text>
+<rect x="230" y="2040" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2040" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2040" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2040" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2051" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2073" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SocialAction</text>
+<rect x="230" y="2062" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2062" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2062" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2062" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2073" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2095" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SocialNetwork</text>
+<rect x="230" y="2084" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2084" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2084" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2084" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2095" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2117" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SocialSourceNetworkID</text>
+<rect x="230" y="2106" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2106" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2106" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2106" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2117" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2139" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SocialSourcePage</text>
+<rect x="230" y="2128" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2128" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2128" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2128" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2139" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2161" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">URLHash</text>
+<rect x="230" y="2150" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2150" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2150" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2150" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2161" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2183" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">URLRegionID</text>
+<rect x="230" y="2172" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2172" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2172" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2172" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2183" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2205" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UserAgent</text>
+<rect x="230" y="2194" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2194" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2194" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2194" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2205" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2227" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UserAgentMajor</text>
+<rect x="230" y="2216" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2216" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2216" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2216" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2227" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2249" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UserID</text>
+<rect x="230" y="2238" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2238" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2238" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2238" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2249" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2271" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">WatchID</text>
+<rect x="230" y="2260" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2260" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2260" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2260" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2271" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2293" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">WindowClientHeight</text>
+<rect x="230" y="2282" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2282" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2282" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2282" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2293" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2315" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">WindowClientWidth</text>
+<rect x="230" y="2304" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2304" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2304" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2304" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2315" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2337" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">WindowName</text>
+<rect x="230" y="2326" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2326" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2326" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2326" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2337" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="220" y="2359" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">WithHash</text>
+<rect x="230" y="2348" width="830.00" height="14" fill="#f3f4f6"/>
+<rect x="230.00" y="2348" width="830.00" height="14" fill="#2563eb"/>
+<rect x="1060.00" y="2348" width="0.00" height="14" fill="#16a34a"/>
+<rect x="1060.00" y="2348" width="0.00" height="14" fill="#9ca3af"/>
+<text x="1064" y="2359" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="230" y="2402" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">bar width = share of overlap comparison windows won</text>
+</svg>

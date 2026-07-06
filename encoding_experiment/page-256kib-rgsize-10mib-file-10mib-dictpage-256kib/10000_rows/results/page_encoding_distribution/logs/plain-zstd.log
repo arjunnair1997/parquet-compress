@@ -1,0 +1,123 @@
+wrote 10000 rows into 1 parquet file(s)
+write elapsed: 236ms
+source TSV bytes for rows, reference only: 8365486 (7.98 MiB)
+parquet physical bytes before page encoding: 7711890 (7.35 MiB)
+encoded column bytes before codec compression: 8846925 (8.44 MiB)
+compressed column data bytes after codec compression: 760859 (743.03 KiB)
+parquet file bytes: 777788 (759.56 KiB)
+physical/encoded ratio: 0.872x
+encoded/compressed-data ratio: 11.628x
+physical/compressed-data ratio: 10.136x
+physical/parquet-file ratio: 9.915x
+max dictionary page size: 256.00 KiB
+output dir: encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/10000_rows/parquet/page_encoding_distribution/plain-zstd
+result file: encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/10000_rows/results/page_encoding_distribution/configs/2026-07-05_rows-10000-comp-zstd-3-int-plain-str-plain-date-plain-ts-plain.md
+writer stats JSON: encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/10000_rows/results/page_encoding_distribution/stats/plain-zstd_writer-stats.json
+verification: passed, 10000 rows from 1 file(s), 81ms
+columns:
+  WatchID: type=int64 configured=plain metadata=PLAIN physical=78.12 KiB encoded=78.20 KiB compressed=78.21 KiB physical/encoded=0.999x encoded/compressed=1.000x physical/compressed=0.999x source-reference=185.55 KiB
+  JavaEnable: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=705 B physical/encoded=0.998x encoded/compressed=56.827x physical/compressed=56.738x source-reference=9.77 KiB
+  Title: type=string configured=plain metadata=PLAIN physical=2.10 MiB encoded=2.14 MiB compressed=227.14 KiB physical/encoded=0.979x encoded/compressed=9.662x physical/compressed=9.461x source-reference=2.10 MiB
+  GoodEvent: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=85 B physical/encoded=0.998x encoded/compressed=471.318x physical/compressed=470.588x source-reference=9.77 KiB
+  EventTime: type=timestamp_millis configured=plain metadata=PLAIN physical=78.12 KiB encoded=78.20 KiB compressed=17.81 KiB physical/encoded=0.999x encoded/compressed=4.390x physical/compressed=4.386x source-reference=185.55 KiB
+  EventDate: type=date configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=85 B physical/encoded=0.998x encoded/compressed=471.318x physical/compressed=470.588x source-reference=97.66 KiB
+  CounterID: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=89 B physical/encoded=0.998x encoded/compressed=450.135x physical/compressed=449.438x source-reference=19.53 KiB
+  ClientIP: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=3.56 KiB physical/encoded=0.998x encoded/compressed=11.003x physical/compressed=10.986x source-reference=97.93 KiB
+  RegionID: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.61 KiB physical/encoded=0.998x encoded/compressed=24.325x physical/compressed=24.287x source-reference=23.89 KiB
+  UserID: type=int64 configured=plain metadata=PLAIN physical=78.12 KiB encoded=78.20 KiB compressed=5.72 KiB physical/encoded=0.999x encoded/compressed=13.670x physical/compressed=13.657x source-reference=195.30 KiB
+  CounterClass: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  OS: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=955 B physical/encoded=0.998x encoded/compressed=41.951x physical/compressed=41.885x source-reference=15.75 KiB
+  UserAgent: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.39 KiB physical/encoded=0.998x encoded/compressed=28.194x physical/compressed=28.149x source-reference=11.05 KiB
+  URL: type=string configured=plain metadata=PLAIN physical=742.20 KiB encoded=781.75 KiB compressed=88.37 KiB physical/encoded=0.949x encoded/compressed=8.847x physical/compressed=8.399x source-reference=742.21 KiB
+  Referer: type=string configured=plain metadata=PLAIN physical=779.10 KiB encoded=818.80 KiB compressed=99.46 KiB physical/encoded=0.952x encoded/compressed=8.233x physical/compressed=7.833x source-reference=779.12 KiB
+  IsRefresh: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=3.08 KiB physical/encoded=0.998x encoded/compressed=12.702x physical/compressed=12.682x source-reference=9.77 KiB
+  RefererCategoryID: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=2.55 KiB physical/encoded=0.998x encoded/compressed=15.344x physical/compressed=15.320x source-reference=46.21 KiB
+  RefererRegionID: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=2.59 KiB physical/encoded=0.998x encoded/compressed=15.084x physical/compressed=15.060x source-reference=27.92 KiB
+  URLCategoryID: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=430 B physical/encoded=0.998x encoded/compressed=93.170x physical/compressed=93.023x source-reference=48.27 KiB
+  URLRegionID: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=445 B physical/encoded=0.998x encoded/compressed=90.029x physical/compressed=89.888x source-reference=28.85 KiB
+  ResolutionWidth: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.78 KiB physical/encoded=0.998x encoded/compressed=22.025x physical/compressed=21.990x source-reference=38.18 KiB
+  ResolutionHeight: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.73 KiB physical/encoded=0.998x encoded/compressed=22.596x physical/compressed=22.561x source-reference=33.45 KiB
+  ResolutionDepth: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=907 B physical/encoded=0.998x encoded/compressed=44.171x physical/compressed=44.101x source-reference=19.35 KiB
+  FlashMajor: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=791 B physical/encoded=0.998x encoded/compressed=50.649x physical/compressed=50.569x source-reference=18.47 KiB
+  FlashMinor: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.21 KiB physical/encoded=0.998x encoded/compressed=32.361x physical/compressed=32.310x source-reference=11.51 KiB
+  FlashMinor2: type=string configured=plain metadata=PLAIN physical=36.30 KiB encoded=75.42 KiB compressed=2.62 KiB physical/encoded=0.481x encoded/compressed=28.752x physical/compressed=13.838x source-reference=36.30 KiB
+  NetMajor: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=340 B physical/encoded=0.998x encoded/compressed=117.832x physical/compressed=117.647x source-reference=9.77 KiB
+  NetMinor: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=354 B physical/encoded=0.998x encoded/compressed=113.172x physical/compressed=112.994x source-reference=9.77 KiB
+  UserAgentMajor: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.49 KiB physical/encoded=0.998x encoded/compressed=26.254x physical/compressed=26.212x source-reference=17.70 KiB
+  UserAgentMinor: type=string configured=plain metadata=PLAIN physical=36.06 KiB encoded=75.18 KiB compressed=1.76 KiB physical/encoded=0.480x encoded/compressed=42.724x physical/compressed=20.494x source-reference=36.24 KiB
+  CookieEnable: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=235 B physical/encoded=0.998x encoded/compressed=170.481x physical/compressed=170.213x source-reference=9.77 KiB
+  JavascriptEnable: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=202 B physical/encoded=0.998x encoded/compressed=198.332x physical/compressed=198.020x source-reference=9.77 KiB
+  IsMobile: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=296 B physical/encoded=0.998x encoded/compressed=135.348x physical/compressed=135.135x source-reference=9.77 KiB
+  MobilePhone: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=278 B physical/encoded=0.998x encoded/compressed=144.112x physical/compressed=143.885x source-reference=9.78 KiB
+  MobilePhoneModel: type=string configured=plain metadata=PLAIN physical=1.11 KiB encoded=40.23 KiB compressed=242 B physical/encoded=0.028x encoded/compressed=170.227x physical/compressed=4.711x source-reference=1.11 KiB
+  Params: type=string configured=plain metadata=PLAIN physical=0 B encoded=39.10 KiB compressed=48 B physical/encoded=0.000x encoded/compressed=834.104x physical/compressed=0.000x source-reference=0 B
+  IPNetworkID: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=2.88 KiB physical/encoded=0.998x encoded/compressed=13.567x physical/compressed=13.546x source-reference=66.92 KiB
+  TraficSourceID: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=2.53 KiB physical/encoded=0.998x encoded/compressed=15.492x physical/compressed=15.468x source-reference=17.23 KiB
+  SearchEngineID: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.62 KiB physical/encoded=0.998x encoded/compressed=24.222x physical/compressed=24.184x source-reference=9.93 KiB
+  SearchPhrase: type=string configured=plain metadata=PLAIN physical=63.72 KiB encoded=102.85 KiB compressed=12.54 KiB physical/encoded=0.619x encoded/compressed=8.200x physical/compressed=5.080x source-reference=63.72 KiB
+  AdvEngineID: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=650 B physical/encoded=0.998x encoded/compressed=61.634x physical/compressed=61.538x source-reference=9.90 KiB
+  IsArtifical: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=2.72 KiB physical/encoded=0.998x encoded/compressed=14.359x physical/compressed=14.337x source-reference=9.77 KiB
+  WindowClientWidth: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=2.92 KiB physical/encoded=0.998x encoded/compressed=13.417x physical/compressed=13.396x source-reference=36.81 KiB
+  WindowClientHeight: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=2.37 KiB physical/encoded=0.998x encoded/compressed=16.521x physical/compressed=16.495x source-reference=29.32 KiB
+  ClientTimeZone: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=809 B physical/encoded=0.998x encoded/compressed=49.522x physical/compressed=49.444x source-reference=29.11 KiB
+  ClientEventTime: type=timestamp_millis configured=plain metadata=PLAIN physical=78.12 KiB encoded=78.20 KiB compressed=16.67 KiB physical/encoded=0.999x encoded/compressed=4.692x physical/compressed=4.687x source-reference=185.55 KiB
+  SilverlightVersion1: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=611 B physical/encoded=0.998x encoded/compressed=65.570x physical/compressed=65.466x source-reference=9.78 KiB
+  SilverlightVersion2: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=671 B physical/encoded=0.998x encoded/compressed=59.706x physical/compressed=59.613x source-reference=9.77 KiB
+  SilverlightVersion3: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.09 KiB physical/encoded=0.998x encoded/compressed=35.739x physical/compressed=35.682x source-reference=25.88 KiB
+  SilverlightVersion4: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  PageCharset: type=string configured=plain metadata=PLAIN physical=191.93 KiB encoded=231.08 KiB compressed=386 B physical/encoded=0.831x encoded/compressed=613.023x physical/compressed=509.171x source-reference=191.93 KiB
+  CodeVersion: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=232 B physical/encoded=0.998x encoded/compressed=172.685x physical/compressed=172.414x source-reference=38.61 KiB
+  IsLink: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  IsDownload: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  IsNotBounce: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  FUniqID: type=int64 configured=plain metadata=PLAIN physical=78.12 KiB encoded=78.20 KiB compressed=5.94 KiB physical/encoded=0.999x encoded/compressed=13.171x physical/compressed=13.158x source-reference=172.71 KiB
+  OriginalURL: type=string configured=plain metadata=PLAIN physical=73.00 KiB encoded=112.81 KiB compressed=9.36 KiB physical/encoded=0.647x encoded/compressed=12.056x physical/compressed=7.801x source-reference=73.00 KiB
+  HID: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=23.54 KiB physical/encoded=0.998x encoded/compressed=1.662x physical/compressed=1.659x source-reference=86.33 KiB
+  IsOldCounter: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  IsEvent: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  IsParameter: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  DontCountHits: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=176 B physical/encoded=0.998x encoded/compressed=227.631x physical/compressed=227.273x source-reference=9.77 KiB
+  WithHash: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  HitColor: type=string configured=plain metadata=PLAIN physical=9.77 KiB encoded=48.88 KiB compressed=126 B physical/encoded=0.200x encoded/compressed=397.230x physical/compressed=79.365x source-reference=9.77 KiB
+  LocalEventTime: type=timestamp_millis configured=plain metadata=PLAIN physical=78.12 KiB encoded=78.20 KiB compressed=17.93 KiB physical/encoded=0.999x encoded/compressed=4.363x physical/compressed=4.358x source-reference=185.55 KiB
+  Age: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.46 KiB physical/encoded=0.998x encoded/compressed=26.834x physical/compressed=26.792x source-reference=17.00 KiB
+  Sex: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.03 KiB physical/encoded=0.998x encoded/compressed=38.083x physical/compressed=38.023x source-reference=9.77 KiB
+  Income: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.24 KiB physical/encoded=0.998x encoded/compressed=31.471x physical/compressed=31.422x source-reference=9.77 KiB
+  Interests: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.82 KiB physical/encoded=0.998x encoded/compressed=21.527x physical/compressed=21.494x source-reference=22.04 KiB
+  Robotness: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.53 KiB physical/encoded=0.998x encoded/compressed=25.567x physical/compressed=25.526x source-reference=13.53 KiB
+  RemoteIP: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=3.60 KiB physical/encoded=0.998x encoded/compressed=10.875x physical/compressed=10.858x source-reference=97.86 KiB
+  WindowName: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=103 B physical/encoded=0.998x encoded/compressed=388.951x physical/compressed=388.350x source-reference=19.54 KiB
+  OpenerName: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=73 B physical/encoded=0.998x encoded/compressed=548.795x physical/compressed=547.945x source-reference=19.53 KiB
+  HistoryLength: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=95 B physical/encoded=0.998x encoded/compressed=421.695x physical/compressed=421.053x source-reference=19.53 KiB
+  BrowserLanguage: type=string configured=plain metadata=PLAIN physical=19.68 KiB encoded=58.80 KiB compressed=402 B physical/encoded=0.335x encoded/compressed=149.784x physical/compressed=50.139x source-reference=19.68 KiB
+  BrowserCountry: type=string configured=plain metadata=PLAIN physical=31.67 KiB encoded=70.79 KiB compressed=1.10 KiB physical/encoded=0.447x encoded/compressed=64.093x physical/compressed=28.674x source-reference=37.74 KiB
+  SocialNetwork: type=string configured=plain metadata=PLAIN physical=0 B encoded=39.10 KiB compressed=48 B physical/encoded=0.000x encoded/compressed=834.104x physical/compressed=0.000x source-reference=0 B
+  SocialAction: type=string configured=plain metadata=PLAIN physical=0 B encoded=39.10 KiB compressed=48 B physical/encoded=0.000x encoded/compressed=834.104x physical/compressed=0.000x source-reference=0 B
+  HTTPError: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  SendTiming: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  DNSTiming: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=839 B physical/encoded=0.998x encoded/compressed=47.751x physical/compressed=47.676x source-reference=9.89 KiB
+  ConnectTiming: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=1.71 KiB physical/encoded=0.998x encoded/compressed=22.919x physical/compressed=22.883x source-reference=10.25 KiB
+  ResponseStartTiming: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=7.97 KiB physical/encoded=0.998x encoded/compressed=4.911x physical/compressed=4.904x source-reference=15.70 KiB
+  ResponseEndTiming: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=6.79 KiB physical/encoded=0.998x encoded/compressed=5.764x physical/compressed=5.755x source-reference=13.57 KiB
+  FetchTiming: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=4.62 KiB physical/encoded=0.998x encoded/compressed=8.466x physical/compressed=8.453x source-reference=11.57 KiB
+  SocialSourceNetworkID: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=100 B physical/encoded=0.998x encoded/compressed=400.620x physical/compressed=400.000x source-reference=9.77 KiB
+  SocialSourcePage: type=string configured=plain metadata=PLAIN physical=42 B encoded=39.16 KiB compressed=98 B physical/encoded=0.001x encoded/compressed=409.204x physical/compressed=0.429x source-reference=42 B
+  ParamPrice: type=int64 configured=plain metadata=PLAIN physical=78.12 KiB encoded=78.20 KiB compressed=91 B physical/encoded=0.999x encoded/compressed=879.978x physical/compressed=879.121x source-reference=9.77 KiB
+  ParamOrderID: type=string configured=plain metadata=PLAIN physical=0 B encoded=39.10 KiB compressed=48 B physical/encoded=0.000x encoded/compressed=834.104x physical/compressed=0.000x source-reference=0 B
+  ParamCurrency: type=string configured=plain metadata=PLAIN physical=29.30 KiB encoded=68.42 KiB compressed=86 B physical/encoded=0.428x encoded/compressed=814.628x physical/compressed=348.837x source-reference=29.30 KiB
+  ParamCurrencyID: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  OpenstatServiceName: type=string configured=plain metadata=PLAIN physical=560 B encoded=39.69 KiB compressed=239 B physical/encoded=0.014x encoded/compressed=170.038x physical/compressed=2.343x source-reference=560 B
+  OpenstatCampaignID: type=string configured=plain metadata=PLAIN physical=272 B encoded=39.39 KiB compressed=239 B physical/encoded=0.007x encoded/compressed=168.782x physical/compressed=1.138x source-reference=272 B
+  OpenstatAdID: type=string configured=plain metadata=PLAIN physical=358 B encoded=39.48 KiB compressed=297 B physical/encoded=0.009x encoded/compressed=136.111x physical/compressed=1.205x source-reference=358 B
+  OpenstatSourceID: type=string configured=plain metadata=PLAIN physical=692 B encoded=39.82 KiB compressed=267 B physical/encoded=0.017x encoded/compressed=152.715x physical/compressed=2.592x source-reference=692 B
+  UTMSource: type=string configured=plain metadata=PLAIN physical=1.58 KiB encoded=40.71 KiB compressed=500 B physical/encoded=0.039x encoded/compressed=83.376x physical/compressed=3.242x source-reference=1.58 KiB
+  UTMMedium: type=string configured=plain metadata=PLAIN physical=502 B encoded=39.61 KiB compressed=414 B physical/encoded=0.012x encoded/compressed=97.964x physical/compressed=1.213x source-reference=502 B
+  UTMCampaign: type=string configured=plain metadata=PLAIN physical=3.23 KiB encoded=42.40 KiB compressed=630 B physical/encoded=0.076x encoded/compressed=68.919x physical/compressed=5.244x source-reference=3.23 KiB
+  UTMContent: type=string configured=plain metadata=PLAIN physical=474 B encoded=39.58 KiB compressed=264 B physical/encoded=0.012x encoded/compressed=153.534x physical/compressed=1.795x source-reference=474 B
+  UTMTerm: type=string configured=plain metadata=PLAIN physical=1.26 KiB encoded=40.40 KiB compressed=327 B physical/encoded=0.031x encoded/compressed=126.505x physical/compressed=3.939x source-reference=1.26 KiB
+  FromTag: type=string configured=plain metadata=PLAIN physical=0 B encoded=39.10 KiB compressed=48 B physical/encoded=0.000x encoded/compressed=834.104x physical/compressed=0.000x source-reference=0 B
+  HasGCLID: type=int16 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=455 B physical/encoded=0.998x encoded/compressed=88.051x physical/compressed=87.912x source-reference=9.77 KiB
+  RefererHash: type=int64 configured=plain metadata=PLAIN physical=78.12 KiB encoded=78.20 KiB compressed=23.03 KiB physical/encoded=0.999x encoded/compressed=3.395x physical/compressed=3.392x source-reference=188.51 KiB
+  URLHash: type=int64 configured=plain metadata=PLAIN physical=78.12 KiB encoded=78.20 KiB compressed=26.55 KiB physical/encoded=0.999x encoded/compressed=2.946x physical/compressed=2.943x source-reference=188.68 KiB
+  CLID: type=int32 configured=plain metadata=PLAIN physical=39.06 KiB encoded=39.12 KiB compressed=72 B physical/encoded=0.998x encoded/compressed=556.403x physical/compressed=555.556x source-reference=9.77 KiB
+  encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/10000_rows/parquet/page_encoding_distribution/plain-zstd/part-00000.parquet: 10000 rows, file=759.56 KiB, physical=7.35 MiB, encoded=8.44 MiB, compressed-data=743.03 KiB
