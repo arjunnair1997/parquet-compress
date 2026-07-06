@@ -226,6 +226,7 @@ This simulates a hybrid strategy over the two full page-stat runs: use `zstd + p
 
 - Plain run markdown: [2026-07-05_rows-1000000-comp-zstd-3-int-plain-str-plain-date-plain-ts-plain.md](page_encoding_distribution/configs/2026-07-05_rows-1000000-comp-zstd-3-int-plain-str-plain-date-plain-ts-plain.md)
 - RLE dict run markdown: [2026-07-05_rows-1000000-comp-zstd-3-int-rle-dict-str-rle-dict-date-rle-dict-ts-rle-dict.md](page_encoding_distribution/configs/2026-07-05_rows-1000000-comp-zstd-3-int-rle-dict-str-rle-dict-date-rle-dict-ts-rle-dict.md)
+- Snappy plain run markdown: [2026-07-05_rows-1000000-comp-snappy-int-plain-str-plain-date-plain-ts-plain.md](page_encoding_distribution/configs/2026-07-05_rows-1000000-comp-snappy-int-plain-str-plain-date-plain-ts-plain.md)
 
 <a id="zstd-encoded-and-compressed-column-sizes"></a>
 ##### ZSTD Encoded And Compressed Column Sizes [#](#zstd-encoded-and-compressed-column-sizes)
@@ -346,6 +347,16 @@ This simulates a hybrid strategy over the two full page-stat runs: use `zstd + p
 | `zstd + plain actual` | `29` | `86,812,277 B (82.79 MiB)` | `87,711,727 B (83.65 MiB)` | `0 B (0 B)` | `1.000000` |
 | `best pagewise simulated (zstd + plain or zstd + rle-dict)` | `29` | `73,865,679 B (70.44 MiB)` | `74,765,129 B (71.30 MiB)` | `12,946,598 B (12.35 MiB)` | `0.852396` |
 | `zstd + rle-dict actual, reference only` | `30` | `86,384,156 B (82.38 MiB)` | `87,339,116 B (83.29 MiB)` | `372,611 B (363.88 KiB)` | `0.995752` |
+
+<a id="zstd-best-vs-snappy-plain-final-file-size"></a>
+##### ZSTD Best Vs Snappy Plain Final File Size [#](#zstd-best-vs-snappy-plain-final-file-size)
+
+| Strategy | Files | Parquet file bytes | Savings vs snappy + plain file bytes | Ratio vs snappy + plain file bytes |
+| --- | ---: | ---: | ---: | ---: |
+| `snappy + plain actual` | `31` | `135,277,383 B (129.01 MiB)` | `0 B (0 B)` | `1.000000` |
+| `best pagewise simulated (zstd + plain or zstd + rle-dict)` | `29` | `74,765,129 B (71.30 MiB)` | `60,512,254 B (57.71 MiB)` | `0.552680` |
+
+- Compared to `snappy + plain`, the simulated best ZSTD pagewise strategy is `60,512,254 B (57.71 MiB)` smaller in final Parquet file bytes, a `44.731982%` reduction.
 
 - Page aggregate check: `zstd + plain` allocated page bytes = `86,812,277 B (82.79 MiB)`; `zstd + rle-dict` allocated page bytes = `86,384,156 B (82.38 MiB)`; best pagewise bytes = `73,865,679 B (70.44 MiB)`; pagewise savings = `12,946,598 B (12.35 MiB)`.
 

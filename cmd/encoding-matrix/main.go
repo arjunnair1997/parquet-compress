@@ -252,6 +252,7 @@ type pageEncodingDistribution struct {
 	PlainWinsImagePath    string
 	PlainRunTotals        pageEncodingRunTotals
 	RLEDictRunTotals      pageEncodingRunTotals
+	SnappyPlainRunTotals  pageEncodingRunTotals
 	HasBestPagewiseStats  bool
 	Columns               []pageEncodingDistributionColumn
 	ComparedColumns       int
@@ -2529,6 +2530,12 @@ func loadPageEncodingDistribution(cfg config, compression string) (*pageEncoding
 	if err != nil {
 		return nil, err
 	}
+	if compression == "zstd" {
+		distribution.SnappyPlainRunTotals, err = loadPageEncodingRunTotals(cfg, "snappy", "plain")
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &distribution, nil
 }
 
@@ -2875,6 +2882,9 @@ func writeBestPagewiseStrategySummary(md *markdownDoc, distribution pageEncoding
 	if distribution.RLEDictRunTotals.Available {
 		fmt.Fprintf(b, "- RLE dict run markdown: [%s](%s)\n", filepath.Base(distribution.RLEDictRunTotals.MarkdownPath), markdownLinkTarget(reportDir, distribution.RLEDictRunTotals.MarkdownPath))
 	}
+	if distribution.SnappyPlainRunTotals.Available {
+		fmt.Fprintf(b, "- Snappy plain run markdown: [%s](%s)\n", filepath.Base(distribution.SnappyPlainRunTotals.MarkdownPath), markdownLinkTarget(reportDir, distribution.SnappyPlainRunTotals.MarkdownPath))
+	}
 	fmt.Fprintf(b, "\n")
 
 	md.Heading(5, strings.ToUpper(compression)+" Encoded And Compressed Column Sizes")
@@ -2934,6 +2944,27 @@ func writeBestPagewiseStrategySummary(md *markdownDoc, distribution pageEncoding
 		)
 	}
 	fmt.Fprintf(b, "\n")
+	if distribution.SnappyPlainRunTotals.Available && bestParquetBytes > 0 {
+		md.Heading(5, strings.ToUpper(compression)+" Best Vs Snappy Plain Final File Size")
+		fmt.Fprintf(b, "| Strategy | Files | Parquet file bytes | Savings vs snappy + plain file bytes | Ratio vs snappy + plain file bytes |\n")
+		fmt.Fprintf(b, "| --- | ---: | ---: | ---: | ---: |\n")
+		fmt.Fprintf(b, "| `snappy + plain actual` | `%s` | `%s` | `%s` | `%s` |\n",
+			formatCount(distribution.SnappyPlainRunTotals.Files),
+			formatByteCount(distribution.SnappyPlainRunTotals.ParquetFileBytes),
+			formatByteCount(0),
+			formatRatio(1),
+		)
+		fmt.Fprintf(b, "| `best pagewise simulated (%s or %s)` | `%s` | `%s` | `%s` | `%s` |\n",
+			plainLabel,
+			rleDictLabel,
+			formatOptionalCount(plainFiles, distribution.PlainRunTotals.Available),
+			formatByteCount(bestParquetBytes),
+			formatSignedByteCount(distribution.SnappyPlainRunTotals.ParquetFileBytes-bestParquetBytes),
+			formatRatio(ratio(bestParquetBytes, distribution.SnappyPlainRunTotals.ParquetFileBytes)),
+		)
+		fmt.Fprintf(b, "\n")
+		fmt.Fprintf(b, "- Compared to `snappy + plain`, the simulated best ZSTD pagewise strategy is `%s` smaller in final Parquet file bytes, a `%s` reduction.\n\n", formatByteCount(distribution.SnappyPlainRunTotals.ParquetFileBytes-bestParquetBytes), formatPercent(ratio(distribution.SnappyPlainRunTotals.ParquetFileBytes-bestParquetBytes, distribution.SnappyPlainRunTotals.ParquetFileBytes)*100))
+	}
 	fmt.Fprintf(b, "- Page aggregate check: `%s` allocated page bytes = `%s`; `%s` allocated page bytes = `%s`; best pagewise bytes = `%s`; pagewise savings = `%s`.\n\n", plainLabel, formatByteCount(plainAllocatedBytes), rleDictLabel, formatByteCount(rleDictAllocatedBytes), formatByteCount(bestAllocatedBytes), formatByteCount(pageSavings))
 	fmt.Fprintf(b, "- With the simulated best strategy, encoded+compressed column data bytes are `%s` lower than the actual `%s` run, which is a `%s` reduction in column data bytes.\n\n", formatByteCount(plainCompressedDataBytes-bestCompressedDataBytes), plainLabel, formatPercent(ratio(plainCompressedDataBytes-bestCompressedDataBytes, plainCompressedDataBytes)*100))
 }

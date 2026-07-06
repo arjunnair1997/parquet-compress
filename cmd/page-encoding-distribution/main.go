@@ -389,6 +389,13 @@ func run(cfg config) error {
 	if err != nil {
 		return err
 	}
+	var snappyPlainTotals writerRunTotals
+	if cfg.Compression == "zstd" {
+		snappyPlainTotals, err = loadWriterRunTotalsForCompression(cfg, "snappy", "plain")
+		if err != nil {
+			return err
+		}
+	}
 	distributions := compareSnapshots(plainStats, rleStats)
 	sort.Slice(distributions, func(i, j int) bool {
 		if distributions[i].RLEDictRatioAdvantage != distributions[j].RLEDictRatioAdvantage {
@@ -415,7 +422,7 @@ func run(cfg config) error {
 	if err := writeDistributionSVG(plainWinsSVGPath, plainAbsoluteWinRows(distributions), cfg.Compression, fmt.Sprintf("Plain + %s absolute wins by column", strings.ToUpper(cfg.Compression)), "bar width = share of overlap comparison windows won; rows sorted by R agg - P agg"); err != nil {
 		return err
 	}
-	if err := writeMarkdown(mdPath, cfg, plainRun, rleRun, plainTotals, rleTotals, distributions, tsvPath, svgPath, plainWinsSVGPath, started, time.Now()); err != nil {
+	if err := writeMarkdown(mdPath, cfg, plainRun, rleRun, plainTotals, rleTotals, snappyPlainTotals, distributions, tsvPath, svgPath, plainWinsSVGPath, started, time.Now()); err != nil {
 		return err
 	}
 	fmt.Printf("wrote page distribution markdown: %s\n", mdPath)
@@ -523,7 +530,11 @@ func loadStats(path string) (statsSnapshot, error) {
 }
 
 func loadWriterRunTotals(cfg config, encoding string) (writerRunTotals, error) {
-	path, err := findWriterRunMarkdown(cfg, encoding)
+	return loadWriterRunTotalsForCompression(cfg, cfg.Compression, encoding)
+}
+
+func loadWriterRunTotalsForCompression(cfg config, compression, encoding string) (writerRunTotals, error) {
+	path, err := findWriterRunMarkdown(cfg, compression, encoding)
 	if err != nil {
 		return writerRunTotals{}, err
 	}
@@ -560,8 +571,7 @@ func loadWriterRunTotals(cfg config, encoding string) (writerRunTotals, error) {
 	}, nil
 }
 
-func findWriterRunMarkdown(cfg config, encoding string) (string, error) {
-	compression := cfg.Compression
+func findWriterRunMarkdown(cfg config, compression, encoding string) (string, error) {
 	if compression == "zstd" {
 		compression = fmt.Sprintf("zstd-%d", cfg.ZstdLevel)
 	}
@@ -1100,7 +1110,7 @@ func appendRatioSummaryRecord(record []string, summary ratioSummary) []string {
 	)
 }
 
-func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, plainTotals, rleTotals writerRunTotals, rows []columnDistribution, tsvPath, svgPath, plainWinsSVGPath string, started, finished time.Time) error {
+func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, plainTotals, rleTotals, snappyPlainTotals writerRunTotals, rows []columnDistribution, tsvPath, svgPath, plainWinsSVGPath string, started, finished time.Time) error {
 	var b strings.Builder
 	md := newMarkdownDoc(&b)
 	reportDir := filepath.Dir(path)
@@ -1135,7 +1145,7 @@ func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, plainTot
 	fmt.Fprintf(&b, "Size-ratio cells are `min/median/max` values of `compressed bytes after %s / plain uncompressed encoded bytes` for each overlap window. Lower is better; RLE dictionary cells include amortized dictionary bytes in the compressed numerator.\n\n", strings.ToUpper(cfg.Compression))
 	fmt.Fprintf(&b, "`exact_matched_pages` counts only pages where both runs produced the same absolute row range. Exact matches are useful as a sanity check, but the overlap-window distribution is the full comparison when page boundaries differ.\n\n")
 
-	writeBestPagewiseStrategyTables(md, rows, cfg.Compression, plainTotals, rleTotals, reportDir)
+	writeBestPagewiseStrategyTables(md, rows, cfg.Compression, plainTotals, rleTotals, snappyPlainTotals, reportDir)
 
 	md.Heading(2, "Distribution Chart")
 	writeImage(&b, "Page-window winner distribution by column", svgPath, reportDir)
@@ -1197,7 +1207,7 @@ func writeColumnDistributionTable(b *strings.Builder, rows []columnDistribution,
 	fmt.Fprintf(b, "\n")
 }
 
-func writeBestPagewiseStrategyTables(md *markdownDoc, rows []columnDistribution, compression string, plainTotals, rleTotals writerRunTotals, reportDir string) {
+func writeBestPagewiseStrategyTables(md *markdownDoc, rows []columnDistribution, compression string, plainTotals, rleTotals, snappyPlainTotals writerRunTotals, reportDir string) {
 	b := md.b
 	display := strings.ToUpper(compression)
 	plainLabel := compression + " + plain"
@@ -1209,6 +1219,9 @@ func writeBestPagewiseStrategyTables(md *markdownDoc, rows []columnDistribution,
 	}
 	if rleTotals.Available {
 		fmt.Fprintf(b, "- RLE dict run markdown: [%s](%s)\n", filepath.Base(rleTotals.MarkdownPath), markdownLinkTarget(reportDir, rleTotals.MarkdownPath))
+	}
+	if snappyPlainTotals.Available {
+		fmt.Fprintf(b, "- Snappy plain run markdown: [%s](%s)\n", filepath.Base(snappyPlainTotals.MarkdownPath), markdownLinkTarget(reportDir, snappyPlainTotals.MarkdownPath))
 	}
 	fmt.Fprintf(b, "\n")
 
@@ -1296,6 +1309,27 @@ func writeBestPagewiseStrategyTables(md *markdownDoc, rows []columnDistribution,
 		)
 	}
 	fmt.Fprintf(b, "\n")
+	if snappyPlainTotals.Available && bestParquetBytes > 0 {
+		md.Heading(3, "ZSTD Best Vs Snappy Plain Final File Size")
+		fmt.Fprintf(b, "| Strategy | Files | Parquet file bytes | Savings vs snappy + plain file bytes | Ratio vs snappy + plain file bytes |\n")
+		fmt.Fprintf(b, "| --- | ---: | ---: | ---: | ---: |\n")
+		fmt.Fprintf(b, "| `snappy + plain actual` | `%d` | %s | %s | `%s` |\n",
+			snappyPlainTotals.Files,
+			formatBytesRawInt(snappyPlainTotals.ParquetFileBytes),
+			formatBytesRawInt(0),
+			formatRatio(1),
+		)
+		fmt.Fprintf(b, "| `best pagewise simulated (%s or %s)` | `%s` | %s | %s | `%s` |\n",
+			plainLabel,
+			rleLabel,
+			formatOptionalInt(plainFiles, plainTotals.Available),
+			formatBytesRawInt(bestParquetBytes),
+			formatBytesRawInt(snappyPlainTotals.ParquetFileBytes-bestParquetBytes),
+			formatRatio(ratioFloat(float64(bestParquetBytes), float64(snappyPlainTotals.ParquetFileBytes))),
+		)
+		fmt.Fprintf(b, "\n")
+		fmt.Fprintf(b, "- Compared to `snappy + plain`, the simulated best ZSTD pagewise strategy is %s smaller in final Parquet file bytes, a `%s` reduction.\n\n", formatBytesRawInt(snappyPlainTotals.ParquetFileBytes-bestParquetBytes), formatPercent(ratioFloat(float64(snappyPlainTotals.ParquetFileBytes-bestParquetBytes), float64(snappyPlainTotals.ParquetFileBytes))*100))
+	}
 	fmt.Fprintf(b, "- Page aggregate check: `%s` allocated page bytes = %s; `%s` allocated page bytes = %s; best pagewise bytes = %s; pagewise savings = %s.\n\n", plainLabel, formatBytesRawFloat(plainPageBytes), rleLabel, formatBytesRawFloat(rlePageBytes), formatBytesRawFloat(bestPageBytes), formatBytesRawFloat(pageSavings))
 	fmt.Fprintf(b, "- With the simulated best strategy, encoded+compressed column data bytes are %s lower than the actual `%s` run, which is a `%s` reduction in column data bytes.\n\n", formatBytesRawInt(plainCompressedDataBytes-bestCompressedDataBytes), plainLabel, formatPercent(ratioFloat(float64(plainCompressedDataBytes-bestCompressedDataBytes), float64(plainCompressedDataBytes))*100))
 	fmt.Fprintf(b, "_%s note: this is a page-level what-if. It does not prove parquet-go can currently emit mixed encodings per column chunk/page with exactly this final footer layout._\n\n", display)
