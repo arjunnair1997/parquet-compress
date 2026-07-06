@@ -1,5 +1,5 @@
 wrote 1000000 rows into 30 parquet file(s)
-write elapsed: 28.393s
+write elapsed: 27.967s
 source TSV bytes for rows, reference only: 778360762 (742.30 MiB)
 parquet physical bytes before page encoding: 712398624 (679.40 MiB)
 encoded column bytes before codec compression: 194555396 (185.54 MiB)
@@ -13,7 +13,7 @@ max dictionary page size: 256.00 KiB
 output dir: encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/page_encoding_distribution/rle-dict-zstd
 result file: encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/results/page_encoding_distribution/configs/2026-07-05_rows-1000000-comp-zstd-3-int-rle-dict-str-rle-dict-date-rle-dict-ts-rle-dict.md
 writer stats JSON: encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/results/page_encoding_distribution/stats/rle-dict-zstd_writer-stats.json
-verification: passed, 1000000 rows from 30 file(s), 6.962s
+verification: passed, 1000000 rows from 30 file(s), 7.018s
 columns:
   WatchID: type=int64 configured=rle-dict metadata=PLAIN, RLE_DICTIONARY physical=7.63 MiB encoded=9.39 MiB compressed=9.40 MiB physical/encoded=0.812x encoded/compressed=1.000x physical/compressed=0.812x source-reference=18.12 MiB
   JavaEnable: type=int16 configured=rle-dict metadata=PLAIN, RLE_DICTIONARY physical=3.81 MiB encoded=78.17 KiB compressed=50.28 KiB physical/encoded=49.971x encoded/compressed=1.555x physical/compressed=77.694x source-reference=976.56 KiB

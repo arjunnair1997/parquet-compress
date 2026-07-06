@@ -1,5 +1,5 @@
 wrote 1000000 rows into 29 parquet file(s)
-write elapsed: 22.159s
+write elapsed: 22.334s
 source TSV bytes for rows, reference only: 778360762 (742.30 MiB)
 parquet physical bytes before page encoding: 712398624 (679.40 MiB)
 encoded column bytes before codec compression: 825442338 (787.20 MiB)
@@ -13,7 +13,7 @@ max dictionary page size: 256.00 KiB
 output dir: encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/page_encoding_distribution/plain-zstd
 result file: encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/results/page_encoding_distribution/configs/2026-07-05_rows-1000000-comp-zstd-3-int-plain-str-plain-date-plain-ts-plain.md
 writer stats JSON: encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/results/page_encoding_distribution/stats/plain-zstd_writer-stats.json
-verification: passed, 1000000 rows from 29 file(s), 7.527s
+verification: passed, 1000000 rows from 29 file(s), 7.603s
 columns:
   WatchID: type=int64 configured=plain metadata=PLAIN physical=7.63 MiB encoded=7.63 MiB compressed=7.63 MiB physical/encoded=0.999x encoded/compressed=1.000x physical/compressed=0.999x source-reference=18.12 MiB
   JavaEnable: type=int16 configured=plain metadata=PLAIN physical=3.81 MiB encoded=3.82 MiB compressed=62.15 KiB physical/encoded=0.999x encoded/compressed=62.906x physical/compressed=62.850x source-reference=976.56 KiB

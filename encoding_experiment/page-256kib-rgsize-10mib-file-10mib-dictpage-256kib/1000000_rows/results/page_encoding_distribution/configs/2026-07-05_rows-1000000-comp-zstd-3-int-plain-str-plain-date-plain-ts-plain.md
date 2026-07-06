@@ -1,7 +1,8 @@
-# ClickBench Parquet Experiment
+<a id="clickbench-parquet-experiment"></a>
+# ClickBench Parquet Experiment [#](#clickbench-parquet-experiment)
 
-- Started: `2026-07-05T18:27:24-04:00`
-- Write elapsed: `22.159s`
+- Started: `2026-07-05T23:19:05-04:00`
+- Write elapsed: `22.334s`
 - Input: `data/clickbench/hits.tsv.gz`
 - Output directory: `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/page_encoding_distribution/plain-zstd`
 - Rows: `1000000`
@@ -17,7 +18,8 @@
 - Physical/parquet-file ratio: `8.122x`
 - Files: `29`
 
-## Settings
+<a id="settings"></a>
+## Settings [#](#settings)
 
 - Compression: `zstd-3`
 - Int encoding: `plain`
@@ -30,7 +32,8 @@
 - Max row group size: `10.00 MiB`
 - Max file size: `10.00 MiB`
 
-## Schema
+<a id="schema"></a>
+## Schema [#](#schema)
 
 - Columns: `105`, generated from the built-in ClickBench `hits` column list in source TSV field order.
 - Mapping: each input row is split on tabs, and field `N` is written to ClickBench column `N` with the same name.
@@ -46,15 +49,17 @@
 | `timestamp_millis` | `parquet.Timestamp(parquet.Millisecond)` | `INT64` milliseconds since Unix epoch |
 | `string` | `parquet.String()` | `BYTE_ARRAY` UTF-8 string |
 
-## Verification
+<a id="verification"></a>
+## Verification [#](#verification)
 
 - Status: `passed`
 - Rows read and compared: `1000000`
 - Files read: `29`
-- Elapsed: `7.527s`
+- Elapsed: `7.603s`
 - Source TSV bytes checked: `778360762` (742.30 MiB)
 
-## Columns
+<a id="columns"></a>
+## Columns [#](#columns)
 
 Physical bytes are Parquet physical value payloads before page encoding: fixed-width physical sizes for ints, dates, and timestamps, and BYTE_ARRAY payload bytes after TSV unescaping for strings, excluding PLAIN length prefixes. Encoded bytes are Parquet column chunk total uncompressed sizes after Parquet encoding and before the snappy/zstd codec. Compressed bytes are Parquet column chunk total compressed sizes after the codec. Source field bytes are included only as a TSV reference and exclude delimiters and line endings.
 
@@ -168,7 +173,8 @@ Column stats TSV: [2026-07-05_rows-1000000-comp-zstd-3-int-plain-str-plain-date-
 | `URLHash` | `int64` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `8000000` (7.63 MiB) | `8004551` (7.63 MiB) | `3580480` (3.41 MiB) | `0` | `0` (0 B) | `3580480` (3.41 MiB) | `0.999x` | `2.236x` | `2.234x` | `19343177` (18.45 MiB) |
 | `CLID` | `int32` | `plain` | `PLAIN` | `DATA_PAGE_V2/PLAIN:57` | `1000000` | `4000000` (3.81 MiB) | `4003542` (3.82 MiB) | `5641` (5.51 KiB) | `0` | `0` (0 B) | `5641` (5.51 KiB) | `0.999x` | `709.722x` | `709.094x` | `1000380` (976.93 KiB) |
 
-## Files
+<a id="files"></a>
+## Files [#](#files)
 
 - `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/page_encoding_distribution/plain-zstd/part-00000.parquet`: `35889` rows, `2840337` file bytes (2.71 MiB), `27875599` physical bytes (26.58 MiB), `31941149` encoded bytes (30.46 MiB), `2808290` compressed data bytes (2.68 MiB)
 - `encoding_experiment/page-256kib-rgsize-10mib-file-10mib-dictpage-256kib/1000000_rows/parquet/page_encoding_distribution/plain-zstd/part-00001.parquet`: `35984` rows, `2790934` file bytes (2.66 MiB), `27645074` physical bytes (26.36 MiB), `31729973` encoded bytes (30.26 MiB), `2758345` compressed data bytes (2.63 MiB)

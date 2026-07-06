@@ -64,6 +64,15 @@ type writerRun struct {
 	Elapsed   time.Duration
 }
 
+type writerRunTotals struct {
+	MarkdownPath        string
+	EncodedBytes        int64
+	CompressedDataBytes int64
+	ParquetFileBytes    int64
+	Files               int64
+	Available           bool
+}
+
 type statsSnapshot struct {
 	Columns []columnStats `json:"columns"`
 	Errors  []string      `json:"errors,omitempty"`
@@ -181,9 +190,12 @@ type columnDistribution struct {
 	PlainAllocatedBytes         float64
 	RLEDictAllocatedBytes       float64
 	RLEDictNoDictBytes          float64
+	BestAllocatedBytes          float64
+	BestSavingsBytes            float64
 	UncompressedBytes           float64
 	PlainToUncompressedRatio    float64
 	RLEDictToUncompressedRatio  float64
+	BestToUncompressedRatio     float64
 	RLEDictRatioAdvantage       float64
 	AbsoluteRatioDifference     float64
 	PlainTotalPageBytes         float64
@@ -204,6 +216,7 @@ type columnDistribution struct {
 	RLEDictRowWinPct            float64
 	TieRowWinPct                float64
 	RLEDictToPlainRatio         float64
+	BestToPlainRatio            float64
 	RLEDictNoDictToPlainRatio   float64
 	DictOverheadFlipPlainWins   int
 	DictOverheadFlipTieWins     int
@@ -368,6 +381,14 @@ func run(cfg config) error {
 	if err != nil {
 		return err
 	}
+	plainTotals, err := loadWriterRunTotals(cfg, plainRun.Encoding)
+	if err != nil {
+		return err
+	}
+	rleTotals, err := loadWriterRunTotals(cfg, rleRun.Encoding)
+	if err != nil {
+		return err
+	}
 	distributions := compareSnapshots(plainStats, rleStats)
 	sort.Slice(distributions, func(i, j int) bool {
 		if distributions[i].RLEDictRatioAdvantage != distributions[j].RLEDictRatioAdvantage {
@@ -394,7 +415,7 @@ func run(cfg config) error {
 	if err := writeDistributionSVG(plainWinsSVGPath, plainAbsoluteWinRows(distributions), cfg.Compression, fmt.Sprintf("Plain + %s absolute wins by column", strings.ToUpper(cfg.Compression)), "bar width = share of overlap comparison windows won; rows sorted by R agg - P agg"); err != nil {
 		return err
 	}
-	if err := writeMarkdown(mdPath, cfg, plainRun, rleRun, distributions, tsvPath, svgPath, plainWinsSVGPath, started, time.Now()); err != nil {
+	if err := writeMarkdown(mdPath, cfg, plainRun, rleRun, plainTotals, rleTotals, distributions, tsvPath, svgPath, plainWinsSVGPath, started, time.Now()); err != nil {
 		return err
 	}
 	fmt.Printf("wrote page distribution markdown: %s\n", mdPath)
@@ -499,6 +520,89 @@ func loadStats(path string) (statsSnapshot, error) {
 		return statsSnapshot{}, err
 	}
 	return snapshot, nil
+}
+
+func loadWriterRunTotals(cfg config, encoding string) (writerRunTotals, error) {
+	path, err := findWriterRunMarkdown(cfg, encoding)
+	if err != nil {
+		return writerRunTotals{}, err
+	}
+	if path == "" {
+		return writerRunTotals{}, nil
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return writerRunTotals{}, err
+	}
+	encoded, err := markdownMetricInt(data, "Encoded column bytes before codec compression")
+	if err != nil {
+		return writerRunTotals{}, fmt.Errorf("%s: %w", path, err)
+	}
+	compressed, err := markdownMetricInt(data, "Compressed column data bytes after codec compression")
+	if err != nil {
+		return writerRunTotals{}, fmt.Errorf("%s: %w", path, err)
+	}
+	parquetBytes, err := markdownMetricInt(data, "Parquet file bytes")
+	if err != nil {
+		return writerRunTotals{}, fmt.Errorf("%s: %w", path, err)
+	}
+	files, err := markdownMetricInt(data, "Files")
+	if err != nil {
+		return writerRunTotals{}, fmt.Errorf("%s: %w", path, err)
+	}
+	return writerRunTotals{
+		MarkdownPath:        path,
+		EncodedBytes:        encoded,
+		CompressedDataBytes: compressed,
+		ParquetFileBytes:    parquetBytes,
+		Files:               files,
+		Available:           true,
+	}, nil
+}
+
+func findWriterRunMarkdown(cfg config, encoding string) (string, error) {
+	compression := cfg.Compression
+	if compression == "zstd" {
+		compression = fmt.Sprintf("zstd-%d", cfg.ZstdLevel)
+	}
+	pattern := fmt.Sprintf("*_rows-%d-comp-%s-int-%s-str-%s-date-%s-ts-%s.md",
+		cfg.Rows,
+		compression,
+		encoding,
+		encoding,
+		encoding,
+		encoding,
+	)
+	matches, err := filepath.Glob(filepath.Join(cfg.ConfigDir, pattern))
+	if err != nil {
+		return "", err
+	}
+	if len(matches) == 0 {
+		return "", nil
+	}
+	sort.Strings(matches)
+	return matches[len(matches)-1], nil
+}
+
+func markdownMetricInt(data []byte, label string) (int64, error) {
+	prefix := "- " + label + ": `"
+	for _, line := range strings.Split(string(data), "\n") {
+		if !strings.HasPrefix(line, prefix) {
+			continue
+		}
+		value := strings.TrimPrefix(line, prefix)
+		end := strings.IndexByte(value, '`')
+		if end < 0 {
+			break
+		}
+		value = strings.ReplaceAll(value[:end], ",", "")
+		n, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("parse %q: %w", label, err)
+		}
+		return n, nil
+	}
+	return 0, fmt.Errorf("metric %q not found", label)
 }
 
 func compareSnapshots(plain, rle statsSnapshot) []columnDistribution {
@@ -647,6 +751,12 @@ func compareColumn(column, typ string, plainPages, rlePages []pageCost) columnDi
 			dist.RLEDictNoDictBytes += rleNoDictCost
 			dist.UncompressedBytes += plainEncodedCost
 			actualWinner := winner(plainCost, rleCost)
+			if actualWinner == pageWinnerRLEDict {
+				dist.BestAllocatedBytes += rleCost
+				dist.BestSavingsBytes += plainCost - rleCost
+			} else {
+				dist.BestAllocatedBytes += plainCost
+			}
 			noDictWinner := winner(plainCost, rleNoDictCost)
 			if noDictWinner == pageWinnerRLEDict && actualWinner != pageWinnerRLEDict {
 				dist.DictOverheadFlipWins++
@@ -702,6 +812,7 @@ func compareColumn(column, typ string, plainPages, rlePages []pageCost) columnDi
 	}
 	if dist.PlainAllocatedBytes > 0 {
 		dist.RLEDictToPlainRatio = dist.RLEDictAllocatedBytes / dist.PlainAllocatedBytes
+		dist.BestToPlainRatio = dist.BestAllocatedBytes / dist.PlainAllocatedBytes
 		dist.RLEDictNoDictToPlainRatio = dist.RLEDictNoDictBytes / dist.PlainAllocatedBytes
 	}
 	if dist.ComparisonWindows > 0 {
@@ -719,6 +830,7 @@ func compareColumn(column, typ string, plainPages, rlePages []pageCost) columnDi
 	if dist.UncompressedBytes > 0 {
 		dist.PlainToUncompressedRatio = dist.PlainAllocatedBytes / dist.UncompressedBytes
 		dist.RLEDictToUncompressedRatio = dist.RLEDictAllocatedBytes / dist.UncompressedBytes
+		dist.BestToUncompressedRatio = dist.BestAllocatedBytes / dist.UncompressedBytes
 		dist.RLEDictRatioAdvantage = dist.PlainToUncompressedRatio - dist.RLEDictToUncompressedRatio
 		dist.AbsoluteRatioDifference = math.Abs(dist.RLEDictRatioAdvantage)
 	}
@@ -870,9 +982,13 @@ func writeDistributionTSV(path string, rows []columnDistribution, compression st
 		"plain_allocated_compressed_bytes",
 		"rle_dict_allocated_compressed_bytes_with_amortized_dictionary",
 		"rle_dict_allocated_to_plain_ratio",
+		"best_pagewise_allocated_compressed_bytes",
+		"best_pagewise_savings_vs_plain_bytes",
+		"best_pagewise_allocated_to_plain_ratio",
 		"uncompressed_bytes_for_ratio",
 		"plain_" + compression + "_aggregate_to_uncompressed_ratio",
 		"rle_dict_" + compression + "_aggregate_to_uncompressed_ratio",
+		"best_pagewise_" + compression + "_aggregate_to_uncompressed_ratio",
 		"rle_dict_ratio_advantage_vs_plain",
 		"absolute_plain_rle_ratio_difference",
 		"winner_by_allocated_bytes",
@@ -925,9 +1041,13 @@ func writeDistributionTSV(path string, rows []columnDistribution, compression st
 			formatFloat(row.PlainAllocatedBytes),
 			formatFloat(row.RLEDictAllocatedBytes),
 			formatFloat(row.RLEDictToPlainRatio),
+			formatFloat(row.BestAllocatedBytes),
+			formatFloat(row.BestSavingsBytes),
+			formatFloat(row.BestToPlainRatio),
 			formatFloat(row.UncompressedBytes),
 			formatFloat(row.PlainToUncompressedRatio),
 			formatFloat(row.RLEDictToUncompressedRatio),
+			formatFloat(row.BestToUncompressedRatio),
 			formatFloat(row.RLEDictRatioAdvantage),
 			formatFloat(row.AbsoluteRatioDifference),
 			row.WinnerByAllocatedBytes,
@@ -980,7 +1100,7 @@ func appendRatioSummaryRecord(record []string, summary ratioSummary) []string {
 	)
 }
 
-func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, rows []columnDistribution, tsvPath, svgPath, plainWinsSVGPath string, started, finished time.Time) error {
+func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, plainTotals, rleTotals writerRunTotals, rows []columnDistribution, tsvPath, svgPath, plainWinsSVGPath string, started, finished time.Time) error {
 	var b strings.Builder
 	md := newMarkdownDoc(&b)
 	reportDir := filepath.Dir(path)
@@ -1014,6 +1134,8 @@ func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, rows []c
 	fmt.Fprintf(&b, "Red chart segments are windows where `%s` does not win with amortized dictionary-page bytes included, but would win if dictionary-page bytes were excluded. Rows are sorted by `%s aggregate ratio - %s aggregate ratio`, where each aggregate ratio is final encoded-and-compressed page bytes divided by the same plain uncompressed encoded bytes. Larger positive gaps are bigger absolute wins for RLE dictionary.\n\n", encodingCompressionDisplay("rle-dict", cfg.Compression), encodingCompressionDisplay("plain", cfg.Compression), encodingCompressionDisplay("rle-dict", cfg.Compression))
 	fmt.Fprintf(&b, "Size-ratio cells are `min/median/max` values of `compressed bytes after %s / plain uncompressed encoded bytes` for each overlap window. Lower is better; RLE dictionary cells include amortized dictionary bytes in the compressed numerator.\n\n", strings.ToUpper(cfg.Compression))
 	fmt.Fprintf(&b, "`exact_matched_pages` counts only pages where both runs produced the same absolute row range. Exact matches are useful as a sanity check, but the overlap-window distribution is the full comparison when page boundaries differ.\n\n")
+
+	writeBestPagewiseStrategyTables(md, rows, cfg.Compression, plainTotals, rleTotals, reportDir)
 
 	md.Heading(2, "Distribution Chart")
 	writeImage(&b, "Page-window winner distribution by column", svgPath, reportDir)
@@ -1073,6 +1195,119 @@ func writeColumnDistributionTable(b *strings.Builder, rows []columnDistribution,
 		)
 	}
 	fmt.Fprintf(b, "\n")
+}
+
+func writeBestPagewiseStrategyTables(md *markdownDoc, rows []columnDistribution, compression string, plainTotals, rleTotals writerRunTotals, reportDir string) {
+	b := md.b
+	display := strings.ToUpper(compression)
+	plainLabel := compression + " + plain"
+	rleLabel := compression + " + rle-dict"
+	md.Heading(2, "Best Pagewise Strategy")
+	fmt.Fprintf(b, "This simulates a hybrid strategy over the two full runs: use `%s` for every page-window unless `%s` is smaller for that same row span. RLE dictionary costs include amortized dictionary-page bytes. The final file-size row is simulated, not a materialized Parquet file: it keeps the real `%s` file count and non-column-data overhead, then subtracts the measured encoded+compressed page-data savings.\n\n", plainLabel, rleLabel, plainLabel)
+	if plainTotals.Available {
+		fmt.Fprintf(b, "- Plain run markdown: [%s](%s)\n", filepath.Base(plainTotals.MarkdownPath), markdownLinkTarget(reportDir, plainTotals.MarkdownPath))
+	}
+	if rleTotals.Available {
+		fmt.Fprintf(b, "- RLE dict run markdown: [%s](%s)\n", filepath.Base(rleTotals.MarkdownPath), markdownLinkTarget(reportDir, rleTotals.MarkdownPath))
+	}
+	fmt.Fprintf(b, "\n")
+
+	plainPageBytes, rlePageBytes, bestPageBytes := bestStrategyTotals(rows)
+	pageSavings := plainPageBytes - bestPageBytes
+	if pageSavings < 0 {
+		pageSavings = 0
+	}
+	plainCompressedDataBytes := int64(math.Round(plainPageBytes))
+	plainParquetBytes := int64(0)
+	plainFiles := int64(0)
+	if plainTotals.Available {
+		plainCompressedDataBytes = plainTotals.CompressedDataBytes
+		plainParquetBytes = plainTotals.ParquetFileBytes
+		plainFiles = plainTotals.Files
+	}
+	bestCompressedDataBytes := plainCompressedDataBytes - int64(math.Round(pageSavings))
+	if bestCompressedDataBytes < 0 {
+		bestCompressedDataBytes = 0
+	}
+	bestParquetBytes := int64(0)
+	if plainParquetBytes > 0 {
+		bestParquetBytes = plainParquetBytes - int64(math.Round(pageSavings))
+		if bestParquetBytes < 0 {
+			bestParquetBytes = 0
+		}
+	}
+
+	md.Heading(3, "Encoded And Compressed Column Sizes")
+	fmt.Fprintf(b, "| Column | Type | Windows | RLE dict selected windows | RLE dict selected rows | %s encoded+compressed bytes | %s encoded+compressed bytes | Best pagewise encoded+compressed bytes | Savings vs %s | Best/%s |\n", plainLabel, rleLabel, plainLabel, plainLabel)
+	fmt.Fprintf(b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+	columnRows := append([]columnDistribution(nil), rows...)
+	sort.Slice(columnRows, func(i, j int) bool {
+		if columnRows[i].BestSavingsBytes != columnRows[j].BestSavingsBytes {
+			return columnRows[i].BestSavingsBytes > columnRows[j].BestSavingsBytes
+		}
+		return columnRows[i].Column < columnRows[j].Column
+	})
+	for _, row := range columnRows {
+		fmt.Fprintf(b, "| `%s` | `%s` | `%d` | `%d` (%s) | `%d` (%s) | %s | %s | %s | %s | `%s` |\n",
+			row.Column,
+			row.Type,
+			row.ComparisonWindows,
+			row.RLEDictWindowWins,
+			formatPercent(row.RLEDictWindowWinPct),
+			row.RLEDictRowsWon,
+			formatPercent(row.RLEDictRowWinPct),
+			formatBytesRawFloat(row.PlainAllocatedBytes),
+			formatBytesRawFloat(row.RLEDictAllocatedBytes),
+			formatBytesRawFloat(row.BestAllocatedBytes),
+			formatBytesRawFloat(row.BestSavingsBytes),
+			formatRatio(row.BestToPlainRatio),
+		)
+	}
+	fmt.Fprintf(b, "\n")
+
+	md.Heading(3, "Final File Size Simulation")
+	fmt.Fprintf(b, "| Strategy | Files | Encoded+compressed column bytes | Parquet file bytes | Savings vs %s file bytes | Ratio vs %s file bytes |\n", plainLabel, plainLabel)
+	fmt.Fprintf(b, "| --- | ---: | ---: | ---: | ---: | ---: |\n")
+	fmt.Fprintf(b, "| `%s actual` | `%s` | %s | %s | %s | `%s` |\n",
+		plainLabel,
+		formatOptionalInt(plainFiles, plainTotals.Available),
+		formatBytesRawInt(plainCompressedDataBytes),
+		formatOptionalBytesRawInt(plainParquetBytes, plainTotals.Available),
+		formatBytesRawInt(0),
+		formatRatio(1),
+	)
+	fmt.Fprintf(b, "| `best pagewise simulated (%s or %s)` | `%s` | %s | %s | %s | `%s` |\n",
+		plainLabel,
+		rleLabel,
+		formatOptionalInt(plainFiles, plainTotals.Available),
+		formatBytesRawInt(bestCompressedDataBytes),
+		formatOptionalBytesRawInt(bestParquetBytes, plainTotals.Available),
+		formatBytesRawInt(plainParquetBytes-bestParquetBytes),
+		formatRatio(ratioFloat(float64(bestParquetBytes), float64(plainParquetBytes))),
+	)
+	if rleTotals.Available {
+		fmt.Fprintf(b, "| `%s actual, reference only` | `%d` | %s | %s | %s | `%s` |\n",
+			rleLabel,
+			rleTotals.Files,
+			formatBytesRawInt(rleTotals.CompressedDataBytes),
+			formatBytesRawInt(rleTotals.ParquetFileBytes),
+			formatBytesRawInt(plainParquetBytes-rleTotals.ParquetFileBytes),
+			formatRatio(ratioFloat(float64(rleTotals.ParquetFileBytes), float64(plainParquetBytes))),
+		)
+	}
+	fmt.Fprintf(b, "\n")
+	fmt.Fprintf(b, "- Page aggregate check: `%s` allocated page bytes = %s; `%s` allocated page bytes = %s; best pagewise bytes = %s; pagewise savings = %s.\n\n", plainLabel, formatBytesRawFloat(plainPageBytes), rleLabel, formatBytesRawFloat(rlePageBytes), formatBytesRawFloat(bestPageBytes), formatBytesRawFloat(pageSavings))
+	fmt.Fprintf(b, "- With the simulated best strategy, encoded+compressed column data bytes are %s lower than the actual `%s` run, which is a `%s` reduction in column data bytes.\n\n", formatBytesRawInt(plainCompressedDataBytes-bestCompressedDataBytes), plainLabel, formatPercent(ratioFloat(float64(plainCompressedDataBytes-bestCompressedDataBytes), float64(plainCompressedDataBytes))*100))
+	fmt.Fprintf(b, "_%s note: this is a page-level what-if. It does not prove parquet-go can currently emit mixed encodings per column chunk/page with exactly this final footer layout._\n\n", display)
+}
+
+func bestStrategyTotals(rows []columnDistribution) (plainPageBytes, rlePageBytes, bestPageBytes float64) {
+	for _, row := range rows {
+		plainPageBytes += row.PlainAllocatedBytes
+		rlePageBytes += row.RLEDictAllocatedBytes
+		bestPageBytes += row.BestAllocatedBytes
+	}
+	return plainPageBytes, rlePageBytes, bestPageBytes
 }
 
 func writeDistributionSVG(path string, rows []columnDistribution, compression, title, footer string) error {
@@ -1321,6 +1556,13 @@ func formatRatio(v float64) string {
 	return fmt.Sprintf("%.6f", v)
 }
 
+func ratioFloat(numerator, denominator float64) float64 {
+	if denominator == 0 || math.IsNaN(numerator) || math.IsNaN(denominator) || math.IsInf(numerator, 0) || math.IsInf(denominator, 0) {
+		return 0
+	}
+	return numerator / denominator
+}
+
 func formatRatioSummary(summary ratioSummary) string {
 	if summary.Count == 0 {
 		return "n/a"
@@ -1421,6 +1663,35 @@ func formatBytesFloat(v float64) string {
 		return "n/a"
 	}
 	return formatBytes(int64(math.Round(v)))
+}
+
+func formatBytesRawFloat(v float64) string {
+	if math.IsNaN(v) || math.IsInf(v, 0) {
+		return "`n/a`"
+	}
+	return formatBytesRawInt(int64(math.Round(v)))
+}
+
+func formatBytesRawInt(n int64) string {
+	if n < 0 {
+		abs := -n
+		return fmt.Sprintf("`-%d` (-%s)", abs, formatBytes(abs))
+	}
+	return fmt.Sprintf("`%d` (%s)", n, formatBytes(n))
+}
+
+func formatOptionalBytesRawInt(n int64, ok bool) string {
+	if !ok {
+		return "`n/a`"
+	}
+	return formatBytesRawInt(n)
+}
+
+func formatOptionalInt(n int64, ok bool) string {
+	if !ok {
+		return "n/a"
+	}
+	return strconv.FormatInt(n, 10)
 }
 
 func formatBytes(n int64) string {

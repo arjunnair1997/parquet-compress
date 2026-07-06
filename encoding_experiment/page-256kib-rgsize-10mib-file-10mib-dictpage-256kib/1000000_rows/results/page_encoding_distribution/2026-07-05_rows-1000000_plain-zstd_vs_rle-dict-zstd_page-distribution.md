@@ -1,8 +1,8 @@
 <a id="page-level-encoding-distribution"></a>
 # Page-Level Encoding Distribution [#](#page-level-encoding-distribution)
 
-- Started: `2026-07-05T21:33:18-04:00`
-- Elapsed: `261ms`
+- Started: `2026-07-05T23:19:04-04:00`
+- Elapsed: `1m6.41s`
 - Rows: `1000000`
 - Compared configs: `plain + zstd` vs `rle-dict + zstd`
 - Compression: `zstd`
@@ -15,6 +15,8 @@
 - TSV: [2026-07-05_rows-1000000_plain-zstd_vs_rle-dict-zstd_page-distribution.tsv](../../tsvs/page_encoding_distribution/2026-07-05_rows-1000000_plain-zstd_vs_rle-dict-zstd_page-distribution.tsv)
 - Plain stats JSON: [plain-zstd_writer-stats.json](stats/plain-zstd_writer-stats.json)
 - RLE dict stats JSON: [rle-dict-zstd_writer-stats.json](stats/rle-dict-zstd_writer-stats.json)
+- Plain writer elapsed: `30.37s`
+- RLE dict writer elapsed: `35.076s`
 
 <a id="method"></a>
 ## Method [#](#method)
@@ -26,6 +28,140 @@ Red chart segments are windows where `rle-dict + zstd` does not win with amortiz
 Size-ratio cells are `min/median/max` values of `compressed bytes after ZSTD / plain uncompressed encoded bytes` for each overlap window. Lower is better; RLE dictionary cells include amortized dictionary bytes in the compressed numerator.
 
 `exact_matched_pages` counts only pages where both runs produced the same absolute row range. Exact matches are useful as a sanity check, but the overlap-window distribution is the full comparison when page boundaries differ.
+
+<a id="best-pagewise-strategy"></a>
+## Best Pagewise Strategy [#](#best-pagewise-strategy)
+
+This simulates a hybrid strategy over the two full runs: use `zstd + plain` for every page-window unless `zstd + rle-dict` is smaller for that same row span. RLE dictionary costs include amortized dictionary-page bytes. The final file-size row is simulated, not a materialized Parquet file: it keeps the real `zstd + plain` file count and non-column-data overhead, then subtracts the measured encoded+compressed page-data savings.
+
+- Plain run markdown: [2026-07-05_rows-1000000-comp-zstd-3-int-plain-str-plain-date-plain-ts-plain.md](configs/2026-07-05_rows-1000000-comp-zstd-3-int-plain-str-plain-date-plain-ts-plain.md)
+- RLE dict run markdown: [2026-07-05_rows-1000000-comp-zstd-3-int-rle-dict-str-rle-dict-date-rle-dict-ts-rle-dict.md](configs/2026-07-05_rows-1000000-comp-zstd-3-int-rle-dict-str-rle-dict-date-rle-dict-ts-rle-dict.md)
+
+<a id="encoded-and-compressed-column-sizes"></a>
+### Encoded And Compressed Column Sizes [#](#encoded-and-compressed-column-sizes)
+
+| Column | Type | Windows | RLE dict selected windows | RLE dict selected rows | zstd + plain encoded+compressed bytes | zstd + rle-dict encoded+compressed bytes | Best pagewise encoded+compressed bytes | Savings vs zstd + plain | Best/zstd + plain |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `Title` | `STRING` | `635` | `632` (99.53%) | `982209` (98.22%) | `13939135` (13.29 MiB) | `7975230` (7.61 MiB) | `7936989` (7.57 MiB) | `6002146` (5.72 MiB) | `0.569403` |
+| `URL` | `STRING` | `449` | `427` (95.10%) | `955414` (95.54%) | `15306955` (14.60 MiB) | `12707286` (12.12 MiB) | `12638231` (12.05 MiB) | `2668724` (2.55 MiB) | `0.825653` |
+| `Referer` | `STRING` | `411` | `393` (95.62%) | `949767` (94.98%) | `14218039` (13.56 MiB) | `11752116` (11.21 MiB) | `11704391` (11.16 MiB) | `2513648` (2.40 MiB) | `0.823207` |
+| `OriginalURL` | `STRING` | `210` | `172` (81.90%) | `892008` (89.20%) | `5323588` (5.08 MiB) | `4887325` (4.66 MiB) | `4787860` (4.57 MiB) | `535728` (523.17 KiB) | `0.899367` |
+| `TraficSourceID` | `INT(16,true)` | `116` | `115` (99.14%) | `999361` (99.94%) | `288326` (281.57 KiB) | `178371` (174.19 KiB) | `178356` (174.18 KiB) | `109970` (107.39 KiB) | `0.618593` |
+| `HID` | `INT(32,true)` | `116` | `49` (42.24%) | `427540` (42.75%) | `3849795` (3.67 MiB) | `4492493` (4.28 MiB) | `3743108` (3.57 MiB) | `106687` (104.19 KiB) | `0.972288` |
+| `FlashMinor2` | `STRING` | `116` | `116` (100.00%) | `1000000` (100.00%) | `246539` (240.76 KiB) | `146647` (143.21 KiB) | `146647` (143.21 KiB) | `99892` (97.55 KiB) | `0.594823` |
+| `IsRefresh` | `INT(16,true)` | `116` | `112` (96.55%) | `970406` (97.04%) | `178941` (174.75 KiB) | `84103` (82.13 KiB) | `83938` (81.97 KiB) | `95003` (92.78 KiB) | `0.469083` |
+| `SearchPhrase` | `STRING` | `116` | `98` (84.48%) | `854403` (85.44%) | `719930` (703.06 KiB) | `636259` (621.35 KiB) | `633846` (618.99 KiB) | `86084` (84.07 KiB) | `0.880427` |
+| `IsArtifical` | `INT(16,true)` | `116` | `77` (66.38%) | `673889` (67.39%) | `164989` (161.12 KiB) | `82436` (80.50 KiB) | `81790` (79.87 KiB) | `83199` (81.25 KiB) | `0.495732` |
+| `RefererRegionID` | `INT(32,true)` | `116` | `116` (100.00%) | `1000000` (100.00%) | `231356` (225.93 KiB) | `165218` (161.35 KiB) | `165218` (161.35 KiB) | `66138` (64.59 KiB) | `0.714129` |
+| `RefererCategoryID` | `INT(16,true)` | `116` | `115` (99.14%) | `999361` (99.94%) | `275135` (268.69 KiB) | `216084` (211.02 KiB) | `216020` (210.96 KiB) | `59115` (57.73 KiB) | `0.785140` |
+| `UserAgentMinor` | `STRING` | `116` | `116` (100.00%) | `1000000` (100.00%) | `137050` (133.84 KiB) | `83983` (82.01 KiB) | `83983` (82.01 KiB) | `53067` (51.82 KiB) | `0.612791` |
+| `BrowserCountry` | `STRING` | `116` | `116` (100.00%) | `1000000` (100.00%) | `122222` (119.36 KiB) | `69669` (68.04 KiB) | `69669` (68.04 KiB) | `52553` (51.32 KiB) | `0.570020` |
+| `DontCountHits` | `INT(16,true)` | `116` | `76` (65.52%) | `620187` (62.02%) | `82558` (80.62 KiB) | `50501` (49.32 KiB) | `49230` (48.08 KiB) | `33328` (32.55 KiB) | `0.596303` |
+| `Income` | `INT(16,true)` | `116` | `114` (98.28%) | `999193` (99.92%) | `122679` (119.80 KiB) | `89413` (87.32 KiB) | `89406` (87.31 KiB) | `33273` (32.49 KiB) | `0.728777` |
+| `Sex` | `INT(16,true)` | `116` | `116` (100.00%) | `1000000` (100.00%) | `107976` (105.45 KiB) | `80827` (78.93 KiB) | `80827` (78.93 KiB) | `27149` (26.51 KiB) | `0.748564` |
+| `SearchEngineID` | `INT(16,true)` | `116` | `89` (76.72%) | `796751` (79.68%) | `101613` (99.23 KiB) | `76937` (75.13 KiB) | `76319` (74.53 KiB) | `25294` (24.70 KiB) | `0.751078` |
+| `Age` | `INT(16,true)` | `116` | `113` (97.41%) | `982712` (98.27%) | `142624` (139.28 KiB) | `118882` (116.10 KiB) | `118855` (116.07 KiB) | `23769` (23.21 KiB) | `0.833345` |
+| `IsLink` | `INT(16,true)` | `116` | `60` (51.72%) | `494571` (49.46%) | `56781` (55.45 KiB) | `37020` (36.15 KiB) | `36152` (35.30 KiB) | `20629` (20.15 KiB) | `0.636683` |
+| `ResolutionDepth` | `INT(16,true)` | `116` | `107` (92.24%) | `910460` (91.05%) | `82090` (80.17 KiB) | `62736` (61.27 KiB) | `61945` (60.49 KiB) | `20145` (19.67 KiB) | `0.754602` |
+| `SilverlightVersion2` | `INT(16,true)` | `116` | `108` (93.10%) | `940817` (94.08%) | `74028` (72.29 KiB) | `56776` (55.45 KiB) | `56514` (55.19 KiB) | `17514` (17.10 KiB) | `0.763411` |
+| `RefererHash` | `INT(64,true)` | `116` | `9` (7.76%) | `57304` (5.73%) | `2842003` (2.71 MiB) | `3530099` (3.37 MiB) | `2825250` (2.69 MiB) | `16753` (16.36 KiB) | `0.994105` |
+| `FlashMinor` | `INT(16,true)` | `116` | `88` (75.86%) | `770867` (77.09%) | `126766` (123.79 KiB) | `114356` (111.68 KiB) | `110016` (107.44 KiB) | `16750` (16.36 KiB) | `0.867869` |
+| `UserAgent` | `INT(16,true)` | `116` | `80` (68.97%) | `723105` (72.31%) | `135169` (132.00 KiB) | `125928` (122.98 KiB) | `119680` (116.88 KiB) | `15489` (15.13 KiB) | `0.885409` |
+| `URLCategoryID` | `INT(16,true)` | `116` | `109` (93.97%) | `983946` (98.39%) | `87570` (85.52 KiB) | `72205` (70.51 KiB) | `72150` (70.46 KiB) | `15420` (15.06 KiB) | `0.823914` |
+| `ClientTimeZone` | `INT(16,true)` | `116` | `114` (98.28%) | `998685` (99.87%) | `99924` (97.58 KiB) | `85542` (83.54 KiB) | `85497` (83.49 KiB) | `14427` (14.09 KiB) | `0.855624` |
+| `JavaEnable` | `INT(16,true)` | `116` | `103` (88.79%) | `900302` (90.03%) | `63644` (62.15 KiB) | `51484` (50.28 KiB) | `51220` (50.02 KiB) | `12424` (12.13 KiB) | `0.804796` |
+| `SilverlightVersion1` | `INT(16,true)` | `116` | `85` (73.28%) | `730417` (73.04%) | `90600` (88.48 KiB) | `84773` (82.79 KiB) | `81236` (79.33 KiB) | `9364` (9.14 KiB) | `0.896646` |
+| `IsNotBounce` | `INT(16,true)` | `116` | `14` (12.07%) | `125881` (12.59%) | `25193` (24.60 KiB) | `17680` (17.27 KiB) | `15935` (15.56 KiB) | `9258` (9.04 KiB) | `0.632536` |
+| `AdvEngineID` | `INT(16,true)` | `116` | `65` (56.03%) | `568178` (56.82%) | `30696` (29.98 KiB) | `23249` (22.70 KiB) | `22362` (21.84 KiB) | `8334` (8.14 KiB) | `0.728485` |
+| `URLRegionID` | `INT(32,true)` | `116` | `108` (93.10%) | `955523` (95.55%) | `48124` (47.00 KiB) | `40697` (39.74 KiB) | `40599` (39.65 KiB) | `7525` (7.35 KiB) | `0.843625` |
+| `HistoryLength` | `INT(16,true)` | `116` | `27` (23.28%) | `134005` (13.40%) | `55137` (53.84 KiB) | `51071` (49.87 KiB) | `47865` (46.74 KiB) | `7272` (7.10 KiB) | `0.868113` |
+| `FromTag` | `STRING` | `116` | `53` (45.69%) | `427549` (42.75%) | `28372` (27.71 KiB) | `22821` (22.29 KiB) | `21536` (21.03 KiB) | `6836` (6.68 KiB) | `0.759055` |
+| `FlashMajor` | `INT(16,true)` | `116` | `81` (69.83%) | `678186` (67.82%) | `53604` (52.35 KiB) | `49164` (48.01 KiB) | `47100` (46.00 KiB) | `6504` (6.35 KiB) | `0.878668` |
+| `HitColor` | `STRING` | `116` | `69` (59.48%) | `655248` (65.52%) | `29173` (28.49 KiB) | `25054` (24.47 KiB) | `23655` (23.10 KiB) | `5518` (5.39 KiB) | `0.810849` |
+| `HasGCLID` | `INT(16,true)` | `116` | `55` (47.41%) | `495023` (49.50%) | `21186` (20.69 KiB) | `17019` (16.62 KiB) | `15786` (15.42 KiB) | `5400` (5.27 KiB) | `0.745125` |
+| `PageCharset` | `STRING` | `144` | `104` (72.22%) | `686703` (68.67%) | `14612` (14.27 KiB) | `10012` (9.78 KiB) | `9563` (9.34 KiB) | `5049` (4.93 KiB) | `0.654455` |
+| `BrowserLanguage` | `STRING` | `116` | `97` (83.62%) | `891503` (89.15%) | `32361` (31.60 KiB) | `27773` (27.12 KiB) | `27651` (27.00 KiB) | `4710` (4.60 KiB) | `0.854463` |
+| `IsMobile` | `INT(16,true)` | `116` | `83` (71.55%) | `702016` (70.20%) | `28686` (28.01 KiB) | `24770` (24.19 KiB) | `24166` (23.60 KiB) | `4520` (4.41 KiB) | `0.842418` |
+| `UTMCampaign` | `STRING` | `116` | `77` (66.38%) | `636902` (63.69%) | `29858` (29.16 KiB) | `27397` (26.75 KiB) | `25503` (24.91 KiB) | `4355` (4.25 KiB) | `0.854157` |
+| `UTMSource` | `STRING` | `116` | `75` (64.66%) | `632438` (63.24%) | `21033` (20.54 KiB) | `18473` (18.04 KiB) | `17227` (16.82 KiB) | `3806` (3.72 KiB) | `0.819044` |
+| `SilverlightVersion3` | `INT(32,true)` | `116` | `46` (39.66%) | `359420` (35.94%) | `123785` (120.88 KiB) | `124901` (121.97 KiB) | `120464` (117.64 KiB) | `3321` (3.24 KiB) | `0.973168` |
+| `UTMMedium` | `STRING` | `116` | `77` (66.38%) | `671320` (67.13%) | `16986` (16.59 KiB) | `14496` (14.16 KiB) | `13706` (13.38 KiB) | `3280` (3.20 KiB) | `0.806910` |
+| `NetMinor` | `INT(16,true)` | `116` | `58` (50.00%) | `546163` (54.62%) | `24917` (24.33 KiB) | `24001` (23.44 KiB) | `22474` (21.95 KiB) | `2443` (2.39 KiB) | `0.901971` |
+| `MobilePhoneModel` | `STRING` | `116` | `77` (66.38%) | `665863` (66.59%) | `22607` (22.08 KiB) | `20619` (20.14 KiB) | `20203` (19.73 KiB) | `2404` (2.35 KiB) | `0.893682` |
+| `NetMajor` | `INT(16,true)` | `116` | `52` (44.83%) | `499014` (49.90%) | `26145` (25.53 KiB) | `26304` (25.69 KiB) | `24099` (23.53 KiB) | `2046` (2.00 KiB) | `0.921749` |
+| `OpenstatServiceName` | `STRING` | `116` | `81` (69.83%) | `759319` (75.93%) | `19232` (18.78 KiB) | `17819` (17.40 KiB) | `17230` (16.83 KiB) | `2002` (1.96 KiB) | `0.895910` |
+| `OS` | `INT(16,true)` | `116` | `31` (26.72%) | `260125` (26.01%) | `105905` (103.42 KiB) | `121811` (118.96 KiB) | `104070` (101.63 KiB) | `1835` (1.79 KiB) | `0.982673` |
+| `SendTiming` | `INT(32,true)` | `116` | `4` (3.45%) | `37537` (3.75%) | `61444` (60.00 KiB) | `80125` (78.25 KiB) | `59622` (58.22 KiB) | `1822` (1.78 KiB) | `0.970347` |
+| `OpenstatSourceID` | `STRING` | `116` | `53` (45.69%) | `497699` (49.77%) | `13322` (13.01 KiB) | `12930` (12.63 KiB) | `11558` (11.29 KiB) | `1764` (1.72 KiB) | `0.867565` |
+| `UTMTerm` | `STRING` | `116` | `64` (55.17%) | `597723` (59.77%) | `15728` (15.36 KiB) | `16158` (15.78 KiB) | `14115` (13.78 KiB) | `1613` (1.58 KiB) | `0.897457` |
+| `OpenstatCampaignID` | `STRING` | `116` | `66` (56.90%) | `640251` (64.03%) | `16542` (16.15 KiB) | `15897` (15.52 KiB) | `14957` (14.61 KiB) | `1585` (1.55 KiB) | `0.904153` |
+| `OpenstatAdID` | `STRING` | `116` | `70` (60.34%) | `670227` (67.02%) | `19026` (18.58 KiB) | `18400` (17.97 KiB) | `17479` (17.07 KiB) | `1547` (1.51 KiB) | `0.918671` |
+| `UserAgentMajor` | `INT(16,true)` | `116` | `20` (17.24%) | `186636` (18.66%) | `154189` (150.58 KiB) | `180166` (175.94 KiB) | `152823` (149.24 KiB) | `1366` (1.33 KiB) | `0.991141` |
+| `FetchTiming` | `INT(32,true)` | `116` | `2` (1.72%) | `7594` (0.76%) | `549819` (536.93 KiB) | `695763` (679.46 KiB) | `548560` (535.70 KiB) | `1259` (1.23 KiB) | `0.997711` |
+| `UTMContent` | `STRING` | `116` | `51` (43.97%) | `422613` (42.26%) | `13966` (13.64 KiB) | `15105` (14.75 KiB) | `13057` (12.75 KiB) | `909` (909 B) | `0.934884` |
+| `WindowName` | `INT(32,true)` | `116` | `18` (15.52%) | `50833` (5.08%) | `70817` (69.16 KiB) | `148984` (145.49 KiB) | `70003` (68.36 KiB) | `814` (814 B) | `0.988511` |
+| `MobilePhone` | `INT(16,true)` | `116` | `37` (31.90%) | `285788` (28.58%) | `22518` (21.99 KiB) | `24212` (23.64 KiB) | `21802` (21.29 KiB) | `716` (716 B) | `0.968207` |
+| `DNSTiming` | `INT(32,true)` | `116` | `14` (12.07%) | `108974` (10.90%) | `135564` (132.39 KiB) | `158368` (154.66 KiB) | `134859` (131.70 KiB) | `705` (705 B) | `0.994799` |
+| `ResolutionWidth` | `INT(16,true)` | `116` | `14` (12.07%) | `131749` (13.17%) | `187141` (182.75 KiB) | `205670` (200.85 KiB) | `186466` (182.10 KiB) | `675` (675 B) | `0.996393` |
+| `ResponseEndTiming` | `INT(32,true)` | `116` | `4` (3.45%) | `7404` (0.74%) | `937782` (915.80 KiB) | `1056836` (1.01 MiB) | `937313` (915.34 KiB) | `469` (469 B) | `0.999500` |
+| `ResolutionHeight` | `INT(16,true)` | `116` | `5` (4.31%) | `39539` (3.95%) | `186024` (181.66 KiB) | `208351` (203.47 KiB) | `185731` (181.38 KiB) | `293` (293 B) | `0.998423` |
+| `IsDownload` | `INT(16,true)` | `116` | `20` (17.24%) | `147153` (14.72%) | `8096` (7.91 KiB) | `9596` (9.37 KiB) | `7862` (7.68 KiB) | `234` (234 B) | `0.971090` |
+| `SocialSourcePage` | `STRING` | `116` | `14` (12.07%) | `37129` (3.71%) | `4856` (4.74 KiB) | `6940` (6.78 KiB) | `4760` (4.65 KiB) | `96` (96 B) | `0.980188` |
+| `RemoteIP` | `INT(32,true)` | `116` | `2` (1.72%) | `11358` (1.14%) | `426607` (416.61 KiB) | `701005` (684.58 KiB) | `426522` (416.53 KiB) | `85` (85 B) | `0.999801` |
+| `CookieEnable` | `INT(16,true)` | `116` | `14` (12.07%) | `41775` (4.18%) | `6094` (5.95 KiB) | `7425` (7.25 KiB) | `6030` (5.89 KiB) | `64` (64 B) | `0.989523` |
+| `ConnectTiming` | `INT(32,true)` | `116` | `9` (7.76%) | `20902` (2.09%) | `333314` (325.50 KiB) | `380387` (371.47 KiB) | `333253` (325.44 KiB) | `61` (61 B) | `0.999817` |
+| `CodeVersion` | `INT(32,true)` | `116` | `13` (11.21%) | `46845` (4.68%) | `7064` (6.90 KiB) | `8314` (8.12 KiB) | `7013` (6.85 KiB) | `51` (51 B) | `0.992733` |
+| `JavascriptEnable` | `INT(16,true)` | `116` | `15` (12.93%) | `65311` (6.53%) | `6510` (6.36 KiB) | `7740` (7.56 KiB) | `6459` (6.31 KiB) | `51` (51 B) | `0.992158` |
+| `CLID` | `INT(32,true)` | `116` | `7` (6.03%) | `48588` (4.86%) | `5641` (5.51 KiB) | `7234` (7.06 KiB) | `5599` (5.47 KiB) | `42` (42 B) | `0.992599` |
+| `ParamCurrency` | `STRING` | `116` | `1` (0.86%) | `3983` (0.40%) | `5261` (5.14 KiB) | `6232` (6.09 KiB) | `5237` (5.11 KiB) | `24` (24 B) | `0.995422` |
+| `CounterID` | `INT(32,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4941` (4.83 KiB) | `6343` (6.19 KiB) | `4917` (4.80 KiB) | `24` (24 B) | `0.995242` |
+| `EventDate` | `DATE` | `116` | `1` (0.86%) | `3983` (0.40%) | `4923` (4.81 KiB) | `6292` (6.14 KiB) | `4899` (4.78 KiB) | `24` (24 B) | `0.995224` |
+| `GoodEvent` | `INT(16,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4925` (4.81 KiB) | `6292` (6.14 KiB) | `4901` (4.79 KiB) | `24` (24 B) | `0.995226` |
+| `RegionID` | `INT(32,true)` | `116` | `1` (0.86%) | `8395` (0.84%) | `191174` (186.69 KiB) | `248192` (242.38 KiB) | `191151` (186.67 KiB) | `23` (23 B) | `0.999881` |
+| `Robotness` | `INT(16,true)` | `116` | `1` (0.86%) | `1411` (0.14%) | `173697` (169.63 KiB) | `243015` (237.32 KiB) | `173680` (169.61 KiB) | `17` (17 B) | `0.999905` |
+| `ParamPrice` | `INT(64,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `5725` (5.59 KiB) | `7492` (7.32 KiB) | `5709` (5.58 KiB) | `16` (16 B) | `0.997198` |
+| `SocialSourceNetworkID` | `INT(16,true)` | `116` | `4` (3.45%) | `4533` (0.45%) | `5318` (5.19 KiB) | `7223` (7.05 KiB) | `5305` (5.18 KiB) | `13` (13 B) | `0.997586` |
+| `CounterClass` | `INT(16,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4240` (4.14 KiB) | `6292` (6.14 KiB) | `4227` (4.13 KiB) | `13` (13 B) | `0.997049` |
+| `HTTPError` | `INT(16,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4240` (4.14 KiB) | `6292` (6.14 KiB) | `4227` (4.13 KiB) | `13` (13 B) | `0.997049` |
+| `IsEvent` | `INT(16,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4240` (4.14 KiB) | `6292` (6.14 KiB) | `4227` (4.13 KiB) | `13` (13 B) | `0.997049` |
+| `IsOldCounter` | `INT(16,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4240` (4.14 KiB) | `6292` (6.14 KiB) | `4227` (4.13 KiB) | `13` (13 B) | `0.997049` |
+| `IsParameter` | `INT(16,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4240` (4.14 KiB) | `6292` (6.14 KiB) | `4227` (4.13 KiB) | `13` (13 B) | `0.997049` |
+| `OpenerName` | `INT(32,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4239` (4.14 KiB) | `6292` (6.14 KiB) | `4226` (4.13 KiB) | `13` (13 B) | `0.997049` |
+| `ParamCurrencyID` | `INT(16,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4240` (4.14 KiB) | `6292` (6.14 KiB) | `4227` (4.13 KiB) | `13` (13 B) | `0.997049` |
+| `SilverlightVersion4` | `INT(16,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4368` (4.27 KiB) | `6401` (6.25 KiB) | `4355` (4.25 KiB) | `13` (13 B) | `0.997136` |
+| `WithHash` | `INT(16,true)` | `116` | `1` (0.86%) | `3983` (0.40%) | `4240` (4.14 KiB) | `6292` (6.14 KiB) | `4227` (4.13 KiB) | `13` (13 B) | `0.997049` |
+| `ResponseStartTiming` | `INT(32,true)` | `116` | `1` (0.86%) | `168` (0.02%) | `1245891` (1.19 MiB) | `1587891` (1.51 MiB) | `1245889` (1.19 MiB) | `2` (2 B) | `0.999998` |
+| `ClientEventTime` | `TIMESTAMP(isAdjustedToUTC=true,unit=MILLIS)` | `116` | `0` (0.00%) | `0` (0.00%) | `2475752` (2.36 MiB) | `3958950` (3.78 MiB) | `2475752` (2.36 MiB) | `0` (0 B) | `1.000000` |
+| `ClientIP` | `INT(32,true)` | `116` | `0` (0.00%) | `0` (0.00%) | `408069` (398.50 KiB) | `813095` (794.04 KiB) | `408069` (398.50 KiB) | `0` (0 B) | `1.000000` |
+| `EventTime` | `TIMESTAMP(isAdjustedToUTC=true,unit=MILLIS)` | `116` | `0` (0.00%) | `0` (0.00%) | `2517896` (2.40 MiB) | `4021665` (3.84 MiB) | `2517896` (2.40 MiB) | `0` (0 B) | `1.000000` |
+| `FUniqID` | `INT(64,true)` | `116` | `0` (0.00%) | `0` (0.00%) | `694033` (677.77 KiB) | `1065272` (1.02 MiB) | `694033` (677.77 KiB) | `0` (0 B) | `1.000000` |
+| `IPNetworkID` | `INT(32,true)` | `116` | `0` (0.00%) | `0` (0.00%) | `323783` (316.19 KiB) | `623466` (608.85 KiB) | `323783` (316.19 KiB) | `0` (0 B) | `1.000000` |
+| `Interests` | `INT(16,true)` | `116` | `0` (0.00%) | `0` (0.00%) | `193520` (188.98 KiB) | `310229` (302.96 KiB) | `193520` (188.98 KiB) | `0` (0 B) | `1.000000` |
+| `LocalEventTime` | `TIMESTAMP(isAdjustedToUTC=true,unit=MILLIS)` | `116` | `0` (0.00%) | `0` (0.00%) | `2520192` (2.40 MiB) | `4023641` (3.84 MiB) | `2520192` (2.40 MiB) | `0` (0 B) | `1.000000` |
+| `ParamOrderID` | `STRING` | `116` | `0` (0.00%) | `0` (0.00%) | `2872` (2.80 KiB) | `5332` (5.21 KiB) | `2872` (2.80 KiB) | `0` (0 B) | `1.000000` |
+| `Params` | `STRING` | `116` | `0` (0.00%) | `0` (0.00%) | `2872` (2.80 KiB) | `5332` (5.21 KiB) | `2872` (2.80 KiB) | `0` (0 B) | `1.000000` |
+| `SocialAction` | `STRING` | `116` | `0` (0.00%) | `0` (0.00%) | `2872` (2.80 KiB) | `5332` (5.21 KiB) | `2872` (2.80 KiB) | `0` (0 B) | `1.000000` |
+| `SocialNetwork` | `STRING` | `116` | `0` (0.00%) | `0` (0.00%) | `2872` (2.80 KiB) | `5332` (5.21 KiB) | `2872` (2.80 KiB) | `0` (0 B) | `1.000000` |
+| `URLHash` | `INT(64,true)` | `116` | `0` (0.00%) | `0` (0.00%) | `3580480` (3.41 MiB) | `4558127` (4.35 MiB) | `3580480` (3.41 MiB) | `0` (0 B) | `1.000000` |
+| `UserID` | `INT(64,true)` | `116` | `0` (0.00%) | `0` (0.00%) | `618298` (603.81 KiB) | `1106815` (1.06 MiB) | `618298` (603.81 KiB) | `0` (0 B) | `1.000000` |
+| `WatchID` | `INT(64,true)` | `116` | `0` (0.00%) | `0` (0.00%) | `8005365` (7.63 MiB) | `9852495` (9.40 MiB) | `8005365` (7.63 MiB) | `0` (0 B) | `1.000000` |
+| `WindowClientHeight` | `INT(16,true)` | `116` | `0` (0.00%) | `0` (0.00%) | `319807` (312.31 KiB) | `591986` (578.11 KiB) | `319807` (312.31 KiB) | `0` (0 B) | `1.000000` |
+| `WindowClientWidth` | `INT(16,true)` | `116` | `0` (0.00%) | `0` (0.00%) | `305751` (298.58 KiB) | `475942` (464.79 KiB) | `305751` (298.58 KiB) | `0` (0 B) | `1.000000` |
+
+<a id="final-file-size-simulation"></a>
+### Final File Size Simulation [#](#final-file-size-simulation)
+
+| Strategy | Files | Encoded+compressed column bytes | Parquet file bytes | Savings vs zstd + plain file bytes | Ratio vs zstd + plain file bytes |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `zstd + plain actual` | `29` | `86812277` (82.79 MiB) | `87711727` (83.65 MiB) | `0` (0 B) | `1.000000` |
+| `best pagewise simulated (zstd + plain or zstd + rle-dict)` | `29` | `73865679` (70.44 MiB) | `74765129` (71.30 MiB) | `12946598` (12.35 MiB) | `0.852396` |
+| `zstd + rle-dict actual, reference only` | `30` | `86384156` (82.38 MiB) | `87339116` (83.29 MiB) | `372611` (363.88 KiB) | `0.995752` |
+
+- Page aggregate check: `zstd + plain` allocated page bytes = `86812277` (82.79 MiB); `zstd + rle-dict` allocated page bytes = `86384156` (82.38 MiB); best pagewise bytes = `73865679` (70.44 MiB); pagewise savings = `12946598` (12.35 MiB).
+
+- With the simulated best strategy, encoded+compressed column data bytes are `12946598` (12.35 MiB) lower than the actual `zstd + plain` run, which is a `14.91%` reduction in column data bytes.
+
+_ZSTD note: this is a page-level what-if. It does not prove parquet-go can currently emit mixed encodings per column chunk/page with exactly this final footer layout._
 
 <a id="distribution-chart"></a>
 ## Distribution Chart [#](#distribution-chart)
