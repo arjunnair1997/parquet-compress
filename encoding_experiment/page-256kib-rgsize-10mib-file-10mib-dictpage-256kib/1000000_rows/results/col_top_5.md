@@ -85,14 +85,14 @@ For each column, this compares the best observed `zstd + plain` compressed byte 
 
 These are overall column-level comparisons, not page-window comparisons. `zstd + plain` is the all-plain run for every type group, and `zstd + rle-dict` is the all-rle-dict run for every type group. The ratio denominator is the same for both sides: the all-plain/no-compression Parquet encoded byte count for that column. Absolute difference is `abs((zstd + plain compressed bytes / plain uncompressed encoded bytes) - (zstd + rle-dict compressed bytes / plain uncompressed encoded bytes))`.
 
-`zstd + rle-dict / zstd + plain final bytes` is `zstd + rle-dict compressed bytes / zstd + plain compressed bytes`, after Parquet encoding and codec compression.
+The added ratio column is `zstd + rle-dict encoded+compressed bytes / zstd + plain encoded+compressed bytes` for the same column.
 
 - Compared columns: `105`; `zstd + rle-dict` better: `47`; `zstd + plain` better: `58`; ties: `0`; missing comparisons: `0`
 
 <a id="zstd-rle-dict-better-by-absolute-difference"></a>
 #### ZSTD RLE Dict Better By Absolute Difference [#](#zstd-rle-dict-better-by-absolute-difference)
 
-| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | zstd + plain compressed bytes | zstd + rle-dict compressed bytes | zstd + plain ratio | zstd + rle-dict ratio | Absolute difference | zstd + rle-dict / zstd + plain final bytes |
+| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | zstd + plain compressed bytes | zstd + rle-dict compressed bytes | zstd + plain ratio | zstd + rle-dict ratio | Absolute difference | zstd + rle-dict encoded+compressed / zstd + plain encoded+compressed |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | `Title` | `string` | 0.831473% | 19.316254% | 21.464368% | 142,885,454 B (136.27 MiB) | 13,939,135 B (13.29 MiB) | 7,975,230 B (7.61 MiB) | `0.097555` | `0.055816` | `0.041739` | `0.572147` |
 | `Referer` | `string` | 2.814815% | 22.063723% | 44.766506% | 83,647,157 B (79.77 MiB) | 14,218,039 B (13.56 MiB) | 11,752,116 B (11.21 MiB) | `0.169976` | `0.140496` | `0.029480` | `0.826564` |
@@ -145,7 +145,7 @@ These are overall column-level comparisons, not page-window comparisons. `zstd +
 <a id="zstd-plain-better-by-absolute-difference"></a>
 #### ZSTD Plain Better By Absolute Difference [#](#zstd-plain-better-by-absolute-difference)
 
-| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | zstd + plain compressed bytes | zstd + rle-dict compressed bytes | zstd + plain ratio | zstd + rle-dict ratio | Absolute difference | zstd + rle-dict / zstd + plain final bytes |
+| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | zstd + plain compressed bytes | zstd + rle-dict compressed bytes | zstd + plain ratio | zstd + rle-dict ratio | Absolute difference | zstd + rle-dict encoded+compressed / zstd + plain encoded+compressed |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | `WatchID` | `int64` | 100.000000% | 100.000000% | 100.000000% | 8,006,312 B (7.64 MiB) | 8,005,365 B (7.63 MiB) | 9,852,495 B (9.40 MiB) | `0.999882` | `1.230591` | `0.230709` | `1.230737` |
 | `EventTime` | `timestamp_millis` | 50.744627% | 52.788728% | 94.761138% | 8,006,315 B (7.64 MiB) | 2,517,896 B (2.40 MiB) | 4,021,665 B (3.84 MiB) | `0.314489` | `0.502312` | `0.187823` | `1.597232` |
@@ -749,14 +749,14 @@ For each column, this compares the best observed `snappy + plain` compressed byt
 
 These are overall column-level comparisons, not page-window comparisons. `snappy + plain` is the all-plain run for every type group, and `snappy + rle-dict` is the all-rle-dict run for every type group. The ratio denominator is the same for both sides: the all-plain/no-compression Parquet encoded byte count for that column. Absolute difference is `abs((snappy + plain compressed bytes / plain uncompressed encoded bytes) - (snappy + rle-dict compressed bytes / plain uncompressed encoded bytes))`.
 
-`snappy + rle-dict / snappy + plain final bytes` is `snappy + rle-dict compressed bytes / snappy + plain compressed bytes`, after Parquet encoding and codec compression.
+The added ratio column is `snappy + rle-dict encoded+compressed bytes / snappy + plain encoded+compressed bytes` for the same column.
 
 - Compared columns: `105`; `snappy + rle-dict` better: `93`; `snappy + plain` better: `12`; ties: `0`; missing comparisons: `0`
 
 <a id="snappy-rle-dict-better-by-absolute-difference"></a>
 #### SNAPPY RLE Dict Better By Absolute Difference [#](#snappy-rle-dict-better-by-absolute-difference)
 
-| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | snappy + plain compressed bytes | snappy + rle-dict compressed bytes | snappy + plain ratio | snappy + rle-dict ratio | Absolute difference | snappy + rle-dict / snappy + plain final bytes |
+| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | snappy + plain compressed bytes | snappy + rle-dict compressed bytes | snappy + plain ratio | snappy + rle-dict ratio | Absolute difference | snappy + rle-dict encoded+compressed / snappy + plain encoded+compressed |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | `IsArtifical` | `int16` | 0.014083% | 0.016753% | 0.021471% | 4,005,048 B (3.82 MiB) | 505,868 B (494.01 KiB) | 81,722 B (79.81 KiB) | `0.126308` | `0.020405` | `0.105903` | `0.161548` |
 | `IsRefresh` | `int16` | 0.014083% | 0.016753% | 0.021471% | 4,005,051 B (3.82 MiB) | 492,036 B (480.50 KiB) | 89,066 B (86.98 KiB) | `0.122854` | `0.022238` | `0.100615` | `0.181015` |
@@ -855,7 +855,7 @@ These are overall column-level comparisons, not page-window comparisons. `snappy
 <a id="snappy-plain-better-by-absolute-difference"></a>
 #### SNAPPY Plain Better By Absolute Difference [#](#snappy-plain-better-by-absolute-difference)
 
-| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | snappy + plain compressed bytes | snappy + rle-dict compressed bytes | snappy + plain ratio | snappy + rle-dict ratio | Absolute difference | snappy + rle-dict / snappy + plain final bytes |
+| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | snappy + plain compressed bytes | snappy + rle-dict compressed bytes | snappy + plain ratio | snappy + rle-dict ratio | Absolute difference | snappy + rle-dict encoded+compressed / snappy + plain encoded+compressed |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | `WatchID` | `int64` | 100.000000% | 100.000000% | 100.000000% | 8,006,312 B (7.64 MiB) | 8,005,306 B (7.63 MiB) | 9,827,003 B (9.37 MiB) | `0.999874` | `1.227407` | `0.227533` | `1.227561` |
 | `HID` | `int32` | 49.311946% | 50.165633% | 94.235105% | 4,005,051 B (3.82 MiB) | 3,688,228 B (3.52 MiB) | 4,468,496 B (4.26 MiB) | `0.920894` | `1.115715` | `0.194821` | `1.211556` |
