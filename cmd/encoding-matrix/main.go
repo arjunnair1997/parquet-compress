@@ -425,14 +425,18 @@ type overallAbsoluteDifferenceComparison struct {
 }
 
 type overallAbsoluteDifferenceRow struct {
-	Column             string
-	Type               string
-	UncompressedBytes  int64
-	PlainBytes         int64
-	RLEDictBytes       int64
-	PlainRatio         float64
-	RLEDictRatio       float64
-	AbsoluteDifference float64
+	Column                 string
+	Type                   string
+	HasShapeStats          bool
+	CardinalityRatioMin    float64
+	CardinalityRatioMedian float64
+	CardinalityRatioMax    float64
+	UncompressedBytes      int64
+	PlainBytes             int64
+	RLEDictBytes           int64
+	PlainRatio             float64
+	RLEDictRatio           float64
+	AbsoluteDifference     float64
 }
 
 type compressionRatioColorBucket struct {
@@ -2006,7 +2010,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	fmt.Fprintf(&b, "For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.\n\n")
 	writeShapeImage(&b, "ZSTD plain versus RLE dictionary improvement distribution", zstdComparisonPath, reportDir)
 	writeZstdPlainRLEDictComparisonTable(&b, zstdComparison)
-	writeOverallAbsoluteDifferenceComparison(md, buildOverallPlainRLEDictAbsoluteDifference(byColumn, "zstd"))
+	writeOverallAbsoluteDifferenceComparison(md, buildOverallPlainRLEDictAbsoluteDifference(byColumn, shapeByColumn, "zstd"))
 	pageDistribution, err := loadPageEncodingDistribution(cfg, "zstd")
 	if err != nil {
 		return err
@@ -2071,7 +2075,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	writeSnappyRLEDictBetterComparisonTable(&b, snappyComparison)
 	writeShapeImage(&b, "Snappy plain improvement over RLE dictionary", snappyPlainBetterPath, reportDir)
 	writeSnappyPlainBetterComparisonTable(&b, snappyComparison)
-	writeOverallAbsoluteDifferenceComparison(md, buildOverallPlainRLEDictAbsoluteDifference(byColumn, "snappy"))
+	writeOverallAbsoluteDifferenceComparison(md, buildOverallPlainRLEDictAbsoluteDifference(byColumn, shapeByColumn, "snappy"))
 	snappyPageDistribution, err := loadPageEncodingDistribution(cfg, "snappy")
 	if err != nil {
 		return err
@@ -3841,7 +3845,7 @@ func writeSnappyPlainBetterComparisonSVG(path string, summary snappyPlainRLEDict
 	)
 }
 
-func buildOverallPlainRLEDictAbsoluteDifference(byColumn map[string][]columnObservation, compression string) overallAbsoluteDifferenceComparison {
+func buildOverallPlainRLEDictAbsoluteDifference(byColumn map[string][]columnObservation, shapeByColumn map[string]columnShapeStats, compression string) overallAbsoluteDifferenceComparison {
 	summary := overallAbsoluteDifferenceComparison{
 		Compression: compression,
 	}
@@ -3853,17 +3857,22 @@ func buildOverallPlainRLEDictAbsoluteDifference(byColumn map[string][]columnObse
 			continue
 		}
 		summary.ComparedColumns++
+		cardinalityRatioMin, cardinalityRatioMedian, cardinalityRatioMax, hasShapeStats := rowGroupCardinalityRatioSummary(shapeByColumn[plain.Column.Column])
 		plainRatio := ratio(plain.Column.CompressedBytes, plain.BaselineEncodedBytes)
 		rleDictRatio := ratio(rleDict.Column.CompressedBytes, plain.BaselineEncodedBytes)
 		row := overallAbsoluteDifferenceRow{
-			Column:             plain.Column.Column,
-			Type:               plain.Column.Type,
-			UncompressedBytes:  plain.BaselineEncodedBytes,
-			PlainBytes:         plain.Column.CompressedBytes,
-			RLEDictBytes:       rleDict.Column.CompressedBytes,
-			PlainRatio:         plainRatio,
-			RLEDictRatio:       rleDictRatio,
-			AbsoluteDifference: math.Abs(plainRatio - rleDictRatio),
+			Column:                 plain.Column.Column,
+			Type:                   plain.Column.Type,
+			HasShapeStats:          hasShapeStats,
+			CardinalityRatioMin:    cardinalityRatioMin,
+			CardinalityRatioMedian: cardinalityRatioMedian,
+			CardinalityRatioMax:    cardinalityRatioMax,
+			UncompressedBytes:      plain.BaselineEncodedBytes,
+			PlainBytes:             plain.Column.CompressedBytes,
+			RLEDictBytes:           rleDict.Column.CompressedBytes,
+			PlainRatio:             plainRatio,
+			RLEDictRatio:           rleDictRatio,
+			AbsoluteDifference:     math.Abs(plainRatio - rleDictRatio),
 		}
 		switch {
 		case rleDictRatio < plainRatio:
@@ -3891,6 +3900,24 @@ func exactEncodingComboObservationFor(observations []columnObservation, compress
 		}
 	}
 	return columnObservation{}, false
+}
+
+func rowGroupCardinalityRatioSummary(shape columnShapeStats) (float64, float64, float64, bool) {
+	if len(shape.RowGroups) == 0 {
+		return 0, 0, 0, false
+	}
+	ratios := make([]float64, 0, len(shape.RowGroups))
+	for _, rowGroup := range shape.RowGroups {
+		if rowGroup.NumRows <= 0 {
+			continue
+		}
+		ratios = append(ratios, float64(rowGroup.Cardinality)/float64(rowGroup.NumRows))
+	}
+	if len(ratios) == 0 {
+		return 0, 0, 0, false
+	}
+	minValue, medianValue, maxValue := summarizeFloat64(ratios)
+	return minValue, medianValue, maxValue, true
 }
 
 func sortOverallAbsoluteDifferenceRows(rows []overallAbsoluteDifferenceRow) {
@@ -3929,12 +3956,15 @@ func writeOverallAbsoluteDifferenceRows(b *strings.Builder, rows []overallAbsolu
 		fmt.Fprintf(b, "No columns.\n\n")
 		return
 	}
-	fmt.Fprintf(b, "| Column | Type | Plain uncompressed encoded bytes | %s compressed bytes | %s compressed bytes | %s ratio | %s ratio | Absolute difference |\n", plainLabel, rleDictLabel, plainLabel, rleDictLabel)
-	fmt.Fprintf(b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+	fmt.Fprintf(b, "| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | %s compressed bytes | %s compressed bytes | %s ratio | %s ratio | Absolute difference |\n", plainLabel, rleDictLabel, plainLabel, rleDictLabel)
+	fmt.Fprintf(b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
 	for _, row := range rows {
-		fmt.Fprintf(b, "| `%s` | `%s` | %s | %s | %s | `%s` | `%s` | `%s` |\n",
+		fmt.Fprintf(b, "| `%s` | `%s` | %s | %s | %s | %s | %s | %s | `%s` | `%s` | `%s` |\n",
 			row.Column,
 			row.Type,
+			optionalPercentMarkdown(row.CardinalityRatioMin*100, row.HasShapeStats),
+			optionalPercentMarkdown(row.CardinalityRatioMedian*100, row.HasShapeStats),
+			optionalPercentMarkdown(row.CardinalityRatioMax*100, row.HasShapeStats),
 			formatByteCount(row.UncompressedBytes),
 			formatByteCount(row.PlainBytes),
 			formatByteCount(row.RLEDictBytes),

@@ -1,9 +1,9 @@
 <a id="encoding-matrix-summary"></a>
 # Encoding Matrix Summary [#](#encoding-matrix-summary)
 
-- Started: `2026-07-05T22:42:26-04:00`
-- Finished: `2026-07-05T22:42:29-04:00`
-- Elapsed: `2.865s`
+- Started: `2026-07-05T22:49:35-04:00`
+- Finished: `2026-07-05T22:49:38-04:00`
+- Elapsed: `2.954s`
 - Rows per experiment: `1000000`
 - Experiments: `324`
 - Parallelism: `4`
