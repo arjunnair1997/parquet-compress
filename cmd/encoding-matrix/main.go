@@ -436,6 +436,7 @@ type overallAbsoluteDifferenceRow struct {
 	RLEDictBytes           int64
 	PlainRatio             float64
 	RLEDictRatio           float64
+	RLEDictToPlainRatio    float64
 	AbsoluteDifference     float64
 }
 
@@ -3872,6 +3873,7 @@ func buildOverallPlainRLEDictAbsoluteDifference(byColumn map[string][]columnObse
 			RLEDictBytes:           rleDict.Column.CompressedBytes,
 			PlainRatio:             plainRatio,
 			RLEDictRatio:           rleDictRatio,
+			RLEDictToPlainRatio:    ratio(rleDict.Column.CompressedBytes, plain.Column.CompressedBytes),
 			AbsoluteDifference:     math.Abs(plainRatio - rleDictRatio),
 		}
 		switch {
@@ -3936,6 +3938,7 @@ func writeOverallAbsoluteDifferenceComparison(md *markdownDoc, summary overallAb
 	rleDictLabel := summary.Compression + " + rle-dict"
 	md.Heading(3, display+" Overall Absolute Difference")
 	fmt.Fprintf(b, "These are overall column-level comparisons, not page-window comparisons. `%s` is the all-plain run for every type group, and `%s` is the all-rle-dict run for every type group. The ratio denominator is the same for both sides: the all-plain/no-compression Parquet encoded byte count for that column. Absolute difference is `abs((%s compressed bytes / plain uncompressed encoded bytes) - (%s compressed bytes / plain uncompressed encoded bytes))`.\n\n", plainLabel, rleDictLabel, plainLabel, rleDictLabel)
+	fmt.Fprintf(b, "`%s / %s final bytes` is `%s compressed bytes / %s compressed bytes`, after Parquet encoding and codec compression.\n\n", rleDictLabel, plainLabel, rleDictLabel, plainLabel)
 	fmt.Fprintf(b, "- Compared columns: `%d`; `%s` better: `%d`; `%s` better: `%d`; ties: `%d`; missing comparisons: `%d`\n\n",
 		summary.ComparedColumns,
 		rleDictLabel,
@@ -3956,10 +3959,10 @@ func writeOverallAbsoluteDifferenceRows(b *strings.Builder, rows []overallAbsolu
 		fmt.Fprintf(b, "No columns.\n\n")
 		return
 	}
-	fmt.Fprintf(b, "| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | %s compressed bytes | %s compressed bytes | %s ratio | %s ratio | Absolute difference |\n", plainLabel, rleDictLabel, plainLabel, rleDictLabel)
-	fmt.Fprintf(b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+	fmt.Fprintf(b, "| Column | Type | Row-group cardinality/rows min | Row-group cardinality/rows median | Row-group cardinality/rows max | Plain uncompressed encoded bytes | %s compressed bytes | %s compressed bytes | %s ratio | %s ratio | Absolute difference | %s / %s final bytes |\n", plainLabel, rleDictLabel, plainLabel, rleDictLabel, rleDictLabel, plainLabel)
+	fmt.Fprintf(b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
 	for _, row := range rows {
-		fmt.Fprintf(b, "| `%s` | `%s` | %s | %s | %s | %s | %s | %s | `%s` | `%s` | `%s` |\n",
+		fmt.Fprintf(b, "| `%s` | `%s` | %s | %s | %s | %s | %s | %s | `%s` | `%s` | `%s` | `%s` |\n",
 			row.Column,
 			row.Type,
 			optionalPercentMarkdown(row.CardinalityRatioMin*100, row.HasShapeStats),
@@ -3971,6 +3974,7 @@ func writeOverallAbsoluteDifferenceRows(b *strings.Builder, rows []overallAbsolu
 			formatRatio(row.PlainRatio),
 			formatRatio(row.RLEDictRatio),
 			formatRatio(row.AbsoluteDifference),
+			formatRatio(row.RLEDictToPlainRatio),
 		)
 	}
 	fmt.Fprintf(b, "\n")
