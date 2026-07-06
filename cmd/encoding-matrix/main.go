@@ -413,6 +413,28 @@ type encodingImprovementBucket struct {
 	Count int
 }
 
+type overallAbsoluteDifferenceComparison struct {
+	Compression        string
+	RLEDictBetterRows  []overallAbsoluteDifferenceRow
+	PlainBetterRows    []overallAbsoluteDifferenceRow
+	ComparedColumns    int
+	RLEDictBetterCount int
+	PlainBetterCount   int
+	TieCount           int
+	MissingCount       int
+}
+
+type overallAbsoluteDifferenceRow struct {
+	Column             string
+	Type               string
+	UncompressedBytes  int64
+	PlainBytes         int64
+	RLEDictBytes       int64
+	PlainRatio         float64
+	RLEDictRatio       float64
+	AbsoluteDifference float64
+}
+
 type compressionRatioColorBucket struct {
 	Label string
 	Min   float64
@@ -1165,6 +1187,13 @@ func isPlainEncodingCombo(c combo) bool {
 		c.DateEncoding == "plain" &&
 		c.TimestampEncoding == "plain" &&
 		c.StringEncoding == "plain"
+}
+
+func isRLEDictEncodingCombo(c combo) bool {
+	return c.IntEncoding == "rle-dict" &&
+		c.DateEncoding == "rle-dict" &&
+		c.TimestampEncoding == "rle-dict" &&
+		c.StringEncoding == "rle-dict"
 }
 
 func buildExperimentRankings(results []experimentResult, baselineEncodedBytes int64) []experimentRanking {
@@ -1977,6 +2006,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	fmt.Fprintf(&b, "For each column, this compares the best observed `zstd + plain` compressed byte count with the best observed `zstd + rle-dict` compressed byte count. Improvement is `(larger compressed bytes - smaller compressed bytes) / larger compressed bytes * 100`.\n\n")
 	writeShapeImage(&b, "ZSTD plain versus RLE dictionary improvement distribution", zstdComparisonPath, reportDir)
 	writeZstdPlainRLEDictComparisonTable(&b, zstdComparison)
+	writeOverallAbsoluteDifferenceComparison(md, buildOverallPlainRLEDictAbsoluteDifference(byColumn, "zstd"))
 	pageDistribution, err := loadPageEncodingDistribution(cfg, "zstd")
 	if err != nil {
 		return err
@@ -2041,6 +2071,7 @@ func writeColumnTop5Markdown(path string, cfg config, observations []columnObser
 	writeSnappyRLEDictBetterComparisonTable(&b, snappyComparison)
 	writeShapeImage(&b, "Snappy plain improvement over RLE dictionary", snappyPlainBetterPath, reportDir)
 	writeSnappyPlainBetterComparisonTable(&b, snappyComparison)
+	writeOverallAbsoluteDifferenceComparison(md, buildOverallPlainRLEDictAbsoluteDifference(byColumn, "snappy"))
 	snappyPageDistribution, err := loadPageEncodingDistribution(cfg, "snappy")
 	if err != nil {
 		return err
@@ -3808,6 +3839,111 @@ func writeSnappyPlainBetterComparisonSVG(path string, summary snappyPlainRLEDict
 		summary.PlainBetterBuckets,
 		"#2563eb",
 	)
+}
+
+func buildOverallPlainRLEDictAbsoluteDifference(byColumn map[string][]columnObservation, compression string) overallAbsoluteDifferenceComparison {
+	summary := overallAbsoluteDifferenceComparison{
+		Compression: compression,
+	}
+	for _, observations := range byColumn {
+		plain, plainOK := exactEncodingComboObservationFor(observations, compression, isPlainEncodingCombo)
+		rleDict, rleDictOK := exactEncodingComboObservationFor(observations, compression, isRLEDictEncodingCombo)
+		if !plainOK || !rleDictOK || plain.BaselineEncodedBytes <= 0 {
+			summary.MissingCount++
+			continue
+		}
+		summary.ComparedColumns++
+		plainRatio := ratio(plain.Column.CompressedBytes, plain.BaselineEncodedBytes)
+		rleDictRatio := ratio(rleDict.Column.CompressedBytes, plain.BaselineEncodedBytes)
+		row := overallAbsoluteDifferenceRow{
+			Column:             plain.Column.Column,
+			Type:               plain.Column.Type,
+			UncompressedBytes:  plain.BaselineEncodedBytes,
+			PlainBytes:         plain.Column.CompressedBytes,
+			RLEDictBytes:       rleDict.Column.CompressedBytes,
+			PlainRatio:         plainRatio,
+			RLEDictRatio:       rleDictRatio,
+			AbsoluteDifference: math.Abs(plainRatio - rleDictRatio),
+		}
+		switch {
+		case rleDictRatio < plainRatio:
+			summary.RLEDictBetterRows = append(summary.RLEDictBetterRows, row)
+			summary.RLEDictBetterCount++
+		case plainRatio < rleDictRatio:
+			summary.PlainBetterRows = append(summary.PlainBetterRows, row)
+			summary.PlainBetterCount++
+		default:
+			summary.TieCount++
+		}
+	}
+	sortOverallAbsoluteDifferenceRows(summary.RLEDictBetterRows)
+	sortOverallAbsoluteDifferenceRows(summary.PlainBetterRows)
+	return summary
+}
+
+func exactEncodingComboObservationFor(observations []columnObservation, compression string, match func(combo) bool) (columnObservation, bool) {
+	for _, obs := range observations {
+		if obs.Experiment.Combo.Compression != compression {
+			continue
+		}
+		if match(obs.Experiment.Combo) {
+			return obs, true
+		}
+	}
+	return columnObservation{}, false
+}
+
+func sortOverallAbsoluteDifferenceRows(rows []overallAbsoluteDifferenceRow) {
+	sort.Slice(rows, func(i, j int) bool {
+		if rows[i].AbsoluteDifference != rows[j].AbsoluteDifference {
+			return rows[i].AbsoluteDifference > rows[j].AbsoluteDifference
+		}
+		return rows[i].Column < rows[j].Column
+	})
+}
+
+func writeOverallAbsoluteDifferenceComparison(md *markdownDoc, summary overallAbsoluteDifferenceComparison) {
+	b := md.b
+	display := strings.ToUpper(summary.Compression)
+	plainLabel := summary.Compression + " + plain"
+	rleDictLabel := summary.Compression + " + rle-dict"
+	md.Heading(3, display+" Overall Absolute Difference")
+	fmt.Fprintf(b, "These are overall column-level comparisons, not page-window comparisons. `%s` is the all-plain run for every type group, and `%s` is the all-rle-dict run for every type group. The ratio denominator is the same for both sides: the all-plain/no-compression Parquet encoded byte count for that column. Absolute difference is `abs((%s compressed bytes / plain uncompressed encoded bytes) - (%s compressed bytes / plain uncompressed encoded bytes))`.\n\n", plainLabel, rleDictLabel, plainLabel, rleDictLabel)
+	fmt.Fprintf(b, "- Compared columns: `%d`; `%s` better: `%d`; `%s` better: `%d`; ties: `%d`; missing comparisons: `%d`\n\n",
+		summary.ComparedColumns,
+		rleDictLabel,
+		summary.RLEDictBetterCount,
+		plainLabel,
+		summary.PlainBetterCount,
+		summary.TieCount,
+		summary.MissingCount,
+	)
+	md.Heading(4, display+" RLE Dict Better By Absolute Difference")
+	writeOverallAbsoluteDifferenceRows(b, summary.RLEDictBetterRows, plainLabel, rleDictLabel)
+	md.Heading(4, display+" Plain Better By Absolute Difference")
+	writeOverallAbsoluteDifferenceRows(b, summary.PlainBetterRows, plainLabel, rleDictLabel)
+}
+
+func writeOverallAbsoluteDifferenceRows(b *strings.Builder, rows []overallAbsoluteDifferenceRow, plainLabel, rleDictLabel string) {
+	if len(rows) == 0 {
+		fmt.Fprintf(b, "No columns.\n\n")
+		return
+	}
+	fmt.Fprintf(b, "| Column | Type | Plain uncompressed encoded bytes | %s compressed bytes | %s compressed bytes | %s ratio | %s ratio | Absolute difference |\n", plainLabel, rleDictLabel, plainLabel, rleDictLabel)
+	fmt.Fprintf(b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |\n")
+	for _, row := range rows {
+		fmt.Fprintf(b, "| `%s` | `%s` | %s | %s | %s | `%s` | `%s` | `%s` |\n",
+			row.Column,
+			row.Type,
+			formatByteCount(row.UncompressedBytes),
+			formatByteCount(row.PlainBytes),
+			formatByteCount(row.RLEDictBytes),
+			formatRatio(row.PlainRatio),
+			formatRatio(row.RLEDictRatio),
+			formatRatio(row.AbsoluteDifference),
+		)
+	}
+	fmt.Fprintf(b, "\n")
 }
 
 func writeImprovementBucketChartSVG(path, title, xLabel string, buckets []encodingImprovementBucket, color string) error {
