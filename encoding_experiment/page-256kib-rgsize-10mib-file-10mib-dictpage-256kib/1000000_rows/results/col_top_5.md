@@ -83,7 +83,7 @@ For each column, this compares the best observed `zstd + plain` compressed byte 
 <a id="page-level-winner-distribution"></a>
 ### Page-Level Winner Distribution [#](#page-level-winner-distribution)
 
-This is the page-level version of the same `plain + zstd` vs `rle-dict + zstd` comparison. Page ranges differ between the two runs, so the distribution is computed over overlap windows from the union of page row ranges. Red chart segments are windows where RLE would win if dictionary-page bytes were excluded, but does not win when amortized dictionary-page bytes are included. Compression-ratio cells in the image are `min/median/max` values for `encoded bytes before ZSTD / compressed bytes after ZSTD`; RLE cells include amortized dictionary bytes.
+This is the page-level version of the same `plain + zstd` vs `rle-dict + zstd` comparison. Page ranges differ between the two runs, so the distribution is computed over overlap windows from the union of page row ranges. Red chart segments are windows where RLE would win if dictionary-page bytes were excluded, but does not win when amortized dictionary-page bytes are included. Size-ratio cells in the image are `min/median/max` values for `compressed bytes after ZSTD / plain uncompressed encoded bytes`; lower is better.
 
 - Source TSV: [2026-07-05_rows-1000000_plain-zstd_vs_rle-dict-zstd_page-distribution.tsv](../tsvs/page_encoding_distribution/2026-07-05_rows-1000000_plain-zstd_vs_rle-dict-zstd_page-distribution.tsv)
 - Compared columns: `105`; mixed page winners: `84`; plain-only columns: `16`; rle-dict-only columns: `5`; tie-only columns: `0`

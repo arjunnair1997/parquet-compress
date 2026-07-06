@@ -166,52 +166,52 @@ type ratioSummary struct {
 }
 
 type columnDistribution struct {
-	Column                    string
-	Type                      string
-	PlainPages                int
-	RLEDictPages              int
-	ComparisonWindows         int
-	RowsCompared              int64
-	PlainWindowWins           int
-	RLEDictWindowWins         int
-	TieWindowWins             int
-	PlainRowsWon              int64
-	RLEDictRowsWon            int64
-	TieRowsWon                int64
-	PlainAllocatedBytes       float64
-	RLEDictAllocatedBytes     float64
-	RLEDictNoDictBytes        float64
-	PlainTotalPageBytes       float64
-	RLEDictTotalPageBytes     float64
-	RLEDictNoDictTotalBytes   float64
-	ExactMatchedPages         int
-	ExactPlainWins            int
-	ExactRLEDictWins          int
-	ExactTies                 int
-	UnmatchedPlainPages       int
-	UnmatchedRLEDictPages     int
-	WinnerByAllocatedBytes    string
-	RLEDictNoDictWinner       string
-	PlainWindowWinPct         float64
-	RLEDictWindowWinPct       float64
-	TieWindowWinPct           float64
-	PlainRowWinPct            float64
-	RLEDictRowWinPct          float64
-	TieRowWinPct              float64
-	RLEDictToPlainRatio       float64
-	RLEDictNoDictToPlainRatio float64
-	DictOverheadFlipPlainWins int
-	DictOverheadFlipTieWins   int
-	DictOverheadFlipWins      int
-	DictOverheadFlipRows      int64
-	DictOverheadFlipWinPct    float64
-	DictOverheadFlipRowPct    float64
-	PlainPageCompression      ratioSummary
-	RLEDictPageCompression    ratioSummary
-	PlainWinPlainCompression  ratioSummary
-	PlainWinRLECompression    ratioSummary
-	RLEWinRLECompression      ratioSummary
-	RLEWinPlainCompression    ratioSummary
+	Column                      string
+	Type                        string
+	PlainPages                  int
+	RLEDictPages                int
+	ComparisonWindows           int
+	RowsCompared                int64
+	PlainWindowWins             int
+	RLEDictWindowWins           int
+	TieWindowWins               int
+	PlainRowsWon                int64
+	RLEDictRowsWon              int64
+	TieRowsWon                  int64
+	PlainAllocatedBytes         float64
+	RLEDictAllocatedBytes       float64
+	RLEDictNoDictBytes          float64
+	PlainTotalPageBytes         float64
+	RLEDictTotalPageBytes       float64
+	RLEDictNoDictTotalBytes     float64
+	ExactMatchedPages           int
+	ExactPlainWins              int
+	ExactRLEDictWins            int
+	ExactTies                   int
+	UnmatchedPlainPages         int
+	UnmatchedRLEDictPages       int
+	WinnerByAllocatedBytes      string
+	RLEDictNoDictWinner         string
+	PlainWindowWinPct           float64
+	RLEDictWindowWinPct         float64
+	TieWindowWinPct             float64
+	PlainRowWinPct              float64
+	RLEDictRowWinPct            float64
+	TieRowWinPct                float64
+	RLEDictToPlainRatio         float64
+	RLEDictNoDictToPlainRatio   float64
+	DictOverheadFlipPlainWins   int
+	DictOverheadFlipTieWins     int
+	DictOverheadFlipWins        int
+	DictOverheadFlipRows        int64
+	DictOverheadFlipWinPct      float64
+	DictOverheadFlipRowPct      float64
+	PlainToUncompressed         ratioSummary
+	RLEDictToUncompressed       ratioSummary
+	PlainWinPlainToUncompressed ratioSummary
+	PlainWinRLEToUncompressed   ratioSummary
+	RLEWinRLEToUncompressed     ratioSummary
+	RLEWinPlainToUncompressed   ratioSummary
 }
 
 func main() {
@@ -570,20 +570,18 @@ func compareColumn(column, typ string, plainPages, rlePages []pageCost) columnDi
 		PlainPages:   len(plainPages),
 		RLEDictPages: len(rlePages),
 	}
-	var plainPageCompression []float64
-	var rleDictPageCompression []float64
-	var plainWinPlainCompression []float64
-	var plainWinRLECompression []float64
-	var rleWinRLECompression []float64
-	var rleWinPlainCompression []float64
+	var plainToUncompressed []float64
+	var rleDictToUncompressed []float64
+	var plainWinPlainToUncompressed []float64
+	var plainWinRLEToUncompressed []float64
+	var rleWinRLEToUncompressed []float64
+	var rleWinPlainToUncompressed []float64
 	for _, page := range plainPages {
 		dist.PlainTotalPageBytes += page.Cost
-		plainPageCompression = appendCompressionRatio(plainPageCompression, page.EncodedCost, page.Cost)
 	}
 	for _, page := range rlePages {
 		dist.RLEDictTotalPageBytes += page.Cost
 		dist.RLEDictNoDictTotalBytes += page.CostWithoutDictionary
-		rleDictPageCompression = appendCompressionRatio(rleDictPageCompression, page.EncodedCost, page.Cost)
 	}
 
 	dist.ExactMatchedPages, dist.ExactPlainWins, dist.ExactRLEDictWins, dist.ExactTies, dist.UnmatchedPlainPages, dist.UnmatchedRLEDictPages = exactMatchCounts(plainPages, rlePages)
@@ -609,7 +607,8 @@ func compareColumn(column, typ string, plainPages, rlePages []pageCost) columnDi
 			rleCost := r.Cost * float64(rows) / float64(r.Rows)
 			rleNoDictCost := r.CostWithoutDictionary * float64(rows) / float64(r.Rows)
 			plainEncodedCost := p.EncodedCost * float64(rows) / float64(p.Rows)
-			rleEncodedCost := r.EncodedCost * float64(rows) / float64(r.Rows)
+			plainToUncompressed = appendSizeRatio(plainToUncompressed, plainCost, plainEncodedCost)
+			rleDictToUncompressed = appendSizeRatio(rleDictToUncompressed, rleCost, plainEncodedCost)
 			dist.ComparisonWindows++
 			dist.RowsCompared += rows
 			dist.PlainAllocatedBytes += plainCost
@@ -630,13 +629,13 @@ func compareColumn(column, typ string, plainPages, rlePages []pageCost) columnDi
 			case pageWinnerPlain:
 				dist.PlainWindowWins++
 				dist.PlainRowsWon += rows
-				plainWinPlainCompression = appendCompressionRatio(plainWinPlainCompression, plainEncodedCost, plainCost)
-				plainWinRLECompression = appendCompressionRatio(plainWinRLECompression, rleEncodedCost, rleCost)
+				plainWinPlainToUncompressed = appendSizeRatio(plainWinPlainToUncompressed, plainCost, plainEncodedCost)
+				plainWinRLEToUncompressed = appendSizeRatio(plainWinRLEToUncompressed, rleCost, plainEncodedCost)
 			case pageWinnerRLEDict:
 				dist.RLEDictWindowWins++
 				dist.RLEDictRowsWon += rows
-				rleWinRLECompression = appendCompressionRatio(rleWinRLECompression, rleEncodedCost, rleCost)
-				rleWinPlainCompression = appendCompressionRatio(rleWinPlainCompression, plainEncodedCost, plainCost)
+				rleWinRLEToUncompressed = appendSizeRatio(rleWinRLEToUncompressed, rleCost, plainEncodedCost)
+				rleWinPlainToUncompressed = appendSizeRatio(rleWinPlainToUncompressed, plainCost, plainEncodedCost)
 			default:
 				dist.TieWindowWins++
 				dist.TieRowsWon += rows
@@ -679,12 +678,12 @@ func compareColumn(column, typ string, plainPages, rlePages []pageCost) columnDi
 	if dist.RowsCompared > 0 {
 		dist.DictOverheadFlipRowPct = float64(dist.DictOverheadFlipRows) / float64(dist.RowsCompared) * 100
 	}
-	dist.PlainPageCompression = summarizeRatios(plainPageCompression)
-	dist.RLEDictPageCompression = summarizeRatios(rleDictPageCompression)
-	dist.PlainWinPlainCompression = summarizeRatios(plainWinPlainCompression)
-	dist.PlainWinRLECompression = summarizeRatios(plainWinRLECompression)
-	dist.RLEWinRLECompression = summarizeRatios(rleWinRLECompression)
-	dist.RLEWinPlainCompression = summarizeRatios(rleWinPlainCompression)
+	dist.PlainToUncompressed = summarizeRatios(plainToUncompressed)
+	dist.RLEDictToUncompressed = summarizeRatios(rleDictToUncompressed)
+	dist.PlainWinPlainToUncompressed = summarizeRatios(plainWinPlainToUncompressed)
+	dist.PlainWinRLEToUncompressed = summarizeRatios(plainWinRLEToUncompressed)
+	dist.RLEWinRLEToUncompressed = summarizeRatios(rleWinRLEToUncompressed)
+	dist.RLEWinPlainToUncompressed = summarizeRatios(rleWinPlainToUncompressed)
 	return dist
 }
 
@@ -736,22 +735,22 @@ func winner(plainCost, rleCost float64) string {
 	return pageWinnerRLEDict
 }
 
-func appendCompressionRatio(values []float64, encodedBytes, compressedBytes float64) []float64 {
-	ratio, ok := compressionRatio(encodedBytes, compressedBytes)
+func appendSizeRatio(values []float64, compressedBytes, uncompressedBytes float64) []float64 {
+	ratio, ok := sizeRatio(compressedBytes, uncompressedBytes)
 	if !ok {
 		return values
 	}
 	return append(values, ratio)
 }
 
-func compressionRatio(encodedBytes, compressedBytes float64) (float64, bool) {
-	if encodedBytes <= 0 || compressedBytes <= 0 {
+func sizeRatio(compressedBytes, uncompressedBytes float64) (float64, bool) {
+	if compressedBytes <= 0 || uncompressedBytes <= 0 {
 		return 0, false
 	}
-	if math.IsNaN(encodedBytes) || math.IsNaN(compressedBytes) || math.IsInf(encodedBytes, 0) || math.IsInf(compressedBytes, 0) {
+	if math.IsNaN(compressedBytes) || math.IsNaN(uncompressedBytes) || math.IsInf(compressedBytes, 0) || math.IsInf(uncompressedBytes, 0) {
 		return 0, false
 	}
-	return encodedBytes / compressedBytes, true
+	return compressedBytes / uncompressedBytes, true
 }
 
 func summarizeRatios(values []float64) ratioSummary {
@@ -830,12 +829,12 @@ func writeDistributionTSV(path string, rows []columnDistribution) error {
 		"unmatched_plain_pages",
 		"unmatched_rle_dict_pages",
 	}
-	header = appendRatioSummaryHeader(header, "plain_page_compression_ratio")
-	header = appendRatioSummaryHeader(header, "rle_dict_page_compression_ratio")
-	header = appendRatioSummaryHeader(header, "plain_win_plain_compression_ratio")
-	header = appendRatioSummaryHeader(header, "plain_win_rle_dict_compression_ratio")
-	header = appendRatioSummaryHeader(header, "rle_dict_win_rle_dict_compression_ratio")
-	header = appendRatioSummaryHeader(header, "rle_dict_win_plain_compression_ratio")
+	header = appendRatioSummaryHeader(header, "plain_zstd_to_uncompressed_ratio")
+	header = appendRatioSummaryHeader(header, "rle_dict_zstd_to_uncompressed_ratio")
+	header = appendRatioSummaryHeader(header, "plain_win_plain_zstd_to_uncompressed_ratio")
+	header = appendRatioSummaryHeader(header, "plain_win_rle_dict_zstd_to_uncompressed_ratio")
+	header = appendRatioSummaryHeader(header, "rle_dict_win_rle_dict_zstd_to_uncompressed_ratio")
+	header = appendRatioSummaryHeader(header, "rle_dict_win_plain_zstd_to_uncompressed_ratio")
 	if err := w.Write(header); err != nil {
 		return err
 	}
@@ -880,12 +879,12 @@ func writeDistributionTSV(path string, rows []columnDistribution) error {
 			strconv.Itoa(row.UnmatchedPlainPages),
 			strconv.Itoa(row.UnmatchedRLEDictPages),
 		}
-		record = appendRatioSummaryRecord(record, row.PlainPageCompression)
-		record = appendRatioSummaryRecord(record, row.RLEDictPageCompression)
-		record = appendRatioSummaryRecord(record, row.PlainWinPlainCompression)
-		record = appendRatioSummaryRecord(record, row.PlainWinRLECompression)
-		record = appendRatioSummaryRecord(record, row.RLEWinRLECompression)
-		record = appendRatioSummaryRecord(record, row.RLEWinPlainCompression)
+		record = appendRatioSummaryRecord(record, row.PlainToUncompressed)
+		record = appendRatioSummaryRecord(record, row.RLEDictToUncompressed)
+		record = appendRatioSummaryRecord(record, row.PlainWinPlainToUncompressed)
+		record = appendRatioSummaryRecord(record, row.PlainWinRLEToUncompressed)
+		record = appendRatioSummaryRecord(record, row.RLEWinRLEToUncompressed)
+		record = appendRatioSummaryRecord(record, row.RLEWinPlainToUncompressed)
 		if err := w.Write(record); err != nil {
 			return err
 		}
@@ -941,14 +940,14 @@ func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, rows []c
 	md.Heading(2, "Method")
 	fmt.Fprintf(&b, "The primary distribution uses overlap windows from the union of page row ranges for each column. For each overlapping row span, the page compressed byte cost is allocated in proportion to row overlap. The RLE dictionary cost uses `compressed_page_bytes_with_amortized_dictionary`, meaning the compressed dictionary page bytes for a column chunk are divided evenly across that chunk's data pages before comparison.\n\n")
 	fmt.Fprintf(&b, "Red chart segments are windows where `rle-dict + zstd` does not win with amortized dictionary-page bytes included, but would win if dictionary-page bytes were excluded. The direct size metric is `rle-dict + zstd allocated bytes / plain + zstd allocated bytes`.\n\n")
-	fmt.Fprintf(&b, "Compression-ratio cells are `min/median/max` values of `encoded bytes before ZSTD / compressed bytes after ZSTD`. RLE dictionary cells include amortized dictionary bytes in both the encoded and compressed side of the ratio.\n\n")
+	fmt.Fprintf(&b, "Size-ratio cells are `min/median/max` values of `compressed bytes after ZSTD / plain uncompressed encoded bytes` for each overlap window. Lower is better; RLE dictionary cells include amortized dictionary bytes in the compressed numerator.\n\n")
 	fmt.Fprintf(&b, "`exact_matched_pages` counts only pages where both runs produced the same absolute row range. Exact matches are useful as a sanity check, but the overlap-window distribution is the full comparison when page boundaries differ.\n\n")
 
 	md.Heading(2, "Distribution Chart")
 	writeImage(&b, "Page-window winner distribution by column", svgPath, reportDir)
 
 	md.Heading(2, "Column Distribution")
-	fmt.Fprintf(&b, "| Column | Type | Windows | Plain wins | RLE dict wins | Red overhead flips | Ties | Rows compared | Row-weighted plain | Row-weighted RLE dict | Allocated plain bytes | Allocated RLE dict bytes | RLE+zstd / plain+zstd | Plain CR all pages | RLE dict CR all pages | Plain-won plain CR | Plain-won RLE CR | RLE-won RLE CR | RLE-won plain CR | Exact matches | Unmatched plain | Unmatched RLE dict |\n")
+	fmt.Fprintf(&b, "| Column | Type | Windows | Plain wins | RLE dict wins | Red overhead flips | Ties | Rows compared | Row-weighted plain | Row-weighted RLE dict | Allocated plain bytes | Allocated RLE dict bytes | RLE+zstd / plain+zstd | Plain/uncompressed all | RLE/uncompressed all | Plain-won plain/uncompressed | Plain-won RLE/uncompressed | RLE-won RLE/uncompressed | RLE-won plain/uncompressed | Exact matches | Unmatched plain | Unmatched RLE dict |\n")
 	fmt.Fprintf(&b, "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
 	for _, row := range rows {
 		fmt.Fprintf(&b, "| `%s` | `%s` | `%d` | `%d` (%s) | `%d` (%s) | `%d` (%s) | `%d` (%s) | `%d` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%d` | `%d` | `%d` |\n",
@@ -969,12 +968,12 @@ func writeMarkdown(path string, cfg config, plainRun, rleRun writerRun, rows []c
 			formatBytesFloat(row.PlainAllocatedBytes),
 			formatBytesFloat(row.RLEDictAllocatedBytes),
 			formatRatio(row.RLEDictToPlainRatio),
-			formatRatioSummary(row.PlainPageCompression),
-			formatRatioSummary(row.RLEDictPageCompression),
-			formatRatioSummary(row.PlainWinPlainCompression),
-			formatRatioSummary(row.PlainWinRLECompression),
-			formatRatioSummary(row.RLEWinRLECompression),
-			formatRatioSummary(row.RLEWinPlainCompression),
+			formatRatioSummary(row.PlainToUncompressed),
+			formatRatioSummary(row.RLEDictToUncompressed),
+			formatRatioSummary(row.PlainWinPlainToUncompressed),
+			formatRatioSummary(row.PlainWinRLEToUncompressed),
+			formatRatioSummary(row.RLEWinRLEToUncompressed),
+			formatRatioSummary(row.RLEWinPlainToUncompressed),
 			row.ExactMatchedPages,
 			row.UnmatchedPlainPages,
 			row.UnmatchedRLEDictPages,
@@ -1005,12 +1004,12 @@ func writeDistributionSVG(path string, rows []columnDistribution) error {
 		label string
 		value func(columnDistribution) string
 	}{
-		{"P all", func(row columnDistribution) string { return formatRatioSummary(row.PlainPageCompression) }},
-		{"R all", func(row columnDistribution) string { return formatRatioSummary(row.RLEDictPageCompression) }},
-		{"Pwin P", func(row columnDistribution) string { return formatRatioSummary(row.PlainWinPlainCompression) }},
-		{"Pwin R", func(row columnDistribution) string { return formatRatioSummary(row.PlainWinRLECompression) }},
-		{"Rwin R", func(row columnDistribution) string { return formatRatioSummary(row.RLEWinRLECompression) }},
-		{"Rwin P", func(row columnDistribution) string { return formatRatioSummary(row.RLEWinPlainCompression) }},
+		{"P all", func(row columnDistribution) string { return formatRatioSummary(row.PlainToUncompressed) }},
+		{"R all", func(row columnDistribution) string { return formatRatioSummary(row.RLEDictToUncompressed) }},
+		{"Pwin P", func(row columnDistribution) string { return formatRatioSummary(row.PlainWinPlainToUncompressed) }},
+		{"Pwin R", func(row columnDistribution) string { return formatRatioSummary(row.PlainWinRLEToUncompressed) }},
+		{"Rwin R", func(row columnDistribution) string { return formatRatioSummary(row.RLEWinRLEToUncompressed) }},
+		{"Rwin P", func(row columnDistribution) string { return formatRatioSummary(row.RLEWinPlainToUncompressed) }},
 	}
 	statsStart := leftMargin + plotWidth + countWidth
 	width := statsStart + statColWidth*len(statColumns) + rightMargin
@@ -1027,7 +1026,7 @@ func writeDistributionSVG(path string, rows []columnDistribution) error {
 	fmt.Fprintf(&b, `<rect x="%d" y="40" width="14" height="10" fill="#dc2626"/><text x="%d" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">rle wins only without dict page</text>`+"\n", leftMargin+285, leftMargin+305)
 	fmt.Fprintf(&b, `<rect x="%d" y="40" width="14" height="10" fill="#9ca3af"/><text x="%d" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">tie</text>`+"\n", leftMargin+500, leftMargin+520)
 	fmt.Fprintf(&b, `<text x="%d" y="68" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">windows</text>`+"\n", leftMargin+plotWidth+6)
-	fmt.Fprintf(&b, `<text x="%d" y="59" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">compression ratio min/median/max</text>`+"\n", statsStart)
+	fmt.Fprintf(&b, `<text x="%d" y="59" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">compressed / uncompressed min/median/max</text>`+"\n", statsStart)
 	for i, col := range statColumns {
 		fmt.Fprintf(&b, `<text x="%d" y="74" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#374151">%s</text>`+"\n", statsStart+i*statColWidth, html.EscapeString(col.label))
 	}
@@ -1067,7 +1066,7 @@ func writeDistributionSVG(path string, rows []columnDistribution) error {
 		}
 	}
 	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">bar width = share of overlap comparison windows won</text>`+"\n", leftMargin, height-36)
-	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">CR = encoded bytes before ZSTD / compressed bytes after ZSTD; RLE CR includes amortized dictionary bytes</text>`+"\n", leftMargin, height-20)
+	fmt.Fprintf(&b, `<text x="%d" y="%d" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">ratio = compressed bytes after ZSTD / plain uncompressed encoded bytes; lower is better</text>`+"\n", leftMargin, height-20)
 	fmt.Fprintf(&b, `</svg>`+"\n")
 	return os.WriteFile(path, []byte(b.String()), 0o644)
 }
@@ -1234,7 +1233,7 @@ func formatRatioSummary(summary ratioSummary) string {
 	if summary.Count == 0 {
 		return "n/a"
 	}
-	return fmt.Sprintf("%s/%s/%sx",
+	return fmt.Sprintf("%s/%s/%s",
 		formatCompactRatio(summary.Min),
 		formatCompactRatio(summary.Median),
 		formatCompactRatio(summary.Max),
@@ -1245,13 +1244,14 @@ func formatCompactRatio(v float64) string {
 	if v == 0 || math.IsNaN(v) || math.IsInf(v, 0) {
 		return "n/a"
 	}
-	if v >= 100 {
-		return fmt.Sprintf("%.0f", v)
+	pct := v * 100
+	if pct >= 100 {
+		return fmt.Sprintf("%.0f%%", pct)
 	}
-	if v >= 10 {
-		return fmt.Sprintf("%.1f", v)
+	if pct >= 10 {
+		return fmt.Sprintf("%.1f%%", pct)
 	}
-	return fmt.Sprintf("%.2f", v)
+	return fmt.Sprintf("%.2f%%", pct)
 }
 
 type markdownDoc struct {

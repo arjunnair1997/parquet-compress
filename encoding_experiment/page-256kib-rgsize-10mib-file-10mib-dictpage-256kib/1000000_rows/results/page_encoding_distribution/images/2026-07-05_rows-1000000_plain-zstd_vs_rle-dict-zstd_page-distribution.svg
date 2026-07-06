@@ -6,7 +6,7 @@
 <rect x="515" y="40" width="14" height="10" fill="#dc2626"/><text x="535" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">rle wins only without dict page</text>
 <rect x="730" y="40" width="14" height="10" fill="#9ca3af"/><text x="750" y="49" font-family="Arial, sans-serif" font-size="12" fill="#374151">tie</text>
 <text x="666" y="68" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">windows</text>
-<text x="708" y="59" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">compression ratio min/median/max</text>
+<text x="708" y="59" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">compressed / uncompressed min/median/max</text>
 <text x="708" y="74" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#374151">P all</text>
 <text x="824" y="74" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#374151">R all</text>
 <text x="940" y="74" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#374151">Pwin P</text>
@@ -20,12 +20,12 @@
 <rect x="660.00" y="84" width="0.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="84" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="95" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="95" font-family="Arial, sans-serif" font-size="9" fill="#374151">36.4/62.1/80.0x</text>
-<text x="824" y="95" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.41/1.91/2.30x</text>
+<text x="708" y="95" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.25%/1.61%/2.75%</text>
+<text x="824" y="95" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.70%/0.94%/1.47%</text>
 <text x="940" y="95" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1056" y="95" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
-<text x="1172" y="95" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.41/1.91/2.30x</text>
-<text x="1288" y="95" font-family="Arial, sans-serif" font-size="9" fill="#374151">36.4/62.1/80.0x</text>
+<text x="1172" y="95" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.70%/0.94%/1.47%</text>
+<text x="1288" y="95" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.25%/1.61%/2.75%</text>
 <text x="220" y="119" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FlashMinor2</text>
 <rect x="230" y="108" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="108" width="0.00" height="14" fill="#2563eb"/>
@@ -33,12 +33,12 @@
 <rect x="660.00" y="108" width="0.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="108" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="119" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="119" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.4/30.5/34.6x</text>
-<text x="824" y="119" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.63/1.80/2.09x</text>
+<text x="708" y="119" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.89%/3.28%/4.47%</text>
+<text x="824" y="119" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.68%/1.97%/2.66%</text>
 <text x="940" y="119" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1056" y="119" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
-<text x="1172" y="119" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.63/1.80/2.09x</text>
-<text x="1288" y="119" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.4/30.5/34.6x</text>
+<text x="1172" y="119" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.68%/1.97%/2.66%</text>
+<text x="1288" y="119" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.89%/3.28%/4.47%</text>
 <text x="220" y="143" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">RefererRegionID</text>
 <rect x="230" y="132" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="132" width="0.00" height="14" fill="#2563eb"/>
@@ -46,12 +46,12 @@
 <rect x="660.00" y="132" width="0.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="132" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="143" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="143" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.3/17.7/20.8x</text>
-<text x="824" y="143" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.88/2.26/2.79x</text>
+<text x="708" y="143" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.81%/5.64%/8.16%</text>
+<text x="824" y="143" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.38%/4.13%/5.01%</text>
 <text x="940" y="143" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1056" y="143" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
-<text x="1172" y="143" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.88/2.25/2.79x</text>
-<text x="1288" y="143" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.3/17.7/20.8x</text>
+<text x="1172" y="143" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.38%/4.13%/5.01%</text>
+<text x="1288" y="143" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.81%/5.64%/8.16%</text>
 <text x="220" y="167" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Sex</text>
 <rect x="230" y="156" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="156" width="0.00" height="14" fill="#2563eb"/>
@@ -59,12 +59,12 @@
 <rect x="660.00" y="156" width="0.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="156" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="167" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="167" font-family="Arial, sans-serif" font-size="9" fill="#374151">26.7/37.8/47.9x</text>
-<text x="824" y="167" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.44/1.65/1.79x</text>
+<text x="708" y="167" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.09%/2.65%/3.75%</text>
+<text x="824" y="167" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.79%/1.98%/2.69%</text>
 <text x="940" y="167" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1056" y="167" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
-<text x="1172" y="167" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.44/1.65/1.79x</text>
-<text x="1288" y="167" font-family="Arial, sans-serif" font-size="9" fill="#374151">26.7/37.8/47.9x</text>
+<text x="1172" y="167" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.79%/1.98%/2.69%</text>
+<text x="1288" y="167" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.09%/2.65%/3.75%</text>
 <text x="220" y="191" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UserAgentMinor</text>
 <rect x="230" y="180" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="180" width="0.00" height="14" fill="#2563eb"/>
@@ -72,12 +72,12 @@
 <rect x="660.00" y="180" width="0.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="180" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="191" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="191" font-family="Arial, sans-serif" font-size="9" fill="#374151">30.1/61.5/79.7x</text>
-<text x="824" y="191" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.55/1.78/2.14x</text>
+<text x="708" y="191" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.25%/1.62%/3.32%</text>
+<text x="824" y="191" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.81%/1.03%/1.85%</text>
 <text x="940" y="191" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1056" y="191" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
-<text x="1172" y="191" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.55/1.78/2.14x</text>
-<text x="1288" y="191" font-family="Arial, sans-serif" font-size="9" fill="#374151">30.1/61.8/79.7x</text>
+<text x="1172" y="191" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.81%/1.03%/1.85%</text>
+<text x="1288" y="191" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.25%/1.62%/3.32%</text>
 <text x="220" y="215" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Title</text>
 <rect x="230" y="204" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="204" width="0.00" height="14" fill="#2563eb"/>
@@ -85,12 +85,12 @@
 <rect x="657.97" y="204" width="2.03" height="14" fill="#dc2626"/>
 <rect x="660.00" y="204" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="215" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">635</text>
-<text x="708" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.14/10.0/30.5x</text>
-<text x="824" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.93/2.83/3.85x</text>
-<text x="940" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">19.2/20.1/29.2x</text>
-<text x="1056" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.61/3.31/3.31x</text>
-<text x="1172" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.93/3.79/3.85x</text>
-<text x="1288" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.14/10.0/30.5x</text>
+<text x="708" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.28%/9.95%/19.5%</text>
+<text x="824" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.44%/5.59%/13.2%</text>
+<text x="940" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.42%/4.97%/5.20%</text>
+<text x="1056" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">11.4%/12.7%/13.2%</text>
+<text x="1172" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.44%/5.59%/6.84%</text>
+<text x="1288" y="215" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.28%/9.96%/19.5%</text>
 <text x="220" y="239" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">RefererCategoryID</text>
 <rect x="230" y="228" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="228" width="3.71" height="14" fill="#2563eb"/>
@@ -98,12 +98,12 @@
 <rect x="660.00" y="228" width="0.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="228" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="239" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.36/14.3/18.4x</text>
-<text x="824" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.80/2.39/2.57x</text>
-<text x="940" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">17.7/17.7/17.7x</text>
-<text x="1056" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.80/1.80/1.80x</text>
-<text x="1172" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.80/2.39/2.57x</text>
-<text x="1288" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.36/14.3/18.4x</text>
+<text x="708" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.45%/7.01%/10.7%</text>
+<text x="824" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.30%/5.36%/8.17%</text>
+<text x="940" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.66%/5.66%/5.66%</text>
+<text x="1056" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">8.17%/8.17%/8.17%</text>
+<text x="1172" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.30%/5.34%/8.17%</text>
+<text x="1288" y="239" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.45%/7.01%/10.7%</text>
 <text x="220" y="263" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">TraficSourceID</text>
 <rect x="230" y="252" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="252" width="3.71" height="14" fill="#2563eb"/>
@@ -111,12 +111,12 @@
 <rect x="660.00" y="252" width="0.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="252" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="263" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">8.81/14.0/18.6x</text>
-<text x="824" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.34/1.63/1.81x</text>
-<text x="940" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">17.4/17.4/17.4x</text>
-<text x="1056" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.44/1.44/1.44x</text>
-<text x="1172" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.34/1.63/1.81x</text>
-<text x="1288" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">8.81/12.8/18.6x</text>
+<text x="708" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.39%/7.84%/11.3%</text>
+<text x="824" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.47%/4.52%/6.40%</text>
+<text x="940" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.74%/5.74%/5.74%</text>
+<text x="1056" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.31%/6.31%/6.31%</text>
+<text x="1172" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.47%/4.51%/6.40%</text>
+<text x="1288" y="263" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.39%/7.84%/11.3%</text>
 <text x="220" y="287" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ClientTimeZone</text>
 <rect x="230" y="276" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="276" width="3.71" height="14" fill="#2563eb"/>
@@ -124,12 +124,12 @@
 <rect x="656.29" y="276" width="3.71" height="14" fill="#dc2626"/>
 <rect x="660.00" y="276" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="287" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.9/38.7/64.3x</text>
-<text x="824" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.57/1.90/2.06x</text>
-<text x="940" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">35.4/46.2/57.0x</text>
-<text x="1056" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.99/2.02/2.06x</text>
-<text x="1172" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.57/1.90/2.06x</text>
-<text x="1288" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.9/37.8/64.3x</text>
+<text x="708" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.55%/2.65%/4.56%</text>
+<text x="824" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.34%/2.27%/3.97%</text>
+<text x="940" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.76%/2.29%/2.82%</text>
+<text x="1056" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.84%/3.16%/3.49%</text>
+<text x="1172" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.34%/2.23%/3.97%</text>
+<text x="1288" y="287" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.55%/2.65%/4.56%</text>
 <text x="220" y="311" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Income</text>
 <rect x="230" y="300" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="300" width="3.71" height="14" fill="#2563eb"/>
@@ -137,12 +137,12 @@
 <rect x="656.29" y="300" width="3.71" height="14" fill="#dc2626"/>
 <rect x="660.00" y="300" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="311" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.1/33.3/46.1x</text>
-<text x="824" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.40/1.60/1.69x</text>
-<text x="940" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">37.8/42.0/46.1x</text>
-<text x="1056" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.63/1.63/1.64x</text>
-<text x="1172" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.40/1.60/1.69x</text>
-<text x="1288" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.1/33.2/46.1x</text>
+<text x="708" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.17%/3.01%/4.73%</text>
+<text x="824" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.78%/2.18%/3.22%</text>
+<text x="940" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.17%/2.41%/2.64%</text>
+<text x="1056" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.19%/2.56%/2.92%</text>
+<text x="1172" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.78%/2.17%/3.22%</text>
+<text x="1288" y="311" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.17%/3.01%/4.73%</text>
 <text x="220" y="335" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Age</text>
 <rect x="230" y="324" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="324" width="3.71" height="14" fill="#2563eb"/>
@@ -150,12 +150,12 @@
 <rect x="652.59" y="324" width="7.41" height="14" fill="#dc2626"/>
 <rect x="660.00" y="324" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="335" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">18.3/29.0/37.8x</text>
-<text x="824" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.42/1.58/1.68x</text>
-<text x="940" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">27.6/37.8/37.8x</text>
-<text x="1056" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.47/1.58/1.59x</text>
-<text x="1172" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.42/1.57/1.68x</text>
-<text x="1288" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">18.3/29.6/32.6x</text>
+<text x="708" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.65%/3.38%/5.48%</text>
+<text x="824" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.52%/2.84%/4.45%</text>
+<text x="940" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.65%/2.65%/3.62%</text>
+<text x="1056" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.66%/2.71%/4.33%</text>
+<text x="1172" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.52%/2.85%/4.45%</text>
+<text x="1288" y="335" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.06%/3.38%/5.48%</text>
 <text x="220" y="359" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsRefresh</text>
 <rect x="230" y="348" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="348" width="14.83" height="14" fill="#2563eb"/>
@@ -163,12 +163,12 @@
 <rect x="660.00" y="348" width="0.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="348" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="359" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.6/52.4/210x</text>
-<text x="824" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.94/0.99/1.70x</text>
-<text x="940" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">92.5/166/210x</text>
-<text x="1056" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.95/1.17/1.55x</text>
-<text x="1172" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.94/0.99/1.70x</text>
-<text x="1288" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.6/32.8/210x</text>
+<text x="708" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.48%/1.43%/7.96%</text>
+<text x="824" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.47%/1.09%/3.31%</text>
+<text x="940" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.48%/0.63%/1.08%</text>
+<text x="1056" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.65%/0.76%/1.23%</text>
+<text x="1172" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.47%/1.16%/3.31%</text>
+<text x="1288" y="359" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.48%/4.74%/7.96%</text>
 <text x="220" y="383" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Referer</text>
 <rect x="230" y="372" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="372" width="0.00" height="14" fill="#2563eb"/>
@@ -176,12 +176,12 @@
 <rect x="641.17" y="372" width="18.83" height="14" fill="#dc2626"/>
 <rect x="660.00" y="372" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="383" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">411</text>
-<text x="708" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.53/7.29/13.9x</text>
-<text x="824" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.65/2.90/3.02x</text>
-<text x="940" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.46/4.75/13.1x</text>
-<text x="1056" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.65/2.95/3.00x</text>
-<text x="1172" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.65/2.90/3.02x</text>
-<text x="1288" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.53/7.20/13.9x</text>
+<text x="708" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.21%/14.0%/28.3%</text>
+<text x="824" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.12%/10.3%/38.1%</text>
+<text x="940" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.64%/21.1%/22.4%</text>
+<text x="1056" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.99%/22.0%/38.1%</text>
+<text x="1172" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.12%/10.2%/23.8%</text>
+<text x="1288" y="383" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.21%/13.9%/28.3%</text>
 <text x="220" y="407" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">URL</text>
 <rect x="230" y="396" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="396" width="0.00" height="14" fill="#2563eb"/>
@@ -189,12 +189,12 @@
 <rect x="638.93" y="396" width="21.07" height="14" fill="#dc2626"/>
 <rect x="660.00" y="396" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="407" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">449</text>
-<text x="708" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.82/5.67/10.1x</text>
-<text x="824" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.32/3.42/3.84x</text>
-<text x="940" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.64/5.07/7.24x</text>
-<text x="1056" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.40/3.45/3.72x</text>
-<text x="1172" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.32/3.43/3.84x</text>
-<text x="1288" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.82/5.71/10.1x</text>
+<text x="708" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.87%/17.6%/26.2%</text>
+<text x="824" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.35%/14.7%/25.0%</text>
+<text x="940" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">13.8%/19.7%/21.5%</text>
+<text x="1056" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">18.6%/20.9%/25.0%</text>
+<text x="1172" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.35%/14.1%/21.2%</text>
+<text x="1288" y="407" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.87%/17.5%/26.2%</text>
 <text x="220" y="431" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">URLCategoryID</text>
 <rect x="230" y="420" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="420" width="7.41" height="14" fill="#2563eb"/>
@@ -202,12 +202,12 @@
 <rect x="641.47" y="420" width="18.53" height="14" fill="#dc2626"/>
 <rect x="660.00" y="420" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="431" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">23.5/46.4/177x</text>
-<text x="824" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.95/1.98/2.50x</text>
-<text x="940" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">26.2/142/162x</text>
-<text x="1056" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.95/1.97/2.37x</text>
-<text x="1172" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.95/1.97/2.50x</text>
-<text x="1288" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">23.5/43.7/177x</text>
+<text x="708" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.57%/2.22%/4.26%</text>
+<text x="824" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/1.68%/3.93%</text>
+<text x="940" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.62%/0.71%/3.82%</text>
+<text x="1056" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.64%/1.68%/3.86%</text>
+<text x="1172" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/1.68%/3.93%</text>
+<text x="1288" y="431" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.57%/2.29%/4.26%</text>
 <text x="220" y="455" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SilverlightVersion2</text>
 <rect x="230" y="444" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="444" width="25.95" height="14" fill="#2563eb"/>
@@ -215,12 +215,12 @@
 <rect x="656.29" y="444" width="3.71" height="14" fill="#dc2626"/>
 <rect x="660.00" y="444" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="455" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">30.8/53.5/92.0x</text>
-<text x="824" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.97/1.58/1.67x</text>
-<text x="940" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">51.8/84.1/92.0x</text>
-<text x="1056" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.97/1.59/1.67x</text>
-<text x="1172" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.97/1.58/1.67x</text>
-<text x="1288" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">30.8/51.9/75.5x</text>
+<text x="708" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.09%/1.87%/3.25%</text>
+<text x="824" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.16%/1.41%/2.17%</text>
+<text x="940" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.09%/1.19%/1.93%</text>
+<text x="1056" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.24%/1.29%/2.11%</text>
+<text x="1172" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.16%/1.41%/2.17%</text>
+<text x="1288" y="455" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.32%/1.93%/3.25%</text>
 <text x="220" y="479" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">URLRegionID</text>
 <rect x="230" y="468" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="468" width="11.12" height="14" fill="#2563eb"/>
@@ -228,12 +228,12 @@
 <rect x="641.47" y="468" width="18.53" height="14" fill="#dc2626"/>
 <rect x="660.00" y="468" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="479" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">49.2/114/178x</text>
-<text x="824" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.96/1.57/2.15x</text>
-<text x="940" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">59.3/156/178x</text>
-<text x="1056" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.96/1.49/2.03x</text>
-<text x="1172" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.26/1.57/2.15x</text>
-<text x="1288" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">49.2/94.3/178x</text>
+<text x="708" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.56%/0.93%/2.03%</text>
+<text x="824" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.45%/0.80%/1.98%</text>
+<text x="940" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.56%/0.64%/1.69%</text>
+<text x="1056" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.64%/0.73%/1.69%</text>
+<text x="1172" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.45%/0.82%/1.98%</text>
+<text x="1288" y="479" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.56%/1.07%/2.03%</text>
 <text x="220" y="503" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ResolutionDepth</text>
 <rect x="230" y="492" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="492" width="33.36" height="14" fill="#2563eb"/>
@@ -241,12 +241,12 @@
 <rect x="660.00" y="492" width="0.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="492" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="503" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">30.4/44.7/109x</text>
-<text x="824" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.53/1.76/1.99x</text>
-<text x="940" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">61.6/97.3/109x</text>
-<text x="1056" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.69/1.75/1.99x</text>
-<text x="1172" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.53/1.76/1.99x</text>
-<text x="1288" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">30.4/42.8/87.0x</text>
+<text x="708" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.92%/2.24%/3.29%</text>
+<text x="824" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.15%/1.61%/2.31%</text>
+<text x="940" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.92%/1.03%/1.62%</text>
+<text x="1056" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.15%/1.31%/2.21%</text>
+<text x="1172" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.15%/1.67%/2.31%</text>
+<text x="1288" y="503" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.15%/2.33%/3.29%</text>
 <text x="220" y="527" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">JavaEnable</text>
 <rect x="230" y="516" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="516" width="29.66" height="14" fill="#2563eb"/>
@@ -254,12 +254,12 @@
 <rect x="641.47" y="516" width="18.53" height="14" fill="#dc2626"/>
 <rect x="660.00" y="516" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="527" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">38.8/61.0/93.3x</text>
-<text x="824" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.96/1.55/1.69x</text>
-<text x="940" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">54.4/88.3/93.3x</text>
-<text x="1056" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.96/1.60/1.65x</text>
-<text x="1172" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.41/1.55/1.69x</text>
-<text x="1288" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">38.8/58.9/91.1x</text>
+<text x="708" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.07%/1.61%/2.58%</text>
+<text x="824" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.04%/1.26%/1.99%</text>
+<text x="940" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.07%/1.13%/1.84%</text>
+<text x="1056" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.09%/1.21%/1.99%</text>
+<text x="1172" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.04%/1.26%/1.91%</text>
+<text x="1288" y="527" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.10%/1.70%/2.58%</text>
 <text x="220" y="551" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SearchPhrase</text>
 <rect x="230" y="540" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="540" width="0.00" height="14" fill="#2563eb"/>
@@ -267,12 +267,12 @@
 <rect x="593.28" y="540" width="66.72" height="14" fill="#dc2626"/>
 <rect x="660.00" y="540" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="551" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">8.15/18.2/173x</text>
-<text x="824" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.39/2.23/2.71x</text>
-<text x="940" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">20.6/24.3/173x</text>
-<text x="1056" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.39/2.06/2.35x</text>
-<text x="1172" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.39/2.61/2.71x</text>
-<text x="1288" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">8.15/8.87/58.6x</text>
+<text x="708" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.58%/5.48%/12.3%</text>
+<text x="824" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.81%/5.20%/11.5%</text>
+<text x="940" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.58%/4.13%/4.85%</text>
+<text x="1056" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85%/4.61%/5.34%</text>
+<text x="1172" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.81%/9.70%/11.5%</text>
+<text x="1288" y="551" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.71%/11.3%/12.3%</text>
 <text x="220" y="575" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">BrowserLanguage</text>
 <rect x="230" y="564" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="564" width="7.41" height="14" fill="#2563eb"/>
@@ -280,12 +280,12 @@
 <rect x="596.98" y="564" width="63.02" height="14" fill="#dc2626"/>
 <rect x="660.00" y="564" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="575" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">110/208/419x</text>
-<text x="824" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.93/1.48/1.87x</text>
-<text x="940" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">174/338/419x</text>
-<text x="1056" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.93/1.24/1.79x</text>
-<text x="1172" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.93/1.51/1.87x</text>
-<text x="1288" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">110/167/357x</text>
+<text x="708" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.24%/0.48%/0.91%</text>
+<text x="824" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.25%/0.44%/0.73%</text>
+<text x="940" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.24%/0.30%/0.58%</text>
+<text x="1056" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.26%/0.32%/0.62%</text>
+<text x="1172" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.25%/0.51%/0.73%</text>
+<text x="1288" y="575" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.28%/0.60%/0.91%</text>
 <text x="220" y="599" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OriginalURL</text>
 <rect x="230" y="588" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="588" width="2.05" height="14" fill="#2563eb"/>
@@ -293,12 +293,12 @@
 <rect x="584.24" y="588" width="75.76" height="14" fill="#dc2626"/>
 <rect x="660.00" y="588" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="599" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">210</text>
-<text x="708" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.97/5.55/15.9x</text>
-<text x="824" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.01/4.12/4.82x</text>
-<text x="940" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.38/5.52/15.9x</text>
-<text x="1056" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.01/4.29/4.82x</text>
-<text x="1172" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.01/4.24/4.82x</text>
-<text x="1288" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.97/6.51/15.9x</text>
+<text x="708" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.29%/16.9%/25.2%</text>
+<text x="824" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.24%/14.7%/194%</text>
+<text x="940" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.29%/18.1%/22.8%</text>
+<text x="1056" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.96%/20.0%/194%</text>
+<text x="1172" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.24%/14.0%/22.0%</text>
+<text x="1288" y="599" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.29%/15.4%/25.2%</text>
 <text x="220" y="623" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SearchEngineID</text>
 <rect x="230" y="612" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="612" width="18.53" height="14" fill="#2563eb"/>
@@ -306,12 +306,12 @@
 <rect x="578.45" y="612" width="81.55" height="14" fill="#dc2626"/>
 <rect x="660.00" y="612" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="623" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.4/74.4/423x</text>
-<text x="824" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.91/2.12/2.40x</text>
-<text x="940" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">94.5/107/423x</text>
-<text x="1056" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.91/1.97/2.18x</text>
-<text x="1172" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.91/2.19/2.40x</text>
-<text x="1288" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.4/25.6/174x</text>
+<text x="708" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.24%/1.15%/4.47%</text>
+<text x="824" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.30%/1.11%/3.62%</text>
+<text x="940" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.24%/0.93%/1.06%</text>
+<text x="1056" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.30%/0.99%/1.11%</text>
+<text x="1172" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.30%/2.77%/3.62%</text>
+<text x="1288" y="623" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.57%/3.90%/4.47%</text>
 <text x="220" y="647" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FlashMinor</text>
 <rect x="230" y="636" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="636" width="92.67" height="14" fill="#2563eb"/>
@@ -319,12 +319,12 @@
 <rect x="648.88" y="636" width="11.12" height="14" fill="#dc2626"/>
 <rect x="660.00" y="636" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="647" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.4/30.9/66.5x</text>
-<text x="824" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.68/1.86/2.09x</text>
-<text x="940" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">34.4/39.6/66.5x</text>
-<text x="1056" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.74/1.81/2.09x</text>
-<text x="1172" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.68/1.91/2.09x</text>
-<text x="1288" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.4/30.0/36.5x</text>
+<text x="708" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.50%/3.23%/4.68%</text>
+<text x="824" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.41%/2.77%/3.80%</text>
+<text x="940" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.50%/2.52%/2.91%</text>
+<text x="1056" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.57%/2.73%/3.54%</text>
+<text x="1172" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.41%/2.79%/3.80%</text>
+<text x="1288" y="647" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.74%/3.33%/4.68%</text>
 <text x="220" y="671" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SilverlightVersion1</text>
 <rect x="230" y="660" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="660" width="100.09" height="14" fill="#2563eb"/>
@@ -332,12 +332,12 @@
 <rect x="645.17" y="660" width="14.83" height="14" fill="#dc2626"/>
 <rect x="660.00" y="660" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="671" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">25.9/42.9/89.5x</text>
-<text x="824" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.62/1.84/1.96x</text>
-<text x="940" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">40.9/58.9/89.5x</text>
-<text x="1056" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.76/1.85/1.96x</text>
-<text x="1172" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.62/1.86/1.96x</text>
-<text x="1288" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">25.9/40.0/56.7x</text>
+<text x="708" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.12%/2.33%/3.86%</text>
+<text x="824" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.75%/2.08%/3.13%</text>
+<text x="940" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.12%/1.70%/2.44%</text>
+<text x="1056" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.75%/1.93%/2.79%</text>
+<text x="1172" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.75%/2.18%/3.13%</text>
+<text x="1288" y="671" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.76%/2.50%/3.86%</text>
 <text x="220" y="695" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">PageCharset</text>
 <rect x="230" y="684" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="684" width="5.97" height="14" fill="#2563eb"/>
@@ -345,12 +345,12 @@
 <rect x="546.53" y="684" width="113.47" height="14" fill="#dc2626"/>
 <rect x="660.00" y="684" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="695" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">144</text>
-<text x="708" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">378/1311/1824x</text>
-<text x="824" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.89/0.95x</text>
-<text x="940" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">803/1364/1824x</text>
-<text x="1056" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.88/0.95x</text>
-<text x="1172" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.90/0.95x</text>
-<text x="1288" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">378/1171/1658x</text>
+<text x="708" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.05%/0.08%/0.26%</text>
+<text x="824" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.04%/0.05%/0.18%</text>
+<text x="940" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.05%/0.07%/0.12%</text>
+<text x="1056" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.07%/0.08%/0.18%</text>
+<text x="1172" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.04%/0.04%/0.18%</text>
+<text x="1288" y="695" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.09%/0.26%</text>
 <text x="220" y="719" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsMobile</text>
 <rect x="230" y="708" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="708" width="55.60" height="14" fill="#2563eb"/>
@@ -358,12 +358,12 @@
 <rect x="593.28" y="708" width="66.72" height="14" fill="#dc2626"/>
 <rect x="660.00" y="708" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="719" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">88.4/138/267x</text>
-<text x="824" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.94/1.30/1.46x</text>
-<text x="940" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">107/176/267x</text>
-<text x="1056" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.94/0.96/1.38x</text>
-<text x="1172" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.94/1.33/1.46x</text>
-<text x="1288" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">88.4/125/215x</text>
+<text x="708" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.73%/1.13%</text>
+<text x="824" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.43%/0.62%/1.08%</text>
+<text x="940" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.57%/0.94%</text>
+<text x="1056" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.43%/0.63%/1.08%</text>
+<text x="1172" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.43%/0.62%/1.08%</text>
+<text x="1288" y="719" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.47%/0.80%/1.13%</text>
 <text x="220" y="743" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FlashMajor</text>
 <rect x="230" y="732" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="732" width="88.97" height="14" fill="#2563eb"/>
@@ -371,12 +371,12 @@
 <rect x="619.22" y="732" width="40.78" height="14" fill="#dc2626"/>
 <rect x="660.00" y="732" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="743" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">54.9/74.9/99.3x</text>
-<text x="824" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.49/1.80/1.90x</text>
-<text x="940" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">69.6/86.9/99.3x</text>
-<text x="1056" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.49/1.80/1.86x</text>
-<text x="1172" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.49/1.80/1.90x</text>
-<text x="1288" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">54.9/71.9/80.8x</text>
+<text x="708" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.01%/1.33%/1.82%</text>
+<text x="824" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.95%/1.26%/1.56%</text>
+<text x="940" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.01%/1.15%/1.44%</text>
+<text x="1056" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.13%/1.35%/1.56%</text>
+<text x="1172" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.95%/1.16%/1.56%</text>
+<text x="1288" y="743" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.24%/1.39%/1.82%</text>
 <text x="220" y="767" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OpenstatServiceName</text>
 <rect x="230" y="756" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="756" width="11.12" height="14" fill="#2563eb"/>
@@ -384,12 +384,12 @@
 <rect x="541.38" y="756" width="118.62" height="14" fill="#dc2626"/>
 <rect x="660.00" y="756" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="767" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">129/214/473x</text>
-<text x="824" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.88/0.95/1.36x</text>
-<text x="940" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">150/232/473x</text>
-<text x="1056" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.88/0.98/1.36x</text>
-<text x="1172" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.88/0.94/1.36x</text>
-<text x="1288" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">129/202/373x</text>
+<text x="708" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.21%/0.47%/0.77%</text>
+<text x="824" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.25%/0.44%/0.67%</text>
+<text x="940" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.21%/0.43%/0.67%</text>
+<text x="1056" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.25%/0.50%/0.67%</text>
+<text x="1172" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.25%/0.43%/0.67%</text>
+<text x="1288" y="767" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.27%/0.49%/0.77%</text>
 <text x="220" y="791" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UserAgent</text>
 <rect x="230" y="780" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="780" width="100.09" height="14" fill="#2563eb"/>
@@ -397,12 +397,12 @@
 <rect x="626.64" y="780" width="33.36" height="14" fill="#dc2626"/>
 <rect x="660.00" y="780" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="791" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">17.9/29.2/54.0x</text>
-<text x="824" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.53/1.78/1.91x</text>
-<text x="940" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">19.3/40.0/54.0x</text>
-<text x="1056" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.68/1.77/1.88x</text>
-<text x="1172" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.53/1.78/1.91x</text>
-<text x="1288" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">17.9/27.9/34.8x</text>
+<text x="708" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.85%/3.41%/5.60%</text>
+<text x="824" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.61%/3.02%/5.23%</text>
+<text x="940" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.85%/2.50%/5.17%</text>
+<text x="1056" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.63%/3.00%/5.23%</text>
+<text x="1172" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.61%/3.04%/5.23%</text>
+<text x="1288" y="791" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.88%/3.59%/5.60%</text>
 <text x="220" y="815" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsArtifical</text>
 <rect x="230" y="804" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="804" width="44.48" height="14" fill="#2563eb"/>
@@ -410,12 +410,12 @@
 <rect x="559.91" y="804" width="100.09" height="14" fill="#dc2626"/>
 <rect x="660.00" y="804" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="815" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.7/15.3/555x</text>
-<text x="824" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.87/0.99/0.99x</text>
-<text x="940" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">313/397/555x</text>
-<text x="1056" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.87/0.90/0.96x</text>
-<text x="1172" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.87/0.99/0.99x</text>
-<text x="1288" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.7/14.9/385x</text>
+<text x="708" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/6.54%/7.86%</text>
+<text x="824" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.24%/3.27%/3.46%</text>
+<text x="940" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.25%/0.32%</text>
+<text x="1056" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.24%/0.30%/0.85%</text>
+<text x="1172" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.24%/3.29%/3.46%</text>
+<text x="1288" y="815" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.26%/6.72%/7.86%</text>
 <text x="220" y="839" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">MobilePhoneModel</text>
 <rect x="230" y="828" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="828" width="25.95" height="14" fill="#2563eb"/>
@@ -423,12 +423,12 @@
 <rect x="541.38" y="828" width="118.62" height="14" fill="#dc2626"/>
 <rect x="660.00" y="828" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="839" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">90.4/176/326x</text>
-<text x="824" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.92/1.25/1.64x</text>
-<text x="940" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">122/241/326x</text>
-<text x="1056" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.92/0.95/1.47x</text>
-<text x="1172" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.92/1.29/1.64x</text>
-<text x="1288" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">90.4/168/304x</text>
+<text x="708" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.31%/0.57%/1.11%</text>
+<text x="824" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.32%/0.49%/0.88%</text>
+<text x="940" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.31%/0.42%/0.82%</text>
+<text x="1056" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.33%/0.48%/0.87%</text>
+<text x="1172" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.32%/0.51%/0.88%</text>
+<text x="1288" y="839" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.33%/0.60%/1.11%</text>
 <text x="220" y="863" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UTMCampaign</text>
 <rect x="230" y="852" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="852" width="37.07" height="14" fill="#2563eb"/>
@@ -436,12 +436,12 @@
 <rect x="552.50" y="852" width="107.50" height="14" fill="#dc2626"/>
 <rect x="660.00" y="852" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="863" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">84.8/124/1561x</text>
-<text x="824" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/1.40/1.65x</text>
-<text x="940" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">121/203/1561x</text>
-<text x="1056" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/1.20/1.55x</text>
-<text x="1172" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/1.44/1.65x</text>
-<text x="1288" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">84.8/108/285x</text>
+<text x="708" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.80%/1.18%</text>
+<text x="824" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.73%/0.99%</text>
+<text x="940" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.49%/0.82%</text>
+<text x="1056" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.63%/0.99%</text>
+<text x="1172" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.14%/0.75%/0.89%</text>
+<text x="1288" y="863" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.35%/0.93%/1.18%</text>
 <text x="220" y="887" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UTMMedium</text>
 <rect x="230" y="876" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="876" width="44.48" height="14" fill="#2563eb"/>
@@ -449,12 +449,12 @@
 <rect x="559.91" y="876" width="100.09" height="14" fill="#dc2626"/>
 <rect x="660.00" y="876" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="887" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">130/226/1561x</text>
-<text x="824" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.92/1.42x</text>
-<text x="940" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">186/382/1561x</text>
-<text x="1056" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.90/1.42x</text>
-<text x="1172" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/1.27/1.42x</text>
-<text x="1288" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">130/187/490x</text>
+<text x="708" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.43%/0.77%</text>
+<text x="824" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.38%/0.56%</text>
+<text x="940" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.26%/0.54%</text>
+<text x="1056" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.32%/0.56%</text>
+<text x="1172" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.14%/0.41%/0.56%</text>
+<text x="1288" y="887" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.20%/0.53%/0.77%</text>
 <text x="220" y="911" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">DontCountHits</text>
 <rect x="230" y="900" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="900" width="114.91" height="14" fill="#2563eb"/>
@@ -462,12 +462,12 @@
 <rect x="626.64" y="900" width="33.36" height="14" fill="#dc2626"/>
 <rect x="660.00" y="900" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="911" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.5/35.9/318x</text>
-<text x="824" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.93/1.27/1.58x</text>
-<text x="940" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">219/271/318x</text>
-<text x="1056" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.93/0.95/1.31x</text>
-<text x="1172" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.94/1.49/1.58x</text>
-<text x="1288" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.5/33.6/267x</text>
+<text x="708" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.31%/2.80%/8.03%</text>
+<text x="824" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.36%/1.69%/3.46%</text>
+<text x="940" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.31%/0.37%/0.46%</text>
+<text x="1056" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.46%/2.91%</text>
+<text x="1172" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.36%/1.84%/3.46%</text>
+<text x="1288" y="911" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/2.97%/8.03%</text>
 <text x="220" y="935" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UTMSource</text>
 <rect x="230" y="924" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="924" width="37.07" height="14" fill="#2563eb"/>
@@ -475,12 +475,12 @@
 <rect x="545.09" y="924" width="114.91" height="14" fill="#dc2626"/>
 <rect x="660.00" y="924" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="935" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">105/169/1561x</text>
-<text x="824" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/1.02/1.54x</text>
-<text x="940" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">217/307/1561x</text>
-<text x="1056" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.94/1.03x</text>
-<text x="1172" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/1.38/1.54x</text>
-<text x="1288" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">105/152/426x</text>
+<text x="708" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.54%/0.95%</text>
+<text x="824" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.49%/0.66%</text>
+<text x="940" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.33%/0.46%</text>
+<text x="1056" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.43%/0.58%</text>
+<text x="1172" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.14%/0.52%/0.66%</text>
+<text x="1288" y="935" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.23%/0.66%/0.95%</text>
 <text x="220" y="959" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OpenstatAdID</text>
 <rect x="230" y="948" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="948" width="51.90" height="14" fill="#2563eb"/>
@@ -488,12 +488,12 @@
 <rect x="541.38" y="948" width="118.62" height="14" fill="#dc2626"/>
 <rect x="660.00" y="948" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="959" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">112/206/1561x</text>
-<text x="824" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.94/1.59x</text>
-<text x="940" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">143/355/1561x</text>
-<text x="1056" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.93/1.59x</text>
-<text x="1172" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/1.32/1.59x</text>
-<text x="1288" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">112/165/514x</text>
+<text x="708" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.48%/0.90%</text>
+<text x="824" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.46%/0.82%</text>
+<text x="940" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.28%/0.70%</text>
+<text x="1056" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.37%/0.82%</text>
+<text x="1172" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.14%/0.55%/0.81%</text>
+<text x="1288" y="959" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.19%/0.61%/0.90%</text>
 <text x="220" y="983" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">HitColor</text>
 <rect x="230" y="972" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="972" width="70.43" height="14" fill="#2563eb"/>
@@ -501,12 +501,12 @@
 <rect x="556.21" y="972" width="103.79" height="14" fill="#dc2626"/>
 <rect x="660.00" y="972" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="983" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.8/414/828x</text>
-<text x="824" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.94/1.78x</text>
-<text x="940" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">43.2/458/828x</text>
-<text x="1056" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.92/1.74x</text>
-<text x="1172" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.95/1.78x</text>
-<text x="1288" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.8/277/776x</text>
+<text x="708" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.12%/0.24%/4.38%</text>
+<text x="824" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.33%/3.09%</text>
+<text x="940" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.12%/0.22%/2.31%</text>
+<text x="1056" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.35%/3.08%</text>
+<text x="1172" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.33%/3.09%</text>
+<text x="1288" y="983" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.36%/4.38%</text>
 <text x="220" y="1007" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OpenstatCampaignID</text>
 <rect x="230" y="996" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="996" width="37.07" height="14" fill="#2563eb"/>
@@ -514,12 +514,12 @@
 <rect x="511.72" y="996" width="148.28" height="14" fill="#dc2626"/>
 <rect x="660.00" y="996" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1007" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">145/233/560x</text>
-<text x="824" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.94/1.34x</text>
-<text x="940" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">182/326/560x</text>
-<text x="1056" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.93/1.34x</text>
-<text x="1172" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.95/1.34x</text>
-<text x="1288" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">145/212/458x</text>
+<text x="708" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.43%/0.69%</text>
+<text x="824" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.21%/0.42%/0.58%</text>
+<text x="940" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.31%/0.55%</text>
+<text x="1056" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.21%/0.38%/0.58%</text>
+<text x="1172" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.21%/0.42%/0.54%</text>
+<text x="1288" y="1007" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.22%/0.47%/0.69%</text>
 <text x="220" y="1031" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">AdvEngineID</text>
 <rect x="230" y="1020" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1020" width="51.90" height="14" fill="#2563eb"/>
@@ -527,12 +527,12 @@
 <rect x="522.84" y="1020" width="137.16" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1020" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1031" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">64.4/155/770x</text>
-<text x="824" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.84/0.90/1.84x</text>
-<text x="940" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">313/510/770x</text>
-<text x="1056" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.84/0.88/0.94x</text>
-<text x="1172" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/1.66/1.84x</text>
-<text x="1288" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">64.4/76.0/510x</text>
+<text x="708" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.32%/1.55%</text>
+<text x="824" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.44%/1.04%</text>
+<text x="940" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.20%/0.32%</text>
+<text x="1056" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.24%/0.46%</text>
+<text x="1172" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.91%/1.04%</text>
+<text x="1288" y="1031" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.20%/1.32%/1.55%</text>
 <text x="220" y="1055" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UTMTerm</text>
 <rect x="230" y="1044" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1044" width="51.90" height="14" fill="#2563eb"/>
@@ -540,12 +540,12 @@
 <rect x="519.14" y="1044" width="140.86" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1044" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1055" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">61.8/262/1561x</text>
-<text x="824" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.93/1.77x</text>
-<text x="940" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">61.8/284/1561x</text>
-<text x="1056" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.94/1.77x</text>
-<text x="1172" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.93/1.46x</text>
-<text x="1288" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">61.8/255/470x</text>
+<text x="708" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.38%/1.62%</text>
+<text x="824" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.37%/2.12%</text>
+<text x="940" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.35%/1.62%</text>
+<text x="1056" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.45%/2.12%</text>
+<text x="1172" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.14%/0.35%/0.92%</text>
+<text x="1288" y="1055" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.21%/0.39%/1.62%</text>
 <text x="220" y="1079" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsLink</text>
 <rect x="230" y="1068" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1068" width="51.90" height="14" fill="#2563eb"/>
@@ -553,12 +553,12 @@
 <rect x="504.31" y="1068" width="155.69" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1068" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1079" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">31.8/61.3/1049x</text>
-<text x="824" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/1.45/1.62x</text>
-<text x="940" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">885/913/1049x</text>
-<text x="1056" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.83/1.51x</text>
-<text x="1172" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.30/1.53/1.62x</text>
-<text x="1288" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">31.8/34.4/61.3x</text>
+<text x="708" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.10%/1.64%/3.15%</text>
+<text x="824" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/1.07%/1.96%</text>
+<text x="940" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.10%/0.11%/0.11%</text>
+<text x="1056" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.15%/1.07%</text>
+<text x="1172" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.97%/1.78%/1.96%</text>
+<text x="1288" y="1079" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.63%/2.91%/3.15%</text>
 <text x="220" y="1103" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">NetMinor</text>
 <rect x="230" y="1092" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1092" width="137.16" height="14" fill="#2563eb"/>
@@ -566,12 +566,12 @@
 <rect x="582.16" y="1092" width="77.84" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1092" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1103" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">102/179/304x</text>
-<text x="824" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.88/1.34/1.71x</text>
-<text x="940" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">137/237/304x</text>
-<text x="1056" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.88/0.95/1.68x</text>
-<text x="1172" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.88/1.62/1.71x</text>
-<text x="1288" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">102/119/235x</text>
+<text x="708" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.33%/0.54%/0.98%</text>
+<text x="824" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.39%/0.61%/0.83%</text>
+<text x="940" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.33%/0.42%/0.73%</text>
+<text x="1056" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.39%/0.53%/0.77%</text>
+<text x="1172" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.39%/0.70%/0.83%</text>
+<text x="1288" y="1103" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.43%/0.84%/0.98%</text>
 <text x="220" y="1127" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">HasGCLID</text>
 <rect x="230" y="1116" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1116" width="166.81" height="14" fill="#2563eb"/>
@@ -579,12 +579,12 @@
 <rect x="600.69" y="1116" width="59.31" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1116" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1127" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">86.2/225/1062x</text>
-<text x="824" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/1.55x</text>
-<text x="940" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">106/1019/1062x</text>
-<text x="1056" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.97x</text>
-<text x="1172" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/1.41/1.55x</text>
-<text x="1288" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">86.2/106/397x</text>
+<text x="708" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.25%/1.16%</text>
+<text x="824" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.15%/0.32%/0.96%</text>
+<text x="940" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.95%</text>
+<text x="1056" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.15%/0.16%/0.96%</text>
+<text x="1172" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.66%/0.95%</text>
+<text x="1288" y="1127" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.25%/0.94%/1.16%</text>
 <text x="220" y="1151" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FromTag</text>
 <rect x="230" y="1140" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1140" width="163.10" height="14" fill="#2563eb"/>
@@ -592,12 +592,12 @@
 <rect x="589.57" y="1140" width="70.43" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1140" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1151" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">53.3/379/1543x</text>
-<text x="824" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.92/2.27x</text>
-<text x="940" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">264/1320/1543x</text>
-<text x="1056" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.80/0.95x</text>
-<text x="1172" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.92/1.95/2.27x</text>
-<text x="1288" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">53.3/67.4/264x</text>
+<text x="708" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.26%/1.88%</text>
+<text x="824" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.33%/1.32%</text>
+<text x="940" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.08%/0.38%</text>
+<text x="1056" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.52%</text>
+<text x="1172" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.33%/1.12%/1.32%</text>
+<text x="1288" y="1151" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.38%/1.48%/1.88%</text>
 <text x="220" y="1175" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OpenstatSourceID</text>
 <rect x="230" y="1164" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1164" width="203.88" height="14" fill="#2563eb"/>
@@ -605,12 +605,12 @@
 <rect x="630.34" y="1164" width="29.66" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1164" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1175" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">139/340/1561x</text>
-<text x="824" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.84/1.41x</text>
-<text x="940" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">197/1301/1561x</text>
-<text x="1056" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/1.41x</text>
-<text x="1172" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/1.25/1.41x</text>
-<text x="1288" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">139/183/554x</text>
+<text x="708" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.21%/0.72%</text>
+<text x="824" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.25%/0.59%</text>
+<text x="940" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.08%/0.51%</text>
+<text x="1056" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.15%/0.59%</text>
+<text x="1172" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.15%/0.45%/0.59%</text>
+<text x="1288" y="1175" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.55%/0.72%</text>
 <text x="220" y="1199" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">NetMajor</text>
 <rect x="230" y="1188" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1188" width="151.98" height="14" fill="#2563eb"/>
@@ -618,12 +618,12 @@
 <rect x="574.74" y="1188" width="85.26" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1188" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1199" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">91.9/174/292x</text>
-<text x="824" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.90/1.36/1.69x</text>
-<text x="940" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">111/217/292x</text>
-<text x="1056" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.90/1.04/1.68x</text>
-<text x="1172" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.90/1.59/1.69x</text>
-<text x="1288" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">91.9/115/238x</text>
+<text x="708" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.34%/0.57%/1.09%</text>
+<text x="824" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.36%/0.69%/0.91%</text>
+<text x="940" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.34%/0.46%/0.90%</text>
+<text x="1056" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.36%/0.60%/0.91%</text>
+<text x="1172" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.36%/0.76%/0.91%</text>
+<text x="1288" y="1199" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.42%/0.87%/1.09%</text>
 <text x="220" y="1223" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UTMContent</text>
 <rect x="230" y="1212" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1212" width="55.60" height="14" fill="#2563eb"/>
@@ -631,12 +631,12 @@
 <rect x="474.66" y="1212" width="185.34" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1212" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1223" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">115/292/1561x</text>
-<text x="824" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.93/1.36x</text>
-<text x="940" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">115/323/1561x</text>
-<text x="1056" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.93/1.36x</text>
-<text x="1172" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.92/1.25x</text>
-<text x="1288" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">115/267/583x</text>
+<text x="708" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.34%/0.87%</text>
+<text x="824" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.34%/1.15%</text>
+<text x="940" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.31%/0.87%</text>
+<text x="1056" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.37%/1.15%</text>
+<text x="1172" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.14%/0.33%/0.73%</text>
+<text x="1288" y="1223" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.17%/0.37%/0.87%</text>
 <text x="220" y="1247" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">HID</text>
 <rect x="230" y="1236" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1236" width="0.00" height="14" fill="#2563eb"/>
@@ -644,12 +644,12 @@
 <rect x="411.64" y="1236" width="248.36" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1236" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1247" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.00/1.59x</text>
-<text x="824" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.00/1.00x</text>
-<text x="940" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.00/1.59x</text>
-<text x="1056" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.00/1.00x</text>
-<text x="1172" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.00/1.00x</text>
-<text x="1288" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.00/1.00x</text>
+<text x="708" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">63.1%/100%/100%</text>
+<text x="824" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">93.2%/101%/138%</text>
+<text x="940" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">63.1%/100%/100%</text>
+<text x="1056" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">93.2%/136%/138%</text>
+<text x="1172" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">93.2%/93.8%/94.0%</text>
+<text x="1288" y="1247" font-family="Arial, sans-serif" font-size="9" fill="#374151">100%/100%/100%</text>
 <text x="220" y="1271" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SilverlightVersion3</text>
 <rect x="230" y="1260" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1260" width="114.91" height="14" fill="#2563eb"/>
@@ -657,12 +657,12 @@
 <rect x="515.43" y="1260" width="144.57" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1260" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1271" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">19.1/33.2/40.9x</text>
-<text x="824" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.63/1.84/2.06x</text>
-<text x="940" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.2/36.5/40.9x</text>
-<text x="1056" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.67/1.83/2.06x</text>
-<text x="1172" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.63/1.89/2.06x</text>
-<text x="1288" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">19.1/30.3/38.3x</text>
+<text x="708" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.44%/3.01%/5.24%</text>
+<text x="824" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.60%/3.01%/4.71%</text>
+<text x="940" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.44%/2.74%/4.50%</text>
+<text x="1056" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.61%/2.91%/4.65%</text>
+<text x="1172" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.60%/3.17%/4.71%</text>
+<text x="1288" y="1271" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.61%/3.30%/5.24%</text>
 <text x="220" y="1295" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">MobilePhone</text>
 <rect x="230" y="1284" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1284" width="140.86" height="14" fill="#2563eb"/>
@@ -670,12 +670,12 @@
 <rect x="508.02" y="1284" width="151.98" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1284" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1295" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">102/172/335x</text>
-<text x="824" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.94/1.40/1.88x</text>
-<text x="940" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">103/217/335x</text>
-<text x="1056" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.94/1.37/1.88x</text>
-<text x="1172" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.25/1.48/1.88x</text>
-<text x="1288" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">102/143/217x</text>
+<text x="708" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.30%/0.58%/0.98%</text>
+<text x="824" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.42%/0.61%/1.12%</text>
+<text x="940" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.30%/0.46%/0.97%</text>
+<text x="1056" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.42%/0.57%/1.12%</text>
+<text x="1172" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.42%/0.65%/0.85%</text>
+<text x="1288" y="1295" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.46%/0.70%/0.98%</text>
 <text x="220" y="1319" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OS</text>
 <rect x="230" y="1308" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1308" width="248.36" height="14" fill="#2563eb"/>
@@ -683,12 +683,12 @@
 <rect x="593.28" y="1308" width="66.72" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1308" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1319" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.1/33.6/75.6x</text>
-<text x="824" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.58/1.91/2.06x</text>
-<text x="940" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.2/48.1/75.6x</text>
-<text x="1056" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.58/1.94/2.04x</text>
-<text x="1172" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.58/1.81/2.06x</text>
-<text x="1288" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.1/29.9/32.9x</text>
+<text x="708" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.32%/2.98%/4.53%</text>
+<text x="824" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.49%/3.01%/4.70%</text>
+<text x="940" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.32%/2.08%/4.50%</text>
+<text x="1056" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.49%/2.70%/4.70%</text>
+<text x="1172" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.58%/3.23%/4.52%</text>
+<text x="1288" y="1319" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.04%/3.35%/4.53%</text>
 <text x="220" y="1343" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">HistoryLength</text>
 <rect x="230" y="1332" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1332" width="77.84" height="14" fill="#2563eb"/>
@@ -696,12 +696,12 @@
 <rect x="407.93" y="1332" width="252.07" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1332" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1343" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.37/500/810x</text>
-<text x="824" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.84/0.89/1.48x</text>
-<text x="940" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.58/528/810x</text>
-<text x="1056" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.84/0.89/1.47x</text>
-<text x="1172" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.84/0.88/1.48x</text>
-<text x="1288" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.37/384/609x</text>
+<text x="708" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.12%/0.20%/15.7%</text>
+<text x="824" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.15%/0.22%/15.1%</text>
+<text x="940" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.12%/0.19%/13.2%</text>
+<text x="1056" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.15%/0.23%/14.0%</text>
+<text x="1172" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.15%/0.21%/15.1%</text>
+<text x="1288" y="1343" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.26%/15.7%</text>
 <text x="220" y="1367" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsDownload</text>
 <rect x="230" y="1356" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1356" width="148.28" height="14" fill="#2563eb"/>
@@ -709,12 +709,12 @@
 <rect x="452.41" y="1356" width="207.59" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1356" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1367" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">130/887/1062x</text>
-<text x="824" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.83/1.15x</text>
-<text x="940" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">236/893/1062x</text>
-<text x="1056" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.83/0.94x</text>
-<text x="1172" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.92/1.15x</text>
-<text x="1288" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">130/250/520x</text>
+<text x="708" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.11%/0.77%</text>
+<text x="824" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.52%</text>
+<text x="940" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.11%/0.42%</text>
+<text x="1056" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.52%</text>
+<text x="1172" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.36%/0.52%</text>
+<text x="1288" y="1367" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.19%/0.40%/0.77%</text>
 <text x="220" y="1391" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UserAgentMajor</text>
 <rect x="230" y="1380" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1380" width="266.90" height="14" fill="#2563eb"/>
@@ -722,12 +722,12 @@
 <rect x="571.03" y="1380" width="88.97" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1380" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1391" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">15.8/25.0/53.7x</text>
-<text x="824" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.39/1.53/1.67x</text>
-<text x="940" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">15.8/28.2/53.7x</text>
-<text x="1056" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.39/1.52/1.67x</text>
-<text x="1172" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.50/1.57/1.67x</text>
-<text x="1288" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">15.8/21.9/24.2x</text>
+<text x="708" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.86%/4.01%/6.34%</text>
+<text x="824" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.90%/4.38%/6.41%</text>
+<text x="940" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.86%/3.54%/6.34%</text>
+<text x="1056" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.90%/4.37%/6.41%</text>
+<text x="1172" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.96%/4.44%/6.24%</text>
+<text x="1288" y="1391" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.13%/4.56%/6.34%</text>
 <text x="220" y="1415" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">WindowName</text>
 <rect x="230" y="1404" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1404" width="88.97" height="14" fill="#2563eb"/>
@@ -735,12 +735,12 @@
 <rect x="385.69" y="1404" width="274.31" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1404" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1415" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.78/442/761x</text>
-<text x="824" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.90/1.18x</text>
-<text x="940" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.78/463/761x</text>
-<text x="1056" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.90/1.18x</text>
-<text x="1172" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.87/1.09x</text>
-<text x="1288" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">10.6/412/542x</text>
+<text x="708" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.23%/20.9%</text>
+<text x="824" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.26%/44.8%</text>
+<text x="940" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.22%/20.9%</text>
+<text x="1056" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.26%/44.8%</text>
+<text x="1172" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.21%/7.92%</text>
+<text x="1288" y="1415" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.24%/9.42%</text>
 <text x="220" y="1439" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">JavascriptEnable</text>
 <rect x="230" y="1428" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1428" width="118.62" height="14" fill="#2563eb"/>
@@ -748,12 +748,12 @@
 <rect x="404.22" y="1428" width="255.78" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1428" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1439" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">195/638/915x</text>
-<text x="824" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.85/0.95x</text>
-<text x="940" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">244/680/915x</text>
-<text x="1056" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.85/0.95x</text>
-<text x="1172" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.86/0.87x</text>
-<text x="1288" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">195/507/618x</text>
+<text x="708" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.15%/0.51%</text>
+<text x="824" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.18%/0.47%</text>
+<text x="940" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.15%/0.41%</text>
+<text x="1056" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.18%/0.47%</text>
+<text x="1172" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.18%/0.37%</text>
+<text x="1288" y="1439" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.20%/0.51%</text>
 <text x="220" y="1463" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">CookieEnable</text>
 <rect x="230" y="1452" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1452" width="107.50" height="14" fill="#2563eb"/>
@@ -761,12 +761,12 @@
 <rect x="389.40" y="1452" width="270.60" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1452" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1463" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">168/724/896x</text>
-<text x="824" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.85/0.95x</text>
-<text x="940" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">215/750/896x</text>
-<text x="1056" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.85/0.95x</text>
-<text x="1172" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.85/0.88x</text>
-<text x="1288" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">168/563/662x</text>
+<text x="708" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.14%/0.59%</text>
+<text x="824" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.17%/0.49%</text>
+<text x="940" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.46%</text>
+<text x="1056" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.18%/0.49%</text>
+<text x="1172" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.15%/0.16%/0.41%</text>
+<text x="1288" y="1463" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.15%/0.18%/0.59%</text>
 <text x="220" y="1487" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">DNSTiming</text>
 <rect x="230" y="1476" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1476" width="37.07" height="14" fill="#2563eb"/>
@@ -774,12 +774,12 @@
 <rect x="318.97" y="1476" width="341.03" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1476" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1487" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">13.9/29.9/57.6x</text>
-<text x="824" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.77/2.13/2.46x</text>
-<text x="940" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">13.9/39.5/57.6x</text>
-<text x="1056" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.77/2.12/2.46x</text>
-<text x="1172" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.77/2.23/2.46x</text>
-<text x="1288" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">17.5/22.5/25.2x</text>
+<text x="708" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.74%/3.64%/7.20%</text>
+<text x="824" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.22%/4.10%/9.38%</text>
+<text x="940" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.74%/2.53%/7.20%</text>
+<text x="1056" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.22%/3.04%/9.38%</text>
+<text x="1172" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.75%/4.39%/5.02%</text>
+<text x="1288" y="1487" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.97%/4.44%/5.70%</text>
 <text x="220" y="1511" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsNotBounce</text>
 <rect x="230" y="1500" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1500" width="118.62" height="14" fill="#2563eb"/>
@@ -787,12 +787,12 @@
 <rect x="400.52" y="1500" width="259.48" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1500" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1511" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">14.9/871/1049x</text>
-<text x="824" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.84/0.99x</text>
-<text x="940" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">30.0/887/1049x</text>
-<text x="1056" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.83/0.99x</text>
-<text x="1172" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.84/0.99/0.99x</text>
-<text x="1288" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">14.9/17.5/559x</text>
+<text x="708" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.10%/0.11%/6.71%</text>
+<text x="824" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.17%/3.72%</text>
+<text x="940" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.10%/0.11%/3.33%</text>
+<text x="1056" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/3.54%</text>
+<text x="1172" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.17%/3.26%/3.72%</text>
+<text x="1288" y="1511" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/5.71%/6.71%</text>
 <text x="220" y="1535" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ResolutionWidth</text>
 <rect x="230" y="1524" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1524" width="211.29" height="14" fill="#2563eb"/>
@@ -800,12 +800,12 @@
 <rect x="493.19" y="1524" width="166.81" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1524" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1535" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">13.6/21.6/27.3x</text>
-<text x="824" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.54/1.78/2.04x</text>
-<text x="940" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">14.3/23.5/27.3x</text>
-<text x="1056" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.69/1.78/2.04x</text>
-<text x="1172" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.54/1.79/2.04x</text>
-<text x="1288" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">13.6/19.6/21.6x</text>
+<text x="708" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.66%/4.63%/7.37%</text>
+<text x="824" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.33%/4.98%/7.28%</text>
+<text x="940" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.66%/4.26%/6.99%</text>
+<text x="1056" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.33%/4.96%/7.28%</text>
+<text x="1172" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.43%/5.02%/7.28%</text>
+<text x="1288" y="1535" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.63%/5.11%/7.37%</text>
 <text x="220" y="1559" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SocialSourcePage</text>
 <rect x="230" y="1548" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1548" width="244.66" height="14" fill="#2563eb"/>
@@ -813,12 +813,12 @@
 <rect x="526.55" y="1548" width="133.45" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1548" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1559" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">340/1283/1543x</text>
-<text x="824" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/0.92x</text>
-<text x="940" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">340/1303/1543x</text>
-<text x="1056" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/0.92x</text>
-<text x="1172" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.80/0.80/0.85x</text>
-<text x="1288" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">356/500/737x</text>
+<text x="708" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.08%/0.29%</text>
+<text x="824" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.15%/0.34%</text>
+<text x="940" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.08%/0.29%</text>
+<text x="1056" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.16%/0.34%</text>
+<text x="1172" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.18%</text>
+<text x="1288" y="1559" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.14%/0.20%/0.28%</text>
 <text x="220" y="1583" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">CodeVersion</text>
 <rect x="230" y="1572" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1572" width="96.38" height="14" fill="#2563eb"/>
@@ -826,12 +826,12 @@
 <rect x="374.57" y="1572" width="285.43" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1572" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1583" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">172/598/915x</text>
-<text x="824" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.87/0.95x</text>
-<text x="940" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">224/612/915x</text>
-<text x="1056" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.87/0.95x</text>
-<text x="1172" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.87/0.90x</text>
-<text x="1288" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">172/503/612x</text>
+<text x="708" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.17%/0.58%</text>
+<text x="824" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.20%/0.47%</text>
+<text x="940" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.16%/0.45%</text>
+<text x="1056" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.20%/0.47%</text>
+<text x="1172" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.18%/0.41%</text>
+<text x="1288" y="1583" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.16%/0.20%/0.58%</text>
 <text x="220" y="1607" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ConnectTiming</text>
 <rect x="230" y="1596" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1596" width="22.24" height="14" fill="#2563eb"/>
@@ -839,12 +839,12 @@
 <rect x="285.60" y="1596" width="374.40" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1596" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1607" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.68/12.0/25.9x</text>
-<text x="824" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.57/1.85/2.19x</text>
-<text x="940" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.68/9.66/25.9x</text>
-<text x="1056" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.57/1.84/2.19x</text>
-<text x="1172" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.02/2.08/2.19x</text>
-<text x="1288" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">15.9/17.8/21.0x</text>
+<text x="708" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.86%/8.67%/13.0%</text>
+<text x="824" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.32%/10.9%/15.4%</text>
+<text x="940" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.86%/10.4%/13.0%</text>
+<text x="1056" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.32%/11.9%/15.4%</text>
+<text x="1172" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.56%/5.23%/5.62%</text>
+<text x="1288" y="1607" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.76%/5.61%/6.28%</text>
 <text x="220" y="1631" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">RefererHash</text>
 <rect x="230" y="1620" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1620" width="0.00" height="14" fill="#2563eb"/>
@@ -852,12 +852,12 @@
 <rect x="263.36" y="1620" width="396.64" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1620" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1631" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.70/3.41/10.3x</text>
-<text x="824" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.02/1.05/1.99x</text>
-<text x="940" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.70/3.33/10.3x</text>
-<text x="1056" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.02/1.05/1.91x</text>
-<text x="1172" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.10/1.84/1.99x</text>
-<text x="1288" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.01/8.39/10.3x</text>
+<text x="708" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.70%/29.5%/59.0%</text>
+<text x="824" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">8.40%/39.9%/64.8%</text>
+<text x="940" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.70%/30.0%/59.0%</text>
+<text x="1056" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">10.3%/39.9%/64.8%</text>
+<text x="1172" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">8.40%/10.7%/47.2%</text>
+<text x="1288" y="1631" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.70%/11.9%/49.8%</text>
 <text x="220" y="1655" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">CLID</text>
 <rect x="230" y="1644" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1644" width="107.50" height="14" fill="#2563eb"/>
@@ -865,12 +865,12 @@
 <rect x="363.45" y="1644" width="296.55" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1644" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1655" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">157/887/1062x</text>
-<text x="824" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.83/0.89x</text>
-<text x="940" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">449/887/1062x</text>
-<text x="1056" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.83/0.89x</text>
-<text x="1172" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.84/0.87/0.88x</text>
-<text x="1288" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">157/469/569x</text>
+<text x="708" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.11%/0.64%</text>
+<text x="824" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.42%</text>
+<text x="940" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.11%/0.22%</text>
+<text x="1056" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.42%</text>
+<text x="1172" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.17%/0.21%/0.42%</text>
+<text x="1288" y="1655" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.21%/0.64%</text>
 <text x="220" y="1679" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ResolutionHeight</text>
 <rect x="230" y="1668" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1668" width="226.12" height="14" fill="#2563eb"/>
@@ -878,12 +878,12 @@
 <rect x="474.66" y="1668" width="185.34" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1668" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1679" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">13.7/21.7/27.7x</text>
-<text x="824" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.54/1.78/1.97x</text>
-<text x="940" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">13.7/22.7/27.7x</text>
-<text x="1056" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.54/1.78/1.97x</text>
-<text x="1172" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.54/1.74/1.93x</text>
-<text x="1288" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">14.6/19.8/21.7x</text>
+<text x="708" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.62%/4.61%/7.31%</text>
+<text x="824" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.31%/5.11%/7.72%</text>
+<text x="940" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.62%/4.41%/7.31%</text>
+<text x="1056" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.31%/5.11%/7.72%</text>
+<text x="1172" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.54%/4.64%/6.67%</text>
+<text x="1288" y="1679" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.60%/5.06%/6.85%</text>
 <text x="220" y="1703" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ResponseEndTiming</text>
 <rect x="230" y="1692" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1692" width="0.00" height="14" fill="#2563eb"/>
@@ -891,12 +891,12 @@
 <rect x="244.83" y="1692" width="415.17" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1692" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1703" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.04/5.02/6.49x</text>
-<text x="824" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.08/1.41/1.59x</text>
-<text x="940" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.04/4.91/6.49x</text>
-<text x="1056" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.08/1.41/1.59x</text>
-<text x="1172" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.40/1.58/1.59x</text>
-<text x="1288" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.00/5.33/5.93x</text>
+<text x="708" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">15.4%/20.1%/32.9%</text>
+<text x="824" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">16.2%/23.0%/38.8%</text>
+<text x="940" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">15.4%/20.3%/32.9%</text>
+<text x="1056" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">16.2%/23.2%/38.8%</text>
+<text x="1172" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">16.2%/17.9%/23.4%</text>
+<text x="1288" y="1703" font-family="Arial, sans-serif" font-size="9" fill="#374151">16.9%/18.8%/25.0%</text>
 <text x="220" y="1727" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SendTiming</text>
 <rect x="230" y="1716" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1716" width="133.45" height="14" fill="#2563eb"/>
@@ -904,12 +904,12 @@
 <rect x="378.28" y="1716" width="281.72" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1716" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1727" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.28/871/1049x</text>
-<text x="824" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.84/1.64x</text>
-<text x="940" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.28/878/1049x</text>
-<text x="1056" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.83/0.84/1.64x</text>
-<text x="1172" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.84/0.85/1.21x</text>
-<text x="1288" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">10.4/441/559x</text>
+<text x="708" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.10%/0.11%/19.0%</text>
+<text x="824" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.17%/23.9%</text>
+<text x="940" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.10%/0.11%/19.0%</text>
+<text x="1056" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.17%/23.9%</text>
+<text x="1172" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.17%/0.17%/6.10%</text>
+<text x="1288" y="1727" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.18%/0.24%/9.57%</text>
 <text x="220" y="1751" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SocialSourceNetworkID</text>
 <rect x="230" y="1740" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1740" width="166.81" height="14" fill="#2563eb"/>
@@ -917,12 +917,12 @@
 <rect x="411.64" y="1740" width="248.36" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1740" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1751" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/764/1044x</text>
-<text x="824" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.85/0.89x</text>
-<text x="940" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">489/801/1044x</text>
-<text x="1056" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.85/0.89x</text>
-<text x="1172" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.84/0.86x</text>
-<text x="1288" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/541/709x</text>
+<text x="708" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.10%/0.13%/0.44%</text>
+<text x="824" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.18%/0.37%</text>
+<text x="940" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.10%/0.12%/0.20%</text>
+<text x="1056" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.18%/0.37%</text>
+<text x="1172" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1288" y="1751" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.14%/0.19%/0.44%</text>
 <text x="220" y="1775" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FetchTiming</text>
 <rect x="230" y="1764" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1764" width="11.12" height="14" fill="#2563eb"/>
@@ -930,12 +930,12 @@
 <rect x="248.53" y="1764" width="411.47" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1764" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1775" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.22/8.46/20.1x</text>
-<text x="824" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.39/1.67/1.85x</text>
-<text x="940" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.22/8.24/20.1x</text>
-<text x="1056" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.39/1.67/1.85x</text>
-<text x="1172" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.66/1.76/1.85x</text>
-<text x="1288" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.06/9.25/9.43x</text>
+<text x="708" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.98%/12.0%/19.1%</text>
+<text x="824" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.23%/15.3%/25.8%</text>
+<text x="940" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.98%/12.1%/19.1%</text>
+<text x="1056" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.23%/15.3%/25.8%</text>
+<text x="1172" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.23%/7.83%/9.43%</text>
+<text x="1288" y="1775" font-family="Arial, sans-serif" font-size="9" fill="#374151">10.6%/10.8%/11.0%</text>
 <text x="220" y="1799" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">RemoteIP</text>
 <rect x="230" y="1788" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1788" width="226.12" height="14" fill="#2563eb"/>
@@ -943,12 +943,12 @@
 <rect x="463.53" y="1788" width="196.47" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1788" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1799" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.50/10.4/13.0x</text>
-<text x="824" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.11/1.28/1.76x</text>
-<text x="940" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.50/9.87/13.0x</text>
-<text x="1056" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.11/1.23/1.76x</text>
-<text x="1172" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.56/1.60/1.64x</text>
-<text x="1288" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">8.03/8.35/8.67x</text>
+<text x="708" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.72%/10.7%/18.2%</text>
+<text x="824" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">11.2%/17.3%/32.3%</text>
+<text x="940" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.72%/10.2%/18.2%</text>
+<text x="1056" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">11.2%/17.4%/32.3%</text>
+<text x="1172" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">11.3%/11.8%/12.3%</text>
+<text x="1288" y="1799" font-family="Arial, sans-serif" font-size="9" fill="#374151">11.5%/12.0%/12.5%</text>
 <text x="220" y="1823" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">CounterClass</text>
 <rect x="230" y="1812" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1812" width="215.00" height="14" fill="#2563eb"/>
@@ -956,12 +956,12 @@
 <rect x="448.71" y="1812" width="211.29" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1812" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1823" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/913/1062x</text>
-<text x="824" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">831/1019/1062x</text>
-<text x="1056" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/225/225x</text>
+<text x="708" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.44%</text>
+<text x="824" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.12%</text>
+<text x="1056" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="1823" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/0.44%/0.44%</text>
 <text x="220" y="1847" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">CounterID</text>
 <rect x="230" y="1836" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1836" width="63.02" height="14" fill="#2563eb"/>
@@ -969,12 +969,12 @@
 <rect x="296.72" y="1836" width="363.28" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1836" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1847" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">195/777/915x</text>
-<text x="824" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.86x</text>
-<text x="940" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">714/842/915x</text>
-<text x="1056" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.86x</text>
-<text x="1172" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">195/195/195x</text>
+<text x="708" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.12%/0.51%</text>
+<text x="824" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.12%/0.14%</text>
+<text x="1056" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="1847" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.51%/0.51%/0.51%</text>
 <text x="220" y="1871" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">EventDate</text>
 <rect x="230" y="1860" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1860" width="63.02" height="14" fill="#2563eb"/>
@@ -982,12 +982,12 @@
 <rect x="296.72" y="1860" width="363.28" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1860" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1871" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">195/783/915x</text>
-<text x="824" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">714/878/915x</text>
-<text x="1056" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">195/195/195x</text>
+<text x="708" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.11%/0.51%</text>
+<text x="824" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.11%/0.14%</text>
+<text x="1056" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="1871" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.51%/0.51%/0.51%</text>
 <text x="220" y="1895" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">GoodEvent</text>
 <rect x="230" y="1884" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1884" width="63.02" height="14" fill="#2563eb"/>
@@ -995,12 +995,12 @@
 <rect x="296.72" y="1884" width="363.28" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1884" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1895" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">195/777/915x</text>
-<text x="824" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">714/878/915x</text>
-<text x="1056" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">195/195/195x</text>
+<text x="708" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.11%/0.51%</text>
+<text x="824" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.11%/0.14%</text>
+<text x="1056" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="1895" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.51%/0.51%/0.51%</text>
 <text x="220" y="1919" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">HTTPError</text>
 <rect x="230" y="1908" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1908" width="215.00" height="14" fill="#2563eb"/>
@@ -1008,12 +1008,12 @@
 <rect x="448.71" y="1908" width="211.29" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1908" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1919" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/913/1062x</text>
-<text x="824" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">831/1019/1062x</text>
-<text x="1056" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/225/225x</text>
+<text x="708" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.44%</text>
+<text x="824" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.12%</text>
+<text x="1056" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="1919" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/0.44%/0.44%</text>
 <text x="220" y="1943" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsEvent</text>
 <rect x="230" y="1932" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1932" width="215.00" height="14" fill="#2563eb"/>
@@ -1021,12 +1021,12 @@
 <rect x="448.71" y="1932" width="211.29" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1932" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1943" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/913/1062x</text>
-<text x="824" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">831/1019/1062x</text>
-<text x="1056" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/225/225x</text>
+<text x="708" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.44%</text>
+<text x="824" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.12%</text>
+<text x="1056" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="1943" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/0.44%/0.44%</text>
 <text x="220" y="1967" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsOldCounter</text>
 <rect x="230" y="1956" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1956" width="215.00" height="14" fill="#2563eb"/>
@@ -1034,12 +1034,12 @@
 <rect x="448.71" y="1956" width="211.29" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1956" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1967" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/913/1062x</text>
-<text x="824" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">831/1019/1062x</text>
-<text x="1056" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/225/225x</text>
+<text x="708" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.44%</text>
+<text x="824" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.12%</text>
+<text x="1056" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="1967" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/0.44%/0.44%</text>
 <text x="220" y="1991" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IsParameter</text>
 <rect x="230" y="1980" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="1980" width="215.00" height="14" fill="#2563eb"/>
@@ -1047,12 +1047,12 @@
 <rect x="448.71" y="1980" width="211.29" height="14" fill="#dc2626"/>
 <rect x="660.00" y="1980" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="1991" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/913/1062x</text>
-<text x="824" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">831/1019/1062x</text>
-<text x="1056" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/225/225x</text>
+<text x="708" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.44%</text>
+<text x="824" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.12%</text>
+<text x="1056" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="1991" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/0.44%/0.44%</text>
 <text x="220" y="2015" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">OpenerName</text>
 <rect x="230" y="2004" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="2004" width="218.71" height="14" fill="#2563eb"/>
@@ -1060,12 +1060,12 @@
 <rect x="452.41" y="2004" width="207.59" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2004" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2015" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/905/1076x</text>
-<text x="824" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">831/1019/1076x</text>
-<text x="1056" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/225/225x</text>
+<text x="708" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.44%</text>
+<text x="824" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.12%</text>
+<text x="1056" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="2015" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/0.44%/0.44%</text>
 <text x="220" y="2039" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ParamCurrency</text>
 <rect x="230" y="2028" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="2028" width="3.71" height="14" fill="#2563eb"/>
@@ -1073,12 +1073,12 @@
 <rect x="237.41" y="2028" width="422.59" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2028" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2039" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">341/1359/1407x</text>
-<text x="824" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">1249/1362/1407x</text>
-<text x="1056" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">341/341/341x</text>
+<text x="708" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.07%/0.07%/0.29%</text>
+<text x="824" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.08%/0.09%/0.21%</text>
+<text x="940" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.07%/0.07%/0.08%</text>
+<text x="1056" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.08%/0.09%/0.21%</text>
+<text x="1172" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.21%/0.21%/0.21%</text>
+<text x="1288" y="2039" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.29%/0.29%/0.29%</text>
 <text x="220" y="2063" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ParamCurrencyID</text>
 <rect x="230" y="2052" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="2052" width="215.00" height="14" fill="#2563eb"/>
@@ -1086,12 +1086,12 @@
 <rect x="448.71" y="2052" width="211.29" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2052" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2063" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/913/1062x</text>
-<text x="824" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">831/1019/1062x</text>
-<text x="1056" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/225/225x</text>
+<text x="708" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.44%</text>
+<text x="824" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.12%</text>
+<text x="1056" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="2063" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/0.44%/0.44%</text>
 <text x="220" y="2087" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ParamPrice</text>
 <rect x="230" y="2076" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="2076" width="118.62" height="14" fill="#2563eb"/>
@@ -1099,12 +1099,12 @@
 <rect x="352.33" y="2076" width="307.67" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2076" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2087" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">371/1423/1531x</text>
-<text x="824" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.86/0.86x</text>
-<text x="940" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">1270/1469/1531x</text>
-<text x="1056" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.86/0.86x</text>
-<text x="1172" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.85/0.85/0.85x</text>
-<text x="1288" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">371/371/371x</text>
+<text x="708" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.07%/0.07%/0.27%</text>
+<text x="824" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.08%/0.09%/0.22%</text>
+<text x="940" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.07%/0.07%/0.08%</text>
+<text x="1056" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.08%/0.09%/0.22%</text>
+<text x="1172" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.22%/0.22%/0.22%</text>
+<text x="1288" y="2087" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.27%/0.27%/0.27%</text>
 <text x="220" y="2111" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">RegionID</text>
 <rect x="230" y="2100" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="2100" width="266.90" height="14" fill="#2563eb"/>
@@ -1112,12 +1112,12 @@
 <rect x="500.60" y="2100" width="159.40" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2100" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2111" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">11.0/23.0/29.0x</text>
-<text x="824" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.29/1.79/1.98x</text>
-<text x="940" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">11.0/20.5/29.0x</text>
-<text x="1056" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.29/1.79/1.98x</text>
-<text x="1172" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.74/1.74/1.74x</text>
-<text x="1288" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">18.1/18.1/18.1x</text>
+<text x="708" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.45%/4.87%/9.07%</text>
+<text x="824" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.54%/5.64%/13.5%</text>
+<text x="940" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.45%/4.87%/9.07%</text>
+<text x="1056" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.54%/5.64%/13.5%</text>
+<text x="1172" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.45%/5.45%/5.45%</text>
+<text x="1288" y="2111" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.52%/5.52%/5.52%</text>
 <text x="220" y="2135" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ResponseStartTiming</text>
 <rect x="230" y="2124" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="2124" width="11.12" height="14" fill="#2563eb"/>
@@ -1125,12 +1125,12 @@
 <rect x="244.83" y="2124" width="415.17" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2124" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2135" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.19/3.46/5.39x</text>
-<text x="824" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.01/1.25/1.46x</text>
-<text x="940" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.19/3.34/5.39x</text>
-<text x="1056" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.01/1.25/1.46x</text>
-<text x="1172" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.46/1.46/1.46x</text>
-<text x="1288" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.46/4.46/4.46x</text>
+<text x="708" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">18.6%/29.4%/45.7%</text>
+<text x="824" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.3%/37.7%/62.7%</text>
+<text x="940" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">18.6%/29.9%/45.7%</text>
+<text x="1056" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.3%/37.7%/62.7%</text>
+<text x="1172" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.2%/22.2%/22.2%</text>
+<text x="1288" y="2135" font-family="Arial, sans-serif" font-size="9" fill="#374151">22.4%/22.4%/22.4%</text>
 <text x="220" y="2159" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Robotness</text>
 <rect x="230" y="2148" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="2148" width="400.34" height="14" fill="#2563eb"/>
@@ -1138,12 +1138,12 @@
 <rect x="634.05" y="2148" width="25.95" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2148" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2159" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">14.4/24.6/38.2x</text>
-<text x="824" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.29/1.80/1.92x</text>
-<text x="940" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">14.4/23.1/38.2x</text>
-<text x="1056" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.29/1.80/1.92x</text>
-<text x="1172" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.81/1.81/1.81x</text>
-<text x="1288" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">14.8/14.8/14.8x</text>
+<text x="708" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.62%/4.32%/6.95%</text>
+<text x="824" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.71%/5.99%/8.89%</text>
+<text x="940" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.62%/4.32%/6.95%</text>
+<text x="1056" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">4.71%/5.90%/8.89%</text>
+<text x="1172" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.45%/6.45%/6.45%</text>
+<text x="1288" y="2159" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.74%/6.74%/6.74%</text>
 <text x="220" y="2183" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SilverlightVersion4</text>
 <rect x="230" y="2172" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="2172" width="211.29" height="14" fill="#2563eb"/>
@@ -1151,12 +1151,12 @@
 <rect x="445.00" y="2172" width="215.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2172" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2183" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/897/1049x</text>
-<text x="824" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.85x</text>
-<text x="940" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">720/897/1049x</text>
-<text x="1056" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.85x</text>
-<text x="1172" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/225/225x</text>
+<text x="708" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.10%/0.11%/0.44%</text>
+<text x="824" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.10%/0.11%/0.14%</text>
+<text x="1056" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="2183" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/0.44%/0.44%</text>
 <text x="220" y="2207" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">WithHash</text>
 <rect x="230" y="2196" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="2196" width="215.00" height="14" fill="#2563eb"/>
@@ -1164,12 +1164,12 @@
 <rect x="448.71" y="2196" width="211.29" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2196" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2207" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/913/1062x</text>
-<text x="824" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="940" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">831/1019/1062x</text>
-<text x="1056" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.83/0.83x</text>
-<text x="1172" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.82/0.82/0.82x</text>
-<text x="1288" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">225/225/225x</text>
+<text x="708" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.44%</text>
+<text x="824" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="940" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.09%/0.10%/0.12%</text>
+<text x="1056" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.13%/0.16%/0.37%</text>
+<text x="1172" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.37%/0.37%/0.37%</text>
+<text x="1288" y="2207" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.44%/0.44%/0.44%</text>
 <text x="220" y="2231" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ClientEventTime</text>
 <rect x="230" y="2220" width="430" height="14" fill="#f3f4f6"/>
 <rect x="230.00" y="2220" width="107.50" height="14" fill="#2563eb"/>
@@ -1177,10 +1177,10 @@
 <rect x="337.50" y="2220" width="322.50" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2220" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2231" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2231" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.43/2.69/4.69x</text>
-<text x="824" y="2231" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.66/1.78/2.04x</text>
-<text x="940" y="2231" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.43/2.65/4.69x</text>
-<text x="1056" y="2231" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.66/1.78/2.04x</text>
+<text x="708" y="2231" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.3%/37.8%/41.1%</text>
+<text x="824" y="2231" font-family="Arial, sans-serif" font-size="9" fill="#374151">40.0%/56.9%/59.0%</text>
+<text x="940" y="2231" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.3%/37.8%/41.1%</text>
+<text x="1056" y="2231" font-family="Arial, sans-serif" font-size="9" fill="#374151">40.0%/56.9%/59.0%</text>
 <text x="1172" y="2231" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2231" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2255" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ClientIP</text>
@@ -1190,10 +1190,10 @@
 <rect x="626.64" y="2244" width="33.36" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2244" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2255" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2255" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.51/10.9/13.1x</text>
-<text x="824" y="2255" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.09/1.14/1.29x</text>
-<text x="940" y="2255" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.51/9.99/13.1x</text>
-<text x="1056" y="2255" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.09/1.14/1.29x</text>
+<text x="708" y="2255" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.63%/10.0%/18.1%</text>
+<text x="824" y="2255" font-family="Arial, sans-serif" font-size="9" fill="#374151">16.3%/19.4%/32.4%</text>
+<text x="940" y="2255" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.63%/10.0%/18.1%</text>
+<text x="1056" y="2255" font-family="Arial, sans-serif" font-size="9" fill="#374151">16.3%/19.4%/32.4%</text>
 <text x="1172" y="2255" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2255" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2279" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">EventTime</text>
@@ -1203,10 +1203,10 @@
 <rect x="237.41" y="2268" width="422.59" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2268" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2279" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2279" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.44/2.68/4.59x</text>
-<text x="824" y="2279" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.70/1.79/2.05x</text>
-<text x="940" y="2279" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.44/2.64/4.59x</text>
-<text x="1056" y="2279" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.70/1.79/2.05x</text>
+<text x="708" y="2279" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.8%/37.9%/41.0%</text>
+<text x="824" y="2279" font-family="Arial, sans-serif" font-size="9" fill="#374151">42.2%/56.6%/59.0%</text>
+<text x="940" y="2279" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.8%/37.9%/41.0%</text>
+<text x="1056" y="2279" font-family="Arial, sans-serif" font-size="9" fill="#374151">42.2%/56.6%/59.0%</text>
 <text x="1172" y="2279" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2279" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2303" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">FUniqID</text>
@@ -1216,10 +1216,10 @@
 <rect x="233.71" y="2292" width="426.29" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2292" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2303" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2303" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.77/12.6/15.5x</text>
-<text x="824" y="2303" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.07/1.11/1.22x</text>
-<text x="940" y="2303" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.77/11.9/15.5x</text>
-<text x="1056" y="2303" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.07/1.11/1.22x</text>
+<text x="708" y="2303" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.47%/8.42%/14.8%</text>
+<text x="824" y="2303" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.82%/12.7%/21.4%</text>
+<text x="940" y="2303" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.47%/8.42%/14.8%</text>
+<text x="1056" y="2303" font-family="Arial, sans-serif" font-size="9" fill="#374151">9.82%/12.7%/21.4%</text>
 <text x="1172" y="2303" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2303" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2327" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">IPNetworkID</text>
@@ -1229,10 +1229,10 @@
 <rect x="660.00" y="2316" width="0.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2316" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2327" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2327" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.22/12.9/16.4x</text>
-<text x="824" y="2327" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.10/1.20/1.25x</text>
-<text x="940" y="2327" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.22/12.6/16.4x</text>
-<text x="1056" y="2327" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.10/1.20/1.25x</text>
+<text x="708" y="2327" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.11%/7.94%/13.8%</text>
+<text x="824" y="2327" font-family="Arial, sans-serif" font-size="9" fill="#374151">13.0%/14.9%/25.6%</text>
+<text x="940" y="2327" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.11%/7.94%/13.8%</text>
+<text x="1056" y="2327" font-family="Arial, sans-serif" font-size="9" fill="#374151">13.0%/14.9%/25.6%</text>
 <text x="1172" y="2327" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2327" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2351" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Interests</text>
@@ -1242,10 +1242,10 @@
 <rect x="600.69" y="2340" width="59.31" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2340" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2351" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2351" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.8/21.7/25.7x</text>
-<text x="824" y="2351" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.34/1.56/1.82x</text>
-<text x="940" y="2351" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.8/21.6/25.7x</text>
-<text x="1056" y="2351" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.34/1.56/1.82x</text>
+<text x="708" y="2351" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.89%/4.62%/7.80%</text>
+<text x="824" y="2351" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.43%/7.54%/13.3%</text>
+<text x="940" y="2351" font-family="Arial, sans-serif" font-size="9" fill="#374151">3.89%/4.62%/7.80%</text>
+<text x="1056" y="2351" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.43%/7.54%/13.3%</text>
 <text x="1172" y="2351" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2351" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2375" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">LocalEventTime</text>
@@ -1255,10 +1255,10 @@
 <rect x="237.41" y="2364" width="422.59" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2364" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2375" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2375" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.43/2.67/4.60x</text>
-<text x="824" y="2375" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.70/1.79/2.04x</text>
-<text x="940" y="2375" font-family="Arial, sans-serif" font-size="9" fill="#374151">2.43/2.63/4.60x</text>
-<text x="1056" y="2375" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.70/1.79/2.04x</text>
+<text x="708" y="2375" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.8%/38.0%/41.1%</text>
+<text x="824" y="2375" font-family="Arial, sans-serif" font-size="9" fill="#374151">42.2%/56.8%/59.0%</text>
+<text x="940" y="2375" font-family="Arial, sans-serif" font-size="9" fill="#374151">21.8%/38.0%/41.1%</text>
+<text x="1056" y="2375" font-family="Arial, sans-serif" font-size="9" fill="#374151">42.2%/56.8%/59.0%</text>
 <text x="1172" y="2375" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2375" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2399" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">ParamOrderID</text>
@@ -1268,10 +1268,10 @@
 <rect x="604.40" y="2388" width="55.60" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2388" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2399" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2399" font-family="Arial, sans-serif" font-size="9" fill="#374151">340/1351/1561x</text>
-<text x="824" y="2399" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/0.80x</text>
-<text x="940" y="2399" font-family="Arial, sans-serif" font-size="9" fill="#374151">340/1494/1561x</text>
-<text x="1056" y="2399" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/0.80x</text>
+<text x="708" y="2399" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.07%/0.29%</text>
+<text x="824" y="2399" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.31%</text>
+<text x="940" y="2399" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.07%/0.29%</text>
+<text x="1056" y="2399" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.31%</text>
 <text x="1172" y="2399" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2399" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2423" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">Params</text>
@@ -1281,10 +1281,10 @@
 <rect x="604.40" y="2412" width="55.60" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2412" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2423" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2423" font-family="Arial, sans-serif" font-size="9" fill="#374151">340/1351/1561x</text>
-<text x="824" y="2423" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/0.80x</text>
-<text x="940" y="2423" font-family="Arial, sans-serif" font-size="9" fill="#374151">340/1494/1561x</text>
-<text x="1056" y="2423" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/0.80x</text>
+<text x="708" y="2423" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.07%/0.29%</text>
+<text x="824" y="2423" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.31%</text>
+<text x="940" y="2423" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.07%/0.29%</text>
+<text x="1056" y="2423" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.31%</text>
 <text x="1172" y="2423" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2423" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2447" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SocialAction</text>
@@ -1294,10 +1294,10 @@
 <rect x="604.40" y="2436" width="55.60" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2436" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2447" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2447" font-family="Arial, sans-serif" font-size="9" fill="#374151">340/1351/1561x</text>
-<text x="824" y="2447" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/0.80x</text>
-<text x="940" y="2447" font-family="Arial, sans-serif" font-size="9" fill="#374151">340/1494/1561x</text>
-<text x="1056" y="2447" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/0.80x</text>
+<text x="708" y="2447" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.07%/0.29%</text>
+<text x="824" y="2447" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.31%</text>
+<text x="940" y="2447" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.07%/0.29%</text>
+<text x="1056" y="2447" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.31%</text>
 <text x="1172" y="2447" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2447" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2471" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">SocialNetwork</text>
@@ -1307,10 +1307,10 @@
 <rect x="604.40" y="2460" width="55.60" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2460" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2471" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2471" font-family="Arial, sans-serif" font-size="9" fill="#374151">340/1351/1561x</text>
-<text x="824" y="2471" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/0.80x</text>
-<text x="940" y="2471" font-family="Arial, sans-serif" font-size="9" fill="#374151">340/1494/1561x</text>
-<text x="1056" y="2471" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.79/0.80/0.80x</text>
+<text x="708" y="2471" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.07%/0.29%</text>
+<text x="824" y="2471" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.31%</text>
+<text x="940" y="2471" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.06%/0.07%/0.29%</text>
+<text x="1056" y="2471" font-family="Arial, sans-serif" font-size="9" fill="#374151">0.11%/0.13%/0.31%</text>
 <text x="1172" y="2471" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2471" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2495" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">URLHash</text>
@@ -1320,10 +1320,10 @@
 <rect x="230.00" y="2484" width="430.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2484" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2495" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2495" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.52/2.05/3.16x</text>
-<text x="824" y="2495" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.01/1.04x</text>
-<text x="940" y="2495" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.52/2.05/3.16x</text>
-<text x="1056" y="2495" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.01/1.04x</text>
+<text x="708" y="2495" font-family="Arial, sans-serif" font-size="9" fill="#374151">31.7%/48.9%/66.0%</text>
+<text x="824" y="2495" font-family="Arial, sans-serif" font-size="9" fill="#374151">44.1%/61.2%/75.9%</text>
+<text x="940" y="2495" font-family="Arial, sans-serif" font-size="9" fill="#374151">31.7%/48.9%/66.0%</text>
+<text x="1056" y="2495" font-family="Arial, sans-serif" font-size="9" fill="#374151">44.1%/61.2%/75.9%</text>
 <text x="1172" y="2495" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2495" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2519" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">UserID</text>
@@ -1333,10 +1333,10 @@
 <rect x="233.71" y="2508" width="426.29" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2508" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2519" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2519" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.44/13.5/17.4x</text>
-<text x="824" y="2519" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.07/1.10/1.21x</text>
-<text x="940" y="2519" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.44/13.5/17.4x</text>
-<text x="1056" y="2519" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.07/1.10/1.21x</text>
+<text x="708" y="2519" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.73%/7.39%/13.4%</text>
+<text x="824" y="2519" font-family="Arial, sans-serif" font-size="9" fill="#374151">10.5%/13.4%/22.2%</text>
+<text x="940" y="2519" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.73%/7.39%/13.4%</text>
+<text x="1056" y="2519" font-family="Arial, sans-serif" font-size="9" fill="#374151">10.5%/13.4%/22.2%</text>
 <text x="1172" y="2519" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2519" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2543" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">WatchID</text>
@@ -1346,10 +1346,10 @@
 <rect x="230.00" y="2532" width="430.00" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2532" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2543" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2543" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.00/1.00x</text>
-<text x="824" y="2543" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.00/1.00x</text>
-<text x="940" y="2543" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.00/1.00x</text>
-<text x="1056" y="2543" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.00/1.00/1.00x</text>
+<text x="708" y="2543" font-family="Arial, sans-serif" font-size="9" fill="#374151">100%/100%/100%</text>
+<text x="824" y="2543" font-family="Arial, sans-serif" font-size="9" fill="#374151">120%/123%/123%</text>
+<text x="940" y="2543" font-family="Arial, sans-serif" font-size="9" fill="#374151">100%/100%/100%</text>
+<text x="1056" y="2543" font-family="Arial, sans-serif" font-size="9" fill="#374151">120%/123%/123%</text>
 <text x="1172" y="2543" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2543" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2567" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">WindowClientHeight</text>
@@ -1359,10 +1359,10 @@
 <rect x="656.29" y="2556" width="3.71" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2556" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2567" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2567" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.69/14.0/18.0x</text>
-<text x="824" y="2567" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.13/1.25/1.76x</text>
-<text x="940" y="2567" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.69/11.4/18.0x</text>
-<text x="1056" y="2567" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.13/1.25/1.76x</text>
+<text x="708" y="2567" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.56%/8.76%/13.0%</text>
+<text x="824" y="2567" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.2%/14.6%/18.1%</text>
+<text x="940" y="2567" font-family="Arial, sans-serif" font-size="9" fill="#374151">5.56%/8.76%/13.0%</text>
+<text x="1056" y="2567" font-family="Arial, sans-serif" font-size="9" fill="#374151">12.2%/14.6%/18.1%</text>
 <text x="1172" y="2567" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2567" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="220" y="2591" font-family="Arial, sans-serif" font-size="11" text-anchor="end" fill="#374151">WindowClientWidth</text>
@@ -1372,12 +1372,12 @@
 <rect x="652.59" y="2580" width="7.41" height="14" fill="#dc2626"/>
 <rect x="660.00" y="2580" width="0.00" height="14" fill="#9ca3af"/>
 <text x="666" y="2591" font-family="Arial, sans-serif" font-size="10" fill="#6b7280">116</text>
-<text x="708" y="2591" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.90/13.5/16.2x</text>
-<text x="824" y="2591" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.38/1.46/1.61x</text>
-<text x="940" y="2591" font-family="Arial, sans-serif" font-size="9" fill="#374151">7.90/13.6/16.2x</text>
-<text x="1056" y="2591" font-family="Arial, sans-serif" font-size="9" fill="#374151">1.38/1.46/1.61x</text>
+<text x="708" y="2591" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.17%/7.38%/12.7%</text>
+<text x="824" y="2591" font-family="Arial, sans-serif" font-size="9" fill="#374151">8.03%/12.0%/16.5%</text>
+<text x="940" y="2591" font-family="Arial, sans-serif" font-size="9" fill="#374151">6.17%/7.38%/12.7%</text>
+<text x="1056" y="2591" font-family="Arial, sans-serif" font-size="9" fill="#374151">8.03%/12.0%/16.5%</text>
 <text x="1172" y="2591" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="1288" y="2591" font-family="Arial, sans-serif" font-size="9" fill="#374151">n/a</text>
 <text x="230" y="2630" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">bar width = share of overlap comparison windows won</text>
-<text x="230" y="2646" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">CR = encoded bytes before ZSTD / compressed bytes after ZSTD; RLE CR includes amortized dictionary bytes</text>
+<text x="230" y="2646" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">ratio = compressed bytes after ZSTD / plain uncompressed encoded bytes; lower is better</text>
 </svg>
